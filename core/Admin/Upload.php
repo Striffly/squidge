@@ -19,6 +19,7 @@ namespace Squidge\Admin;
 
 use Exception;
 use Squidge\Log\Logger;
+use Squidge\Package\Service;
 use Squidge\Services\AVIF;
 use Squidge\Services\JPG;
 use Squidge\Services\PNG;
@@ -45,6 +46,7 @@ class Upload
 		add_filter("wp_generate_attachment_metadata", [$this, 'process_avif'], 30, 1);
 		add_filter("wp_generate_attachment_metadata", [$this, 'process_jpg'], 40, 1);
 		add_filter("wp_generate_attachment_metadata", [$this, 'process_png'], 50, 1);
+		add_filter("delete_attachment", [$this, 'delete_original'], 20, 1);
 		add_filter("delete_attachment", [$this, 'delete_webp'], 20, 1);
 		add_filter("delete_attachment", [$this, 'delete_avif'], 20, 1);
 	}
@@ -159,6 +161,21 @@ class Upload
 			Logger::error($e->getMessage());
 		}
 
+		return $attachment;
+	}
+
+	/**
+	 * Deletes files with the original file extension when the attachment is
+	 * deleted from the media library.
+	 *
+	 * @param $attachment
+	 * @return mixed
+	 * @since 0.1.5
+	 * @date 01/26/2023
+	 */
+	public function delete_original($attachment)
+	{
+		Service::delete($attachment, true);
 		return $attachment;
 	}
 

@@ -56,7 +56,8 @@ class PNG extends Service implements Convertor
 		if (!isset($args['quality'])) {
 			$args['quality'] = self::DEFAULT_OPTIMIZATION;
 		}
-		exec(sprintf('%s -clobber -strip all -o %d %s 2> /dev/null', escapeshellarg(self::cmd_name()), escapeshellarg($args['optimization']), escapeshellarg($filepath)));
+		$pathinfo = pathinfo($filepath);
+		exec(sprintf('%s -clobber -strip all -out %s -o %d %s 2> /dev/null', escapeshellarg(self::cmd_name()), escapeshellarg(sprintf("%s/%s-compressed.%s", $pathinfo["dirname"], $pathinfo["filename"], $pathinfo["extension"])), escapeshellarg($args['optimization']), escapeshellarg($filepath)));
 		Logger::info("Successfully compressed image PNG file: " . $filepath);
 	}
 

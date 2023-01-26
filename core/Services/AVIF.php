@@ -4,8 +4,8 @@
  * AVIF
  *
  * Avif is responsible for converting JPG and PNG
- * images to webp with the .webp extension using
- * the cwebp library.
+ * images to avif with the .avif extension using
+ * the avifenc library.
  *
  * @package     Squidge
  * @version     0.1.4
@@ -48,7 +48,8 @@ class AVIF extends Service implements Convertor
 		if ($mime != Mimes::PNG && $mime != Mimes::JPG) {
 			return;
 		}
-		exec(sprintf('%s --min 0 --max 63 --speed 6 -a end-usage=q -a cq-level=18 -a tune=ssim %s %s 2> /dev/null', escapeshellarg(self::cmd_name()), escapeshellarg($filepath), escapeshellarg($filepath . self::extension())));
+		$pathinfo = pathinfo($filepath);
+		exec(sprintf('%s --min 0 --max 63 --speed 6 -a end-usage=q -a cq-level=18 -a tune=ssim %s %s 2> /dev/null', escapeshellarg(self::cmd_name()), escapeshellarg($filepath), escapeshellarg(sprintf("%s/%s-compressed%s", $pathinfo["dirname"], $pathinfo["filename"], self::extension()))));
 		Logger::info("Successfully converted to AVIF file: " . $filepath . self::extension());
 	}
 

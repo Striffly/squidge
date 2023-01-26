@@ -57,7 +57,8 @@ class WebP extends Service implements Convertor
 		if (!isset($args['quality'])) {
 			$args['quality'] = self::DEFAULT_QUALITY;
 		}
-		exec(sprintf('%s -q %d %s -o %s 2> /dev/null', escapeshellarg(self::cmd_name()), $args['quality'], escapeshellarg($filepath), escapeshellarg($filepath . self::extension())));
+		$pathinfo = pathinfo($filepath);
+		exec(sprintf('%s -q %d %s -o %s 2> /dev/null', escapeshellarg(self::cmd_name()), $args['quality'], escapeshellarg($filepath), escapeshellarg(sprintf("%s/%s-compressed%s", $pathinfo["dirname"], $pathinfo["filename"], self::extension()))));
 		Logger::info("Successfully converted to WebP file: " . $filepath . self::extension());
 	}
 
@@ -76,6 +77,7 @@ class WebP extends Service implements Convertor
 	/**
 	 * Returns the extension to convert too.
 	 *
+	 * @param $file
 	 * @return string
 	 * @since 0.1.0
 	 * @date 24/11/2021

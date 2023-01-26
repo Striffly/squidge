@@ -67,9 +67,9 @@ class Service
 
 		// Check if the attachment has already been compressed.
 		$id = attachment_url_to_postid($attachment['file']);
-		if (self::has_compressed($id) && !$args['force']) {
-			return;
-		}
+//		if (self::has_compressed($id) && !$args['force']) {
+//			return;
+//		}
 
 		// Convert main image.
 		if (!$args['thumbnailsOnly']) static::convert($mainFile, self::get_mime_type($mainFile), $args);
@@ -100,12 +100,14 @@ class Service
 	 * @since 0.1.0
 	 * @date 24/11/2021
 	 */
-	public static function delete($id)
+	public static function delete($id, $useFileExtension = false)
 	{
 		// Delete the original file.
-		$original = wp_get_original_image_path($id) . static::extension();
-		if (file_exists($original)) {
-			unlink($original);
+		$original = wp_get_original_image_path($id);
+		$pathinfo = pathinfo($original);
+		$path = sprintf("%s/%s-compressed%s", $pathinfo["dirname"], $pathinfo["filename"], $useFileExtension ? ".".$pathinfo["extension"] : static::extension());
+		if (file_exists($path)) {
+			unlink($path);
 		}
 
 		// Delete the image sizes.
@@ -115,7 +117,9 @@ class Service
 			if (empty($fileInfos)) {
 				continue;
 			}
-			$path = self::get_file_path($fileInfos['path'] . static::extension());
+
+			$pathinfo = pathinfo($fileInfos['path']);
+			$path = self::get_file_path(sprintf("%s/%s-compressed%s", $pathinfo["dirname"], $pathinfo["filename"], $useFileExtension ? ".".$pathinfo["extension"] : static::extension()));
 			if (!$path) {
 				continue;
 			}
