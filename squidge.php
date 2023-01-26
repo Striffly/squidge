@@ -7,7 +7,7 @@
  * Author:          Ainsley Clark
  * Author URI:      https://github.com/ainsleyclark
  * Text Domain:     squidge
- * Version:         0.1.4
+ * Version:         0.1.4.1
  * License:         GNU
  *
  * @package         Squidge
