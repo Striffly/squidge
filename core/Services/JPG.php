@@ -57,7 +57,7 @@ class JPG extends Service implements Convertor
 			$args['quality'] = self::DEFAULT_QUALITY;
 		}
 		$pathinfo = pathinfo($filepath);
-		exec(sprintf('%s --strip-all --overwrite --dest=%s --max=%d %s 2> /dev/null', escapeshellarg(self::cmd_name()), escapeshellarg(sprintf("%s/%s-compressed.%s", $pathinfo["dirname"], $pathinfo["filename"], $pathinfo["extension"])), $args['quality'], escapeshellarg($filepath)));
+		exec(sprintf('%s --strip-all --stdout --max=%d %s > %s 2> /dev/null', escapeshellarg(self::cmd_name()), escapeshellarg(sprintf("%s/%s-compressed.%s", $pathinfo["dirname"], $pathinfo["filename"], $pathinfo["extension"])), $args['quality'], escapeshellarg($filepath)));
 		Logger::info("Successfully compressed image JPG file: " . $filepath);
 	}
 
