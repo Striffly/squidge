@@ -104,6 +104,8 @@ class Service
 	{
 		// Delete the original file.
 		$original = wp_get_original_image_path($id);
+		if (!$original) return;
+
 		$pathinfo = pathinfo($original);
 		$path = sprintf("%s/%s-compressed%s", $pathinfo["dirname"], $pathinfo["filename"], $useFileExtension ? ".".$pathinfo["extension"] : static::extension());
 		if (file_exists($path)) {
