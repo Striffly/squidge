@@ -18,6 +18,7 @@ namespace Squidge\Package;
 
 use Exception;
 use Squidge\Log\Logger;
+use Squidge\Types\Mimes;
 
 if (!defined('ABSPATH')) {
 	exit; // Exit if accessed directly
@@ -44,7 +45,6 @@ class Service
 	 */
 	public static function process($attachment, $args)
 	{
-
 		// If the attachment is an ID, obtain the metadata.
 		if (is_int($attachment)) {
 			$attachment = wp_get_attachment_metadata($attachment);
@@ -103,8 +103,13 @@ class Service
 	public static function delete($id, $useFileExtension = false)
 	{
 		// Delete the original file.
-		$original = wp_get_original_image_path($id);
+		$original = get_attached_file($id);
 		if (!$original) return;
+
+		$mime_type = self::get_mime_type($original);
+		if ($mime_type != Mimes::PNG && $mime_type != Mimes::JPG) {
+			return;
+		}
 
 		$pathinfo = pathinfo($original);
 		$path = sprintf("%s/%s-compressed%s", $pathinfo["dirname"], $pathinfo["filename"], $useFileExtension ? ".".$pathinfo["extension"] : static::extension());
