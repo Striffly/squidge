@@ -237,7 +237,15 @@ class Service
 		if (is_wp_error($editor)) {
 			return $filepath;
 		}
-		$saved = $editor->save(get_temp_dir() . uniqid('oio-') . '.png', 'image/png');
+		// A random name: in a temporary folder shared by the users of the server,
+		// a predictable one could be a link to a file of the site, overwritten.
+		require_once ABSPATH . 'wp-admin/includes/file.php';
+		$temp = wp_tempnam('oio.png');
+		$saved = $editor->save($temp, 'image/png');
+		// The editor saves it with the .png extension, next to the empty .tmp.
+		if (file_exists($temp) && (is_wp_error($saved) || $saved['path'] !== $temp)) {
+			unlink($temp);
+		}
 		if (is_wp_error($saved)) {
 			return $filepath;
 		}
