@@ -182,14 +182,24 @@ Keep the `function_exists()` check: without it, the pages break while OIO is dea
 | `oio_avif_jobs`                   | `4` on upload, `2` in background, `all` in CLI | The threads of `avifenc`.                                |
 | `oio_job_seconds_between_batches` | `0`                                           | A pause after each image of a background job, seconds.   |
 | `oio_job_default_time_limit`      | `20`                                          | The duration of a batch of a background job, seconds.    |
+| `oio_binary_path`                 | Found in the `PATH`, then `/usr/bin`...       | The path of a library, or `false` to turn it off.        |
 
 `oio_nice` and `oio_avif_jobs` receive the context as second argument: `upload`, `background` or `cli`. On
 multisite, the two job filters carry the ID of the site: `oio_2_job_default_time_limit` on the site 2.
+
+`oio_binary_path` receives the name of the library as second argument (`jpegoptim`, `optipng`, `cwebp`, `avifenc`,
+or `nice`). OIO looks the libraries up in the folders of the `PATH`, then in `/usr/bin`, `/usr/local/bin`, `/bin`,
+`/opt/homebrew/bin` and `/opt/local/bin`: PHP-FPM often passes an empty `PATH`.
 
 ```php
 // In a mu-plugin: lighter background jobs on a small server.
 add_filter('oio_avif_jobs', function ($jobs, $context) {
 	return $context === 'background' ? 1 : $jobs;
+}, 10, 2);
+
+// A library installed out of the usual folders.
+add_filter('oio_binary_path', function ($path, $name) {
+	return $name === 'avifenc' ? '/home/me/bin/avifenc' : $path;
 }, 10, 2);
 ```
 

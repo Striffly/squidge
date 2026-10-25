@@ -70,6 +70,14 @@ class Service
 	private static $versions = null;
 
 	/**
+	 * The paths of the programs, by name, once looked
+	 * up in this request (see binary()).
+	 *
+	 * @var array
+	 */
+	private static $binaries = [];
+
+	/**
 	 * Processes the file attachment.
 	 *
 	 * @param $attachment
@@ -168,7 +176,10 @@ class Service
 	 * Executes a command without shell: each argument
 	 * reaches the program as given, nothing is
 	 * interpreted. Falls back on exec(), with escaped
-	 * arguments, where proc_open() is disabled.
+	 * arguments, where proc_open() is disabled. On
+	 * Windows, exec() runs cmd.exe /s /c "command",
+	 * and escapeshellarg() quotes each argument for it
+	 * (and blanks out its % ! " characters).
 	 *
 	 * @param string[] $command The program, then its arguments.
 	 * @return array The exit code and the output (stdout and stderr).
@@ -179,7 +190,8 @@ class Service
 	{
 		$command = array_map('strval', $command);
 		if (function_exists('proc_open')) {
-			$process = @proc_open($command, [0 => ['file', '/dev/null', 'r'], 1 => ['pipe', 'w'], 2 => ['redirect', 1]], $pipes);
+			$null = self::is_windows() ? 'NUL' : '/dev/null';
+			$process = @proc_open($command, [0 => ['file', $null, 'r'], 1 => ['pipe', 'w'], 2 => ['redirect', 1]], $pipes);
 			if (is_resource($process)) {
 				$output = stream_get_contents($pipes[1]);
 				fclose($pipes[1]);
@@ -195,10 +207,10 @@ class Service
 
 	/**
 	 * Returns the absolute path of a program, or null
-	 * if it is not installed. The shell finds it with
-	 * its default PATH, which PHP-FPM may not pass on;
-	 * the name is an argument of the shell script, not
-	 * a part of it.
+	 * if it is not installed, once per request. The
+	 * oio_binary_path filter sets it by hand, e.g. for
+	 * a library out of the folders looked up (see
+	 * find_binary()).
 	 *
 	 * @param string $name
 	 * @return string|null
@@ -207,13 +219,86 @@ class Service
 	 */
 	protected static function binary($name)
 	{
-		static $paths = [];
-		if (!array_key_exists($name, $paths)) {
+		if (!array_key_exists($name, self::$binaries)) {
+			$path = apply_filters('oio_binary_path', self::find_binary($name), $name);
+			self::$binaries[$name] = is_string($path) && $path !== '' ? $path : null;
+		}
+		return self::$binaries[$name];
+	}
+
+	/**
+	 * Looks a program up in the folders of the PATH,
+	 * then in the usual folders of the libraries:
+	 * PHP-FPM often passes an empty PATH. On Windows,
+	 * with the extensions of PATHEXT (cwebp.exe),
+	 * except .bat and .cmd: cmd.exe would read the
+	 * arguments of these scripts. No shell runs, so
+	 * this works where there is none (Windows), but
+	 * where open_basedir hides the folders from PHP:
+	 * the shell finds the program there, as it is
+	 * not bound by it, with the name as its argument.
+	 *
+	 * @param string $name
+	 * @return string|false
+	 * @since 1.0.0
+	 * @date 25/10/2026
+	 */
+	private static function find_binary($name)
+	{
+		$folders = explode(PATH_SEPARATOR, (string)getenv('PATH'));
+		$extensions = [''];
+		if (self::is_windows()) {
+			$pathext = getenv('PATHEXT') ?: '.COM;.EXE';
+			$extensions = array_diff(array_map('strtolower', explode(';', $pathext)), ['', '.bat', '.cmd']);
+		} else {
+			$folders = array_merge($folders, ['/usr/bin', '/usr/local/bin', '/bin', '/opt/homebrew/bin', '/opt/local/bin']);
+		}
+		foreach (array_unique($folders) as $folder) {
+			$folder = trim($folder, '"');
+			// A relative folder, e.g. ".", would depend on the current folder. Not
+			// path_is_absolute(): its realpath() warns of the folders out of open_basedir.
+			if (!preg_match('#^([a-zA-Z]:)?[/\\\\]#', $folder)) {
+				continue;
+			}
+			foreach ($extensions as $extension) {
+				$path = rtrim($folder, '/\\') . DIRECTORY_SEPARATOR . $name . $extension;
+				if (self::is_program($path)) {
+					return $path;
+				}
+			}
+		}
+		if (!self::is_windows() && ini_get('open_basedir')) {
 			list($code, $output) = self::execute(['/bin/sh', '-c', 'command -v "$1"', 'sh', $name]);
 			$path = trim($output);
-			$paths[$name] = $code === 0 && strpos($path, '/') === 0 ? $path : null;
+			return $code === 0 && strpos($path, '/') === 0 ? $path : false;
 		}
-		return $paths[$name];
+		return false;
+	}
+
+	/**
+	 * Determines if a path is a program PHP can run.
+	 * On Windows, is_executable() checks its extension.
+	 *
+	 * @param string $path
+	 * @return bool
+	 * @since 1.0.0
+	 * @date 25/10/2026
+	 */
+	private static function is_program($path)
+	{
+		return $path !== '' && @is_file($path) && @is_executable($path);
+	}
+
+	/**
+	 * Determines if the server runs Windows.
+	 *
+	 * @return bool
+	 * @since 1.0.0
+	 * @date 25/10/2026
+	 */
+	private static function is_windows()
+	{
+		return PHP_OS_FAMILY === 'Windows';
 	}
 
 	/**
@@ -222,6 +307,7 @@ class Service
 	 * the requests of the site go first. The oio_nice
 	 * filter sets the level, from 0 (normal) to 19
 	 * (lowest), by context (see Optimiser::$context).
+	 * Windows has no nice.
 	 *
 	 * @return string[]
 	 * @since 1.0.0
@@ -229,6 +315,9 @@ class Service
 	 */
 	private static function nice()
 	{
+		if (self::is_windows()) {
+			return [];
+		}
 		$default = Optimiser::$context === 'background' ? 19 : 0;
 		$level = (int)apply_filters('oio_nice', $default, Optimiser::$context);
 		$nice = $level > 0 ? self::binary('nice') : null;
