@@ -55,6 +55,17 @@ class Optimiser
 	public static $regenerating = false;
 
 	/**
+	 * Where the images are optimised: "upload" during a
+	 * request of the admin (upload, media library
+	 * action), "background" in a background job, "cli"
+	 * in WP-CLI. Passed to the squidge_nice and
+	 * squidge_avif_jobs filters.
+	 *
+	 * @var string
+	 */
+	public static $context = 'upload';
+
+	/**
 	 * Returns the args of each format from the options
 	 * page: the enabled formats only, or all of them.
 	 *

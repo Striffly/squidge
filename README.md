@@ -237,6 +237,40 @@ kept, they stay compressed.
 wp squidge restore
 ```
 
+## Performance
+
+The libraries run with settings that suit most servers:
+
+- in the background jobs (bulk optimisation, clean up), every library runs with the lowest priority (`nice -n 19`,
+  when available): the requests of the site go first, and the jobs use the CPU left. `avifenc`, the only library using
+  several cores, uses 2 threads,
+- on upload and in the media library actions, `avifenc` uses 4 threads, about as fast as all cores on a photo,
+- in WP-CLI, `avifenc` uses all cores.
+
+Filters adjust them, by context (`upload`, `background` or `cli`), e.g. in a mu-plugin:
+
+```php
+// Priority of the libraries, from 0 (normal) to 19 (lowest). Default: 19 in background, 0 otherwise.
+add_filter('squidge_nice', function ($level, $context) {
+	return $context === 'background' ? 19 : 10;
+}, 10, 2);
+
+// Threads of avifenc: a number or "all". Default: 4 on upload, 2 in background, all in WP-CLI.
+add_filter('squidge_avif_jobs', function ($jobs, $context) {
+	return 1;
+}, 10, 2);
+
+// Pause after each image of a background job, in seconds. Default: 0.
+add_filter('squidge_job_seconds_between_batches', function () {
+	return 1;
+});
+
+// Duration of a batch of a background job before it starts again, in seconds. Default: 20.
+add_filter('squidge_job_default_time_limit', function () {
+	return 10;
+});
+```
+
 ## Road Map
 
 - Add `SVGO` to optimise SVG images.

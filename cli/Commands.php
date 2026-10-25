@@ -88,6 +88,7 @@ class Squidge_CLI extends WP_CLI_Command
 	public function run($args, $assoc_args)
 	{
 		$this->print_welcome();
+		Optimiser::$context = 'cli';
 
 		$settings = Optimiser::settings(false);
 		$enabled = Optimiser::settings();
@@ -154,6 +155,7 @@ class Squidge_CLI extends WP_CLI_Command
 	public function clean()
 	{
 		$this->print_welcome();
+		Optimiser::$context = 'cli';
 		$ids = Cleaner::ids();
 		foreach ($ids as $id) {
 			Cleaner::remove_formats($id);
@@ -171,6 +173,7 @@ class Squidge_CLI extends WP_CLI_Command
 	public function restore()
 	{
 		$this->print_welcome();
+		Optimiser::$context = 'cli';
 		$ids = Cleaner::ids();
 		$missing = 0;
 		foreach ($ids as $id) {

@@ -129,12 +129,37 @@ class Service
 	protected static function run($command, $filepath, $args)
 	{
 		$output = [];
-		exec($command . ' 2>&1', $output, $code);
+		exec(self::nice() . $command . ' 2>&1', $output, $code);
 		if ($code === 0) {
 			return true;
 		}
 		Errors::add(isset($args['id']) ? $args['id'] : 0, static::cmd_name(), $filepath, self::error_message($output, $code, $filepath));
 		return false;
+	}
+
+	/**
+	 * Returns the nice prefix lowering the priority of
+	 * the commands: in background jobs by default, the
+	 * requests of the site go first. The squidge_nice
+	 * filter sets the level, from 0 (normal) to 19
+	 * (lowest), by context (see Optimiser::$context).
+	 *
+	 * @return string
+	 * @since 0.1.5
+	 * @date 25/10/2026
+	 */
+	private static function nice()
+	{
+		$default = Optimiser::$context === 'background' ? 19 : 0;
+		$level = (int)apply_filters('squidge_nice', $default, Optimiser::$context);
+		if ($level <= 0) {
+			return '';
+		}
+		static $available = null;
+		if ($available === null) {
+			$available = !empty(shell_exec('which nice'));
+		}
+		return $available ? sprintf('nice -n %d ', min(19, $level)) : '';
 	}
 
 	/**

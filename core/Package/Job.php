@@ -170,6 +170,7 @@ class Job extends Squidge_Vendor_WP_Background_Process
 		if (!is_array($progress)) {
 			return false;
 		}
+		Optimiser::$context = 'background';
 		if (get_post($id)) {
 			if ($progress['action'] === self::OPTIMISE) {
 				if ($progress['mode'] === self::MODE_NEW) {
