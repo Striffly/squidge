@@ -17,6 +17,7 @@
 
 namespace OIO\Admin;
 
+use OIO\Package\Cleaner;
 use OIO\Package\Service;
 use OIO\Package\Stats;
 use OIO\Package\Status;
@@ -173,10 +174,13 @@ class Fields
 	}
 
 	/**
-	 * Renders the options page: an overview tab with
-	 * the health status of each library, then one
-	 * tab per format. All tabs share one form so
-	 * saving never resets the hidden tabs.
+	 * Renders the options page, in tabs by use: the
+	 * overview (bytes saved, statuses, libraries), the
+	 * optimisation of the media library, the delivery
+	 * on the site, the settings and the maintenance.
+	 * All tabs share one form, so saving never resets
+	 * the hidden tabs; without JS they are shown one
+	 * after another.
 	 *
 	 * @since 1.0.0
 	 * @date 25/10/2026
@@ -186,144 +190,467 @@ class Fields
 		if (!current_user_can('manage_options')) {
 			return;
 		}
-		// Format sections have a library and a tab, the general and display sections are shown in the overview.
-		$sections = self::sections();
-		$general = $sections['general'];
-		$display = $sections['display'];
-		unset($sections['general'], $sections['display']);
 		// Saving the settings reads the versions of the libraries again, e.g. after an upgrade.
 		if (isset($_GET['settings-updated'])) {
 			Service::forget_versions();
 		}
-		foreach ($sections as $id => $section) {
-			$sections[$id]['installed'] = $section['service']::installed();
-			$sections[$id]['version'] = $section['service']::version_number();
-			$sections[$id]['enabled'] = self::get('oio_' . $id . '_enable');
-			$sections[$id]['library'] = $section['service']::library();
-			// The library, or GD or Imagick for WebP and AVIF without it, null if none.
-			$sections[$id]['engine'] = $section['service']::engine();
-			// Optional libraries, e.g. pngquant: what they add, and if they are installed.
-			$sections[$id]['optional'] = isset($section['optional']) ? $section['optional'] : [];
-			$sections[$id]['extras'] = [];
-			foreach (array_keys($sections[$id]['optional']) as $name) {
-				$sections[$id]['extras'][$name] = $section['service']::installed($name);
-			}
-		}
+		$sections = self::sections();
+		$formats = self::formats($sections);
+		$counts = Status::counts();
+		$jobs = class_exists('OIO_Vendor_WP_Background_Process');
+		$tabs = [
+			'overview' => 'Overview',
+			'optimise' => 'Optimise',
+			'delivery' => 'Delivery',
+			'settings' => 'Settings',
+			'maintenance' => 'Maintenance',
+		];
+		// The settings tab warns when a format has nothing to make it.
+		$missing = in_array('off', array_map([self::class, 'state'], $formats), true);
 		?>
 		<div class="wrap oio-page">
-			<h1>OIO <span class="oio-title__name">Octopus Image Optimizer</span></h1>
-			<p class="oio-tagline">Squeezes images. Spills no ink, sends no bill.</p>
+			<header class="oio-header">
+				<img class="oio-header__logo" src="<?php echo esc_url(OIO_URL . 'assets/icon-128x128.png'); ?>" alt="" width="64" height="64">
+				<div class="oio-header__text">
+					<h1 class="oio-header__title">OIO <span class="oio-header__name">Octopus Image Optimizer</span></h1>
+					<p class="oio-header__tagline">Squeezes images. Spills no ink, sends no bill.</p>
+				</div>
+				<span class="oio-header__version">v<?php echo esc_html(OIO_VERSION); ?></span>
+			</header>
+			<?php // WordPress puts its notices after the first heading of the page, or this marker. ?>
+			<hr class="wp-header-end">
 
-			<nav class="nav-tab-wrapper oio-tabs" role="tablist">
-				<a href="#overview" class="nav-tab nav-tab-active" role="tab" data-tab="overview">Overview</a>
-				<?php foreach ($sections as $id => $section) : ?>
-					<a href="#<?php echo esc_attr($id); ?>" class="nav-tab" role="tab" data-tab="<?php echo esc_attr($id); ?>">
-						<span class="oio-dot oio-dot--<?php echo esc_attr(self::state($section)); ?>" aria-hidden="true"></span>
-						<?php echo esc_html($section['title']); ?>
+			<nav class="oio-tabs" role="tablist" aria-label="OIO">
+				<?php foreach ($tabs as $id => $title) : ?>
+					<a href="#<?php echo esc_attr($id); ?>" class="oio-tabs__tab" role="tab" data-tab="<?php echo esc_attr($id); ?>">
+						<?php echo esc_html($title); ?>
+						<?php if ($id === 'settings' && $missing) : ?>
+							<span class="oio-dot oio-dot--off" title="A format has no library"></span>
+						<?php endif; ?>
 					</a>
 				<?php endforeach; ?>
 			</nav>
 
-			<form action="options.php" method="post">
+			<?php if ($jobs) : ?>
+				<?php $this->render_job(); ?>
+			<?php endif; ?>
+
+			<form class="oio-page__form" action="options.php" method="post">
 				<?php settings_fields(self::PAGE); ?>
 
 				<section class="oio-panel" id="oio-panel-overview" role="tabpanel" data-panel="overview">
-					<?php echo $this->render_template('info.php'); ?>
-					<div class="oio-status-grid">
-						<?php foreach ($sections as $id => $section) : ?>
-							<a class="oio-status" href="#<?php echo esc_attr($id); ?>" data-tab="<?php echo esc_attr($id); ?>">
-								<span class="oio-status__head">
-									<span class="oio-status__format"><?php echo esc_html($section['title']); ?></span>
-									<?php $this->render_badge(self::state($section), self::STATE_LABELS[self::state($section)]); ?>
-								</span>
-								<span class="oio-status__library oio-status__library--<?php echo $section['engine'] ? 'on' : 'off'; ?>">
-									<code><?php echo esc_html($section['engine'] ? $section['engine'] : $section['library']); ?></code>
-									<span class="dashicons dashicons-<?php echo $section['engine'] ? 'yes' : 'no-alt'; ?>" aria-hidden="true"></span>
-									<?php if ($section['installed'] || !$section['engine']) : ?>
-										<?php echo $section['installed'] ? 'installed' : 'not installed'; ?>
-									<?php else : ?>
-										(<?php echo esc_html($section['library']); ?> not installed)
-									<?php endif; ?>
-									<?php if ($section['version']) : ?>
-										<span class="oio-status__version"><?php echo esc_html($section['version']); ?></span>
-									<?php endif; ?>
-								</span>
-								<?php foreach ($section['extras'] as $name => $installed) : ?>
-									<span class="oio-status__library oio-status__library--<?php echo $installed ? 'on' : 'off'; ?>">
-										<code><?php echo esc_html($name); ?></code>
-										<span class="dashicons dashicons-<?php echo $installed ? 'yes' : 'no-alt'; ?>" aria-hidden="true"></span>
-										<?php echo $installed ? 'installed' : 'not installed'; ?>
-									</span>
-								<?php endforeach; ?>
-							</a>
-						<?php endforeach; ?>
-					</div>
-					<?php $this->render_library(); ?>
-					<div class="oio-card oio-general">
-						<header class="oio-card__header oio-card__header--text">
-							<h2><?php echo esc_html($general['title']); ?></h2>
-							<p class="description"><?php echo esc_html($general['description']); ?></p>
-						</header>
-						<?php foreach ($general['fields'] as $name => $field) : ?>
-							<?php $this->render_field($name, $field); ?>
-						<?php endforeach; ?>
-					</div>
-					<div class="oio-card oio-display">
-						<header class="oio-card__header oio-card__header--text">
-							<h2><?php echo esc_html($display['title']); ?></h2>
-							<p class="description"><?php echo esc_html($display['description']); ?></p>
-						</header>
-						<?php foreach ($display['fields'] as $name => $field) : ?>
-							<?php $this->render_field($name, $field); ?>
-						<?php endforeach; ?>
-						<?php $this->render_theme_help(); ?>
-					</div>
+					<?php $this->render_overview($formats, $counts); ?>
 				</section>
 
-				<?php foreach ($sections as $id => $section) : ?>
-					<section class="oio-panel" id="oio-panel-<?php echo esc_attr($id); ?>" role="tabpanel" data-panel="<?php echo esc_attr($id); ?>">
-						<div class="oio-card">
-							<header class="oio-card__header">
-								<h2><?php echo esc_html($section['title']); ?> <code><?php echo esc_html($section['engine'] ? $section['engine'] : $section['library']); ?></code></h2>
-								<?php $this->render_badge($section['engine'] ? 'on' : 'off', $section['installed'] ? 'Installed' : ($section['engine'] ? 'PHP extension' : 'Not installed')); ?>
-							</header>
-							<?php if (!$section['installed'] && $section['engine']) : ?>
-								<details class="oio-install" open>
-									<summary>Recommended: install <?php echo esc_html($section['library']); ?></summary>
-									<p class="description"><?php echo esc_html(sprintf($section['recommendation'], $section['engine'])); ?></p>
-									<?php echo $this->render_template('health' . DIRECTORY_SEPARATOR . $section['template']); ?>
-								</details>
-							<?php elseif (!$section['installed']) : ?>
-								<details class="oio-install" open>
-									<summary>How to install <?php echo esc_html($section['library']); ?></summary>
-									<?php echo $this->render_template('health' . DIRECTORY_SEPARATOR . $section['template']); ?>
-								</details>
-							<?php else : ?>
-								<?php foreach ($section['optional'] as $name => $use) : ?>
-									<?php if (!$section['extras'][$name]) : ?>
-										<details class="oio-install">
-											<summary>How to install <?php echo esc_html($name); ?>, for the <?php echo esc_html($use); ?></summary>
-											<?php echo $this->render_template('health' . DIRECTORY_SEPARATOR . $section['template']); ?>
-										</details>
-									<?php endif; ?>
-								<?php endforeach; ?>
-							<?php endif; ?>
-							<?php foreach ($section['fields'] as $name => $field) : ?>
-								<?php $this->render_field($name, $field); ?>
-							<?php endforeach; ?>
-						</div>
-					</section>
-				<?php endforeach; ?>
+				<section class="oio-panel" id="oio-panel-optimise" role="tabpanel" data-panel="optimise">
+					<?php $this->render_optimise($counts, $jobs); ?>
+				</section>
 
-				<?php submit_button(); ?>
+				<section class="oio-panel" id="oio-panel-delivery" role="tabpanel" data-panel="delivery">
+					<?php $this->render_delivery($sections['display']); ?>
+				</section>
+
+				<section class="oio-panel" id="oio-panel-settings" role="tabpanel" data-panel="settings">
+					<?php $this->render_settings($sections['general'], $formats); ?>
+				</section>
+
+				<section class="oio-panel" id="oio-panel-maintenance" role="tabpanel" data-panel="maintenance">
+					<?php $this->render_maintenance($jobs); ?>
+				</section>
 			</form>
 		</div>
 		<?php
 	}
 
 	/**
+	 * Returns the format sections (JPG, PNG, WebP,
+	 * AVIF) with the state of their library: installed,
+	 * version, the engine making the format (the
+	 * library, or GD or Imagick for WebP and AVIF
+	 * without it, null if none) and the optional
+	 * libraries (e.g. pngquant).
+	 *
+	 * @param array $sections
+	 * @return array
+	 * @since 1.0.0
+	 * @date 25/10/2026
+	 */
+	private static function formats($sections)
+	{
+		$formats = [];
+		foreach ($sections as $id => $section) {
+			if (empty($section['service'])) {
+				continue;
+			}
+			$service = $section['service'];
+			$section['installed'] = $service::installed();
+			$section['version'] = $service::version_number();
+			$section['enabled'] = self::get('oio_' . $id . '_enable');
+			$section['library'] = $service::library();
+			$section['engine'] = $service::engine();
+			$section['optional'] = isset($section['optional']) ? $section['optional'] : [];
+			$section['extras'] = [];
+			foreach (array_keys($section['optional']) as $name) {
+				$section['extras'][$name] = $service::installed($name);
+			}
+			$formats[$id] = $section;
+		}
+		return $formats;
+	}
+
+	/**
+	 * Renders the overview: the bytes saved, the images
+	 * by status and the state of each format.
+	 *
+	 * @param array $formats
+	 * @param array $counts
+	 * @since 1.0.0
+	 * @date 25/10/2026
+	 */
+	private function render_overview($formats, $counts)
+	{
+		$savings = self::savings();
+		?>
+		<div class="oio-card oio-card--hero">
+			<div class="oio-savings">
+				<div class="oio-savings__main"<?php echo $savings['images'] ? '' : ' hidden'; ?>>
+					<p class="oio-savings__value"><span data-savings="saved"><?php echo esc_html($savings['saved']); ?></span> saved</p>
+					<p class="oio-savings__detail">
+						<span class="oio-savings__reduction" data-savings="reduction"><?php echo esc_html($savings['reduction']); ?></span>
+						on what the site serves
+						<span class="oio-savings__hint"<?php echo $savings['hint'] ? '' : ' hidden'; ?>>
+							&middot; <a href="#delivery" data-tab="delivery"><span data-savings="modern"><?php echo esc_html($savings['modern']); ?></span> with WebP and AVIF served</a>
+						</span>
+					</p>
+					<p class="oio-savings__disk">
+						Disk used by OIO: originals <span data-savings="originals"><?php echo esc_html($savings['originals']); ?></span>,
+						WebP and AVIF <span data-savings="formats"><?php echo esc_html($savings['formats']); ?></span>
+					</p>
+				</div>
+				<div class="oio-savings__empty"<?php echo $savings['images'] ? ' hidden' : ''; ?>>
+					<p class="oio-savings__value">Ready to squeeze</p>
+					<p class="oio-savings__detail">OIO optimises your images on your own server: free, unlimited, and they never leave it.</p>
+				</div>
+			</div>
+			<ul class="oio-counts">
+				<?php foreach (Media::LABELS as $status => $label) : ?>
+					<li class="oio-counts__item oio-counts__item--<?php echo esc_attr($status); ?>">
+						<span class="oio-counts__value" data-count="<?php echo esc_attr($status); ?>"><?php echo esc_html(number_format_i18n($counts[$status])); ?></span>
+						<span class="oio-counts__label"><?php echo esc_html($label); ?></span>
+					</li>
+				<?php endforeach; ?>
+			</ul>
+			<p class="oio-card__footer">
+				<?php echo esc_html(sprintf(_n('%s JPG or PNG image in the media library.', '%s JPG and PNG images in the media library.', $counts['total']), number_format_i18n($counts['total']))); ?>
+				<a href="#optimise" data-tab="optimise">Optimise the media library</a>
+			</p>
+		</div>
+
+		<h2 class="oio-heading">Formats</h2>
+		<div class="oio-libraries">
+			<?php foreach ($formats as $id => $format) : ?>
+				<?php $state = self::state($format); ?>
+				<a class="oio-library oio-library--<?php echo esc_attr($state); ?>" href="#settings-<?php echo esc_attr($id); ?>" data-tab="settings" data-target="oio-settings-<?php echo esc_attr($id); ?>">
+					<span class="oio-library__head">
+						<span class="oio-library__format"><?php echo esc_html($format['title']); ?></span>
+						<?php $this->render_badge($state, self::STATE_LABELS[$state]); ?>
+					</span>
+					<?php $this->render_engine($format); ?>
+					<?php foreach ($format['extras'] as $name => $installed) : ?>
+						<span class="oio-engine oio-engine--<?php echo $installed ? 'on' : 'off'; ?>">
+							<code class="oio-engine__name"><?php echo esc_html($name); ?></code>
+							<span class="oio-engine__state"><?php echo $installed ? 'installed' : 'not installed'; ?></span>
+						</span>
+					<?php endforeach; ?>
+				</a>
+			<?php endforeach; ?>
+		</div>
+		<?php
+	}
+
+	/**
+	 * Renders the engine of a format: its library and
+	 * version, or GD or Imagick without the library.
+	 *
+	 * @param array $format
+	 * @since 1.0.0
+	 * @date 25/10/2026
+	 */
+	private function render_engine($format)
+	{
+		if ($format['installed']) {
+			$name = $format['library'];
+			$state = 'installed';
+		} elseif ($format['engine']) {
+			$name = $format['engine'];
+			$state = $format['library'] . ' not installed';
+		} else {
+			$name = $format['library'];
+			$state = 'not installed';
+		}
+		?>
+		<span class="oio-engine oio-engine--<?php echo $format['engine'] ? 'on' : 'off'; ?>">
+			<code class="oio-engine__name"><?php echo esc_html($name); ?></code>
+			<span class="oio-engine__state"><?php echo esc_html($state); ?></span>
+			<?php if ($format['version']) : ?>
+				<span class="oio-engine__version"><?php echo esc_html($format['version']); ?></span>
+			<?php endif; ?>
+		</span>
+		<?php
+	}
+
+	/**
+	 * Renders the optimisation of the media library:
+	 * the new images, the outdated ones, or all.
+	 *
+	 * @param array $counts
+	 * @param bool $jobs
+	 * @since 1.0.0
+	 * @date 25/10/2026
+	 */
+	private function render_optimise($counts, $jobs)
+	{
+		?>
+		<div class="oio-card">
+			<header class="oio-card__header">
+				<span class="oio-card__icon dashicons dashicons-images-alt2" aria-hidden="true"></span>
+				<div>
+					<h2 class="oio-card__title">Optimise the media library</h2>
+					<p class="oio-card__description">New uploads are optimised right away. These jobs run in the background, page closed or not, with the lowest priority on the server.</p>
+				</div>
+			</header>
+			<?php if ($jobs) : ?>
+				<div class="oio-actions">
+					<div class="oio-action">
+						<button type="button" class="button button-primary oio-action__button" data-job="new">Optimise new images</button>
+						<p class="oio-action__text"><strong data-count="new"><?php echo esc_html(number_format_i18n($counts[Status::TO_OPTIMISE] + $counts[Status::ERROR])); ?></strong> images are not optimised yet, or their optimisation failed.</p>
+					</div>
+					<div class="oio-action">
+						<button type="button" class="button oio-action__button" data-job="outdated">Re-optimise outdated images</button>
+						<p class="oio-action__text"><strong data-count="outdated"><?php echo esc_html(number_format_i18n($counts[Status::OUTDATED])); ?></strong> images were optimised before a quality, a format, the maximum size or the thumbnail sizes changed. They are optimised again from their originals.</p>
+					</div>
+					<div class="oio-action">
+						<button type="button" class="button oio-action__button" data-job="all" data-confirm="Re-optimise all images from their originals, with their thumbnails? This can take a while.">Re-optimise all images</button>
+						<p class="oio-action__text">Every image is optimised again from its original, with its thumbnails made again.</p>
+					</div>
+				</div>
+			<?php else : ?>
+				<?php $this->render_no_jobs(); ?>
+			<?php endif; ?>
+		</div>
+		<?php
+	}
+
+	/**
+	 * Renders the delivery of the WebP and AVIF files
+	 * on the site.
+	 *
+	 * @param array $display
+	 * @since 1.0.0
+	 * @date 25/10/2026
+	 */
+	private function render_delivery($display)
+	{
+		?>
+		<div class="oio-card">
+			<header class="oio-card__header">
+				<span class="oio-card__icon dashicons dashicons-admin-site-alt3" aria-hidden="true"></span>
+				<div>
+					<h2 class="oio-card__title"><?php echo esc_html($display['title']); ?></h2>
+					<p class="oio-card__description"><?php echo esc_html($display['description']); ?></p>
+				</div>
+			</header>
+			<div class="oio-card__body">
+				<?php foreach ($display['fields'] as $name => $field) : ?>
+					<?php $this->render_field($name, $field); ?>
+				<?php endforeach; ?>
+			</div>
+			<footer class="oio-card__actions">
+				<?php submit_button('Save changes', 'primary', 'submit', false, ['id' => 'oio-save-delivery']); ?>
+			</footer>
+		</div>
+		<?php $this->render_theme_help(); ?>
+		<?php
+	}
+
+	/**
+	 * Renders the settings: the general ones, then one
+	 * card per format with its library.
+	 *
+	 * @param array $general
+	 * @param array $formats
+	 * @since 1.0.0
+	 * @date 25/10/2026
+	 */
+	private function render_settings($general, $formats)
+	{
+		?>
+		<div class="oio-card" id="oio-settings-general">
+			<header class="oio-card__header">
+				<span class="oio-card__icon dashicons dashicons-image-crop" aria-hidden="true"></span>
+				<div>
+					<h2 class="oio-card__title"><?php echo esc_html($general['title']); ?></h2>
+					<p class="oio-card__description"><?php echo esc_html($general['description']); ?></p>
+				</div>
+			</header>
+			<div class="oio-card__body">
+				<?php foreach ($general['fields'] as $name => $field) : ?>
+					<?php $this->render_field($name, $field); ?>
+				<?php endforeach; ?>
+			</div>
+		</div>
+
+		<?php foreach ($formats as $id => $format) : ?>
+			<?php $state = self::state($format); ?>
+			<div class="oio-card" id="oio-settings-<?php echo esc_attr($id); ?>">
+				<header class="oio-card__header">
+					<span class="oio-dot oio-dot--<?php echo esc_attr($state); ?>" aria-hidden="true"></span>
+					<div>
+						<h2 class="oio-card__title"><?php echo esc_html($format['title']); ?></h2>
+						<?php $this->render_engine($format); ?>
+					</div>
+					<?php $this->render_badge($state, self::STATE_LABELS[$state]); ?>
+				</header>
+				<?php if (!$format['installed'] && $format['engine']) : ?>
+					<details class="oio-install oio-install--advice" open>
+						<summary class="oio-install__summary">Recommended: install <?php echo esc_html($format['library']); ?></summary>
+						<p class="oio-install__text"><?php echo esc_html(sprintf($format['recommendation'], $format['engine'])); ?></p>
+						<?php echo $this->render_template('health' . DIRECTORY_SEPARATOR . $format['template']); ?>
+					</details>
+				<?php elseif (!$format['installed']) : ?>
+					<details class="oio-install" open>
+						<summary class="oio-install__summary">How to install <?php echo esc_html($format['library']); ?></summary>
+						<?php echo $this->render_template('health' . DIRECTORY_SEPARATOR . $format['template']); ?>
+					</details>
+				<?php else : ?>
+					<?php foreach ($format['optional'] as $name => $use) : ?>
+						<?php if (!$format['extras'][$name]) : ?>
+							<details class="oio-install oio-install--advice">
+								<summary class="oio-install__summary">How to install <?php echo esc_html($name); ?>, for the <?php echo esc_html($use); ?></summary>
+								<?php echo $this->render_template('health' . DIRECTORY_SEPARATOR . $format['template']); ?>
+							</details>
+						<?php endif; ?>
+					<?php endforeach; ?>
+				<?php endif; ?>
+				<div class="oio-card__body">
+					<?php foreach ($format['fields'] as $name => $field) : ?>
+						<?php $this->render_field($name, $field); ?>
+					<?php endforeach; ?>
+				</div>
+			</div>
+		<?php endforeach; ?>
+
+		<div class="oio-page__save">
+			<?php submit_button('Save changes', 'primary', 'submit', false, ['id' => 'oio-save-settings']); ?>
+		</div>
+		<?php
+	}
+
+	/**
+	 * Renders the maintenance: removing the WebP and
+	 * AVIF files, restoring the original images. Each
+	 * asks to tick a box first.
+	 *
+	 * @param bool $jobs
+	 * @since 1.0.0
+	 * @date 25/10/2026
+	 */
+	private function render_maintenance($jobs)
+	{
+		?>
+		<div class="oio-card">
+			<header class="oio-card__header">
+				<span class="oio-card__icon dashicons dashicons-trash" aria-hidden="true"></span>
+				<div>
+					<h2 class="oio-card__title">Remove WebP and AVIF</h2>
+					<p class="oio-card__description">Deletes the WebP and AVIF files of the <strong data-count="processed"><?php echo esc_html(number_format_i18n(count(Cleaner::ids()))); ?></strong> images processed. The JPG and PNG files stay compressed, and the originals kept.</p>
+				</div>
+			</header>
+			<?php if ($jobs) : ?>
+				<div class="oio-confirm">
+					<label class="oio-confirm__label"><input type="checkbox" class="oio-confirm__input" data-confirm-for="remove_formats"> I understand the WebP and AVIF files are deleted, until the images are optimised again.</label>
+					<button type="button" class="button oio-confirm__button" data-job="remove_formats">Remove WebP and AVIF</button>
+				</div>
+			<?php else : ?>
+				<?php $this->render_no_jobs(); ?>
+			<?php endif; ?>
+		</div>
+
+		<div class="oio-card oio-card--danger">
+			<header class="oio-card__header">
+				<span class="oio-card__icon dashicons dashicons-backup" aria-hidden="true"></span>
+				<div>
+					<h2 class="oio-card__title">Restore original images</h2>
+					<p class="oio-card__description">Puts the original images back and deletes every file made by OIO (WebP, AVIF, backups). Do it before deleting OIO: deleting it keeps the files as they are.</p>
+				</div>
+			</header>
+			<?php if ($jobs) : ?>
+				<div class="oio-confirm">
+					<label class="oio-confirm__label"><input type="checkbox" class="oio-confirm__input" data-confirm-for="restore"> I understand the images are no longer optimised, and their WebP and AVIF files are deleted.</label>
+					<button type="button" class="button oio-confirm__button oio-button--danger" data-job="restore">Restore original images</button>
+				</div>
+			<?php else : ?>
+				<?php $this->render_no_jobs(); ?>
+			<?php endif; ?>
+		</div>
+		<?php
+	}
+
+	/**
+	 * Renders why the jobs are not available: the
+	 * dependencies of composer install are missing.
+	 *
+	 * @since 1.0.0
+	 * @date 25/10/2026
+	 */
+	private function render_no_jobs()
+	{
+		?>
+		<p class="oio-card__notice">The background jobs need the dependencies of OIO: run <code>composer install</code> in its folder. WP-CLI (<code>wp oio run</code>) works without them.</p>
+		<?php
+	}
+
+	/**
+	 * Renders the progress of the background job, shown
+	 * on every tab while it runs, and its result.
+	 *
+	 * @since 1.0.0
+	 * @date 25/10/2026
+	 */
+	private function render_job()
+	{
+		?>
+		<div class="oio-job" hidden>
+			<div class="oio-job__progress">
+				<div class="oio-job__head">
+					<p class="oio-job__label" aria-live="polite"></p>
+					<div class="oio-job__controls">
+						<button type="button" class="button" data-control="pause">Pause</button>
+						<button type="button" class="button" data-control="resume">Resume</button>
+						<button type="button" class="button-link button-link-delete" data-control="cancel">Cancel</button>
+					</div>
+				</div>
+				<progress class="oio-job__bar" max="100" value="0"></progress>
+			</div>
+			<div class="oio-result" role="status" aria-live="polite">
+				<span class="oio-result__icon dashicons" aria-hidden="true"></span>
+				<div class="oio-result__body">
+					<p class="oio-result__title"></p>
+					<p class="oio-result__detail"></p>
+				</div>
+				<button type="button" class="oio-result__close" data-control="dismiss">
+					<span class="dashicons dashicons-no-alt" aria-hidden="true"></span>
+					<span class="screen-reader-text">Dismiss</span>
+				</button>
+			</div>
+		</div>
+		<?php
+	}
+
+	/**
 	 * Renders how to use oio_image() in a custom
-	 * theme, whose images this option does not change.
+	 * theme, whose images the display option does not
+	 * change.
 	 *
 	 * @since 1.0.0
 	 * @date 25/10/2026
@@ -332,15 +659,21 @@ class Fields
 	{
 		$code = "<?php\nif (function_exists('oio_image')) {\n\techo oio_image(\$image_id, 'my-class');\n} else {\n\techo wp_get_attachment_image(\$image_id, 'full');\n}";
 		?>
-		<div class="oio-theme-help">
-			<p><strong>Custom themes</strong>: images output with your own markup (e.g. from an ACF field) are not changed by
-				this option. Use the <code>oio_image()</code> helper: it returns a <code>&lt;picture&gt;</code> with the
-				AVIF and WebP versions, whatever this option.</p>
-			<pre><code><?php echo esc_html($code); ?></code></pre>
-			<p class="description">The second argument is the class of the <code>&lt;picture&gt;</code> element. Pass
-				<code>true</code> as third argument to output <code>data-src</code> and <code>data-srcset</code> for a
-				JavaScript lazy loader. Keep the <code>function_exists()</code> check: without it, the pages break while
-				OIO is deactivated.</p>
+		<div class="oio-card">
+			<header class="oio-card__header">
+				<span class="oio-card__icon dashicons dashicons-editor-code" aria-hidden="true"></span>
+				<div>
+					<h2 class="oio-card__title">Custom themes</h2>
+					<p class="oio-card__description">Images output with your own markup (e.g. from an ACF field) are not changed by the option above. Use the <code>oio_image()</code> helper: it returns a <code>&lt;picture&gt;</code> with the AVIF and WebP versions, whatever the option.</p>
+				</div>
+			</header>
+			<div class="oio-card__body">
+				<pre class="oio-code"><code><?php echo esc_html($code); ?></code></pre>
+				<p class="oio-field__help">The second argument is the class of the <code>&lt;picture&gt;</code> element. Pass
+					<code>true</code> as third argument to output <code>data-src</code> and <code>data-srcset</code> for a
+					JavaScript lazy loader. Keep the <code>function_exists()</code> check: without it, the pages break while
+					OIO is deactivated.</p>
+			</div>
 		</div>
 		<?php
 	}
@@ -373,115 +706,23 @@ class Fields
 	}
 
 	/**
-	 * Renders the bytes saved on the media library, and
-	 * the number of its JPG and PNG images by status.
-	 *
-	 * @since 1.0.0
-	 * @date 25/10/2026
-	 */
-	private function render_library()
-	{
-		$counts = Status::counts();
-		$savings = self::savings();
-		?>
-		<div class="oio-card oio-library">
-			<header class="oio-card__header oio-card__header--text">
-				<h2>Media library</h2>
-				<p class="description">
-					<?php echo esc_html(sprintf(_n('%s JPG or PNG image', '%s JPG and PNG images', $counts['total']), number_format_i18n($counts['total']))); ?>
-				</p>
-			</header>
-			<div class="oio-savings"<?php echo $savings['images'] ? '' : ' hidden'; ?>>
-				<p class="oio-savings__saved">
-					<strong data-savings="saved"><?php echo esc_html($savings['saved']); ?></strong> saved,
-					<strong data-savings="reduction"><?php echo esc_html($savings['reduction']); ?></strong>
-					<span class="oio-savings__hint"<?php echo $savings['hint'] ? '' : ' hidden'; ?>>
-						&middot; <a href="#_oio_display_formats"><span data-savings="modern"><?php echo esc_html($savings['modern']); ?></span> with WebP and AVIF served</a>
-					</span>
-				</p>
-				<p class="description">
-					Disk used by OIO: originals <span data-savings="originals"><?php echo esc_html($savings['originals']); ?></span>,
-					WebP and AVIF <span data-savings="formats"><?php echo esc_html($savings['formats']); ?></span>
-				</p>
-			</div>
-			<ul class="oio-counts">
-				<?php foreach (Media::LABELS as $status => $label) : ?>
-					<li class="oio-counts__item">
-						<strong data-count="<?php echo esc_attr($status); ?>"><?php echo esc_html(number_format_i18n($counts[$status])); ?></strong>
-						<span class="oio-status-label oio-status-label--<?php echo esc_attr($status); ?>"><?php echo esc_html($label); ?></span>
-					</li>
-				<?php endforeach; ?>
-			</ul>
-			<?php if (class_exists('OIO_Vendor_WP_Background_Process')) : ?>
-				<div class="oio-job" hidden>
-					<div class="oio-job__result" role="status" aria-live="polite">
-						<span class="oio-job__result-icon dashicons" aria-hidden="true"></span>
-						<div>
-							<p class="oio-job__result-title"></p>
-							<p class="oio-job__result-detail"></p>
-						</div>
-						<button type="button" class="oio-job__result-close" data-control="dismiss">
-							<span class="dashicons dashicons-no-alt" aria-hidden="true"></span>
-							<span class="screen-reader-text">Dismiss</span>
-						</button>
-					</div>
-					<div class="oio-job__actions">
-						<h3 class="oio-job__group">Optimise</h3>
-						<div class="oio-action">
-							<button type="button" class="button button-primary" data-job="new">Optimise new images</button>
-							<p class="description"><strong data-count="new"></strong> images are not optimised yet, or their optimisation failed.</p>
-						</div>
-						<div class="oio-action">
-							<button type="button" class="button" data-job="outdated">Re-optimise outdated images</button>
-							<p class="description"><strong data-count="outdated"></strong> images were optimised before a quality, a format, the maximum size or the thumbnail sizes changed. They are re-optimised from their originals, and their thumbnails are regenerated if the sizes changed.</p>
-						</div>
-						<div class="oio-action">
-							<button type="button" class="button" data-job="all">Re-optimise all images</button>
-							<p class="description">Every image is optimised again from its original, with its thumbnails regenerated.</p>
-						</div>
-						<h3 class="oio-job__group">Clean up</h3>
-						<div class="oio-action">
-							<button type="button" class="button" data-job="remove_formats">Remove WebP and AVIF</button>
-							<p class="description">Deletes the WebP and AVIF files of the <strong data-count="processed"></strong> images optimised. The JPG and PNG files stay compressed.</p>
-						</div>
-						<div class="oio-action">
-							<button type="button" class="button oio-button-danger" data-job="restore">Restore original images</button>
-							<p class="description">Puts the original images back and deletes every file made by OIO (WebP, AVIF, backups). Do it before deleting OIO.</p>
-						</div>
-					</div>
-					<div class="oio-job__progress">
-						<p class="oio-job__label" aria-live="polite"></p>
-						<progress class="oio-job__bar" max="100" value="0"></progress>
-						<div class="oio-job__controls">
-							<button type="button" class="button" data-control="pause">Pause</button>
-							<button type="button" class="button" data-control="resume">Resume</button>
-							<button type="button" class="button-link button-link-delete" data-control="cancel">Cancel</button>
-						</div>
-					</div>
-				</div>
-			<?php endif; ?>
-		</div>
-		<?php
-	}
-
-	/**
 	 * Returns the state of a format, used for the
-	 * tab dots and overview badges: on (enabled, and
-	 * its library installed or the image editor making
-	 * it), off (enabled but nothing can make it) or
-	 * muted (disabled).
+	 * dots and badges: on (enabled, and its library
+	 * installed or the image editor making it), off
+	 * (enabled but nothing can make it) or muted
+	 * (disabled).
 	 *
-	 * @param array $section
+	 * @param array $format
 	 * @return string
 	 * @since 1.0.0
 	 * @date 25/10/2026
 	 */
-	private static function state($section)
+	private static function state($format)
 	{
-		if (!$section['enabled']) {
+		if (!$format['enabled']) {
 			return 'muted';
 		}
-		return $section['engine'] ? 'on' : 'off';
+		return $format['engine'] ? 'on' : 'off';
 	}
 
 	/**
@@ -498,7 +739,8 @@ class Fields
 	}
 
 	/**
-	 * Renders an option field.
+	 * Renders an option field: a toggle for a checkbox,
+	 * a label and its control otherwise.
 	 *
 	 * @param string $name
 	 * @param array $field
@@ -513,24 +755,28 @@ class Fields
 		if ($field['type'] === 'checkbox') {
 			echo '<div class="oio-field oio-field--toggle">';
 			printf(
-				'<label class="oio-toggle"><input type="checkbox" id="%s" name="%s" value="%s" %s><span class="oio-toggle__track" aria-hidden="true"></span><span class="oio-field__label">%s</span></label>',
+				'<label class="oio-toggle"><input type="checkbox" class="oio-toggle__input" id="%s" name="%s" value="%s" %s><span class="oio-toggle__track" aria-hidden="true"></span><span class="oio-toggle__label">%s</span></label>',
 				$id, $id, self::CHECKBOX_ON, checked($value, true, false), esc_html($field['label'])
 			);
 		} else {
-			echo '<div class="oio-field oio-field--option">';
-			printf('<label class="oio-field__label" for="%s">%s</label>', $id, esc_html($field['label']));
+			echo '<div class="oio-field">';
+			printf('<label class="oio-field__label" for="%s">%s</label><div class="oio-field__control">', $id, esc_html($field['label']));
 			if ($field['type'] === 'number') {
-				printf('<input type="number" class="small-text" id="%s" name="%s" value="%s" min="%d" max="%d" step="1">', $id, $id, esc_attr($value), $field['min'], $field['max']);
+				printf('<input type="number" class="oio-field__input" id="%s" name="%s" value="%s" min="%d" max="%d" step="1">', $id, $id, esc_attr($value), $field['min'], $field['max']);
 			} elseif ($field['type'] === 'select') {
-				printf('<select id="%s" name="%s">', $id, $id);
+				printf('<select class="oio-field__input" id="%s" name="%s">', $id, $id);
 				foreach ($field['options'] as $optionValue => $optionLabel) {
 					printf('<option value="%s" %s>%s</option>', esc_attr($optionValue), selected((string)$value, (string)$optionValue, false), esc_html($optionLabel));
 				}
 				echo '</select>';
 			}
+			if (!empty($field['unit'])) {
+				printf('<span class="oio-field__unit">%s</span>', esc_html($field['unit']));
+			}
+			echo '</div>';
 		}
 
-		printf('<p class="description">%s</p></div>', wp_kses($field['help'], ['strong' => [], 'code' => []]));
+		printf('<p class="oio-field__help">%s</p></div>', wp_kses($field['help'], ['strong' => [], 'code' => []]));
 	}
 
 	/**
@@ -575,17 +821,17 @@ class Fields
 				'fields' => [
 					'oio_jpg_enable' => [
 						'type' => 'checkbox',
-						'label' => 'Enable JPEG Compression',
+						'label' => 'Compress JPG images',
 						'default' => true,
-						'help' => 'Select this box to enable JPEG compression.',
+						'help' => 'Compresses the JPG images in place with jpegoptim, and makes them progressive. Their originals are kept.',
 					],
 					'oio_jpg_quality' => [
 						'type' => 'number',
-						'label' => 'JPEG Optim Quality',
+						'label' => 'Quality',
 						'min' => 0,
 						'max' => 100,
 						'default' => 80,
-						'help' => 'Enter the quality of the JPEG image compression, this can be a number from 0 to 100, with the default being 80.',
+						'help' => 'From 0 to 100, 80 by default. Images already lighter are only optimised without loss.',
 					],
 				],
 			],
@@ -597,13 +843,13 @@ class Fields
 				'fields' => [
 					'oio_png_enable' => [
 						'type' => 'checkbox',
-						'label' => 'Enable PNG Compression',
+						'label' => 'Compress PNG images',
 						'default' => true,
-						'help' => 'Select this box to enable PNG compression.',
+						'help' => 'Compresses the PNG images in place without loss, with oxipng or optipng. Their originals are kept.',
 					],
 					'oio_png_quality' => [
 						'type' => 'select',
-						'label' => 'Optimisation Level',
+						'label' => 'Optimisation level',
 						'options' => [
 							'0' => 'o0',
 							'1' => 'o1',
@@ -615,7 +861,7 @@ class Fields
 							'7' => 'o7',
 						],
 						'default' => '2',
-						'help' => 'Select the optimisation level of the PNG compression, from o0 (fastest) to o7 (slowest, smallest files). The default is o2. oxipng goes up to o6, used for o7.',
+						'help' => 'From o0 (fastest) to o7 (slowest, smallest files), o2 by default. oxipng goes up to o6, used for o7.',
 					],
 					'oio_png_lossy' => [
 						'type' => 'checkbox',
@@ -625,11 +871,11 @@ class Fields
 					],
 					'oio_png_lossy_quality' => [
 						'type' => 'number',
-						'label' => 'pngquant Quality',
+						'label' => 'Lossy quality',
 						'min' => 0,
 						'max' => 100,
 						'default' => 80,
-						'help' => 'Enter the quality aimed at, from 0 to 100, with the default being 80. The minimum quality is 15 below.',
+						'help' => 'The quality pngquant aims at, from 0 to 100, 80 by default. The minimum accepted is 15 below.',
 					],
 				],
 			],
@@ -641,17 +887,17 @@ class Fields
 				'fields' => [
 					'oio_webp_enable' => [
 						'type' => 'checkbox',
-						'label' => 'Enable WebP Conversion',
+						'label' => 'Make WebP versions',
 						'default' => true,
-						'help' => 'Select this box to enable webp conversion.',
+						'help' => 'Makes a WebP version of each image and thumbnail (<code>photo.jpg.webp</code>), lighter than the JPG or PNG.',
 					],
 					'oio_webp_quality' => [
 						'type' => 'number',
-						'label' => 'WebP Quality',
+						'label' => 'Quality',
 						'min' => 0,
 						'max' => 100,
 						'default' => 80,
-						'help' => 'Enter the quality of the webp image conversion, this can be a number from 0 to 100, with the default being 80.',
+						'help' => 'From 0 to 100, 80 by default. The PNG graphics are made near-lossless when it is lighter.',
 					],
 				],
 			],
@@ -663,22 +909,22 @@ class Fields
 				'fields' => [
 					'oio_avif_enable' => [
 						'type' => 'checkbox',
-						'label' => 'Enable AVIF Conversion',
+						'label' => 'Make AVIF versions',
 						'default' => true,
-						'help' => 'Select this box to enable AVIF conversion.',
+						'help' => 'Makes an AVIF version of each image and thumbnail (<code>photo.jpg.avif</code>), often the lightest. Kept only when lighter than the WebP and the JPG or PNG.',
 					],
 					'oio_avif_quality' => [
 						'type' => 'number',
-						'label' => 'AVIF Quality',
+						'label' => 'Quality',
 						'min' => 0,
 						'max' => 100,
 						'default' => 70,
-						'help' => 'Enter the quality of the AVIF image conversion, this can be a number from 0 to 100 (lossless), with the default being 70.',
+						'help' => 'From 0 to 100 (lossless), 70 by default.',
 					],
 				],
 			],
 			'general' => [
-				'title' => 'General',
+				'title' => 'Image size',
 				'description' => 'WordPress scales the big images down on upload, and keeps the image uploaded as their original.',
 				'fields' => [
 					'oio_max_size' => [
@@ -686,6 +932,7 @@ class Fields
 						'label' => 'Maximum image size',
 						'min' => 0,
 						'max' => 20000,
+						'unit' => 'px',
 						'default' => 2560,
 						'help' => 'Longest side, in pixels. Bigger images are scaled down on upload, 2560 by default as in WordPress. <strong>0 means no limit: huge images then reach the libraries as uploaded, and can exhaust the memory or the CPU of the server.</strong>',
 					],

@@ -15,6 +15,7 @@
     "assets/*.css",
     "assets/*.js",
     "assets/fonts",
+    "assets/icon-128x128.png",
     "vendor-prefixed",
     "!vendor-prefixed/**/tests",
     "!vendor-prefixed/**/bin",

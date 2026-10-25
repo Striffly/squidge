@@ -12,7 +12,7 @@
 		return;
 	}
 
-	var tabs = page.querySelectorAll('.oio-tabs [data-tab]');
+	var tabs = page.querySelectorAll('.oio-tabs__tab');
 	var panels = page.querySelectorAll('[data-panel]');
 	var storageKey = 'oio-tab';
 
@@ -26,7 +26,7 @@
 		}
 		tabs.forEach(function (tab) {
 			var active = tab.getAttribute('data-tab') === name;
-			tab.classList.toggle('nav-tab-active', active);
+			tab.classList.toggle('oio-tabs__tab--active', active);
 			tab.setAttribute('aria-selected', active ? 'true' : 'false');
 		});
 		panels.forEach(function (panel) {
@@ -47,6 +47,11 @@
 		var name = link.getAttribute('data-tab');
 		show(name);
 		history.replaceState(null, '', '#' + name);
+		// A link to a part of a tab, e.g. the settings of a format.
+		var target = link.getAttribute('data-target') && document.getElementById(link.getAttribute('data-target'));
+		if (target) {
+			target.scrollIntoView({behavior: 'smooth', block: 'start'});
+		}
 	});
 
 	// The hash is lost on the redirect after saving, so fall back to the last tab.
@@ -56,27 +61,32 @@
 			initial = sessionStorage.getItem(storageKey);
 		} catch (e) {}
 	}
-	page.classList.add('oio-js');
+	page.classList.add('oio-page--js');
 	show(initial || 'overview');
 })();
 
 /**
- * Background job of the media library card: starts it,
- * shows its progress until it ends, pauses, resumes and
- * cancels it, and keeps the counts and the bytes saved
- * up to date.
+ * Background job of the media library: started from
+ * the Optimise and Maintenance tabs, its progress is
+ * shown above every tab until it ends. Pauses, resumes
+ * and cancels it, and keeps the counts and the bytes
+ * saved up to date. The maintenance jobs need their
+ * box ticked first.
  */
 (function () {
+	var page = document.querySelector('.oio-page');
 	var box = document.querySelector('.oio-job');
 	var settings = window.oioJob;
-	if (!box || !settings) {
+	if (!page || !box || !settings) {
 		return;
 	}
 
 	var label = box.querySelector('.oio-job__label');
 	var bar = box.querySelector('.oio-job__bar');
-	var resultTitle = box.querySelector('.oio-job__result-title');
-	var resultDetail = box.querySelector('.oio-job__result-detail');
+	var resultTitle = box.querySelector('.oio-result__title');
+	var resultDetail = box.querySelector('.oio-result__detail');
+	var counts = null;
+	var busy = false;
 	var timer = null;
 	// Set while a job runs on this page, to report its end.
 	var following = false;
@@ -88,11 +98,6 @@
 		restore: ['Original images restored', 'Restore cancelled', 'restored']
 	};
 	var MEDIA_URL = settings.ajaxurl.replace('admin-ajax.php', 'upload.php?mode=list');
-	var CONFIRMS = {
-		all: 'Re-optimise all images from their originals, with their thumbnails? This can take a while.',
-		remove_formats: 'Delete the WebP and AVIF files of all images?',
-		restore: 'Restore the original images and delete every file made by OIO? The images will no longer be optimised.'
-	};
 
 	function request(action, data) {
 		var body = new URLSearchParams(Object.assign({action: action, _ajax_nonce: settings.nonce}, data || {}));
@@ -106,7 +111,22 @@
 		return Number(value).toLocaleString();
 	}
 
-	function showCounts(counts) {
+	// A job button is off while a job runs, when it has no image to process,
+	// or while its box is not ticked.
+	function updateButtons() {
+		page.querySelectorAll('[data-job]').forEach(function (button) {
+			var name = button.getAttribute('data-job');
+			var count = counts ? {all: counts.total, remove_formats: counts.processed, restore: counts.processed}[name] : 1;
+			if (count === undefined) {
+				count = counts[name];
+			}
+			var box = page.querySelector('[data-confirm-for="' + name + '"]');
+			button.disabled = busy || count === 0 || (box && !box.checked);
+		});
+	}
+
+	function showCounts(data) {
+		counts = data;
 		counts['new'] = counts['to-optimise'] + counts.error;
 		document.querySelectorAll('[data-count]').forEach(function (element) {
 			var name = element.getAttribute('data-count');
@@ -114,11 +134,7 @@
 				element.textContent = number(counts[name]);
 			}
 		});
-		box.querySelectorAll('[data-job]').forEach(function (button) {
-			var name = button.getAttribute('data-job');
-			var count = {all: counts.total, remove_formats: counts.processed, restore: counts.processed}[name];
-			button.disabled = (count === undefined ? counts[name] : count) === 0;
-		});
+		updateButtons();
 	}
 
 	// The bytes saved, formatted by the server.
@@ -127,7 +143,8 @@
 		if (!savingsBox || !savings) {
 			return;
 		}
-		savingsBox.hidden = !savings.images;
+		savingsBox.querySelector('.oio-savings__main').hidden = !savings.images;
+		savingsBox.querySelector('.oio-savings__empty').hidden = !!savings.images;
 		savingsBox.querySelectorAll('[data-savings]').forEach(function (element) {
 			element.textContent = savings[element.getAttribute('data-savings')];
 		});
@@ -171,6 +188,8 @@
 		var state = job && (job.state === 'running' || job.state === 'paused') ? job.state : 'idle';
 		box.hidden = false;
 		box.setAttribute('data-state', state);
+		busy = state !== 'idle';
+		page.classList.toggle('oio-page--busy', busy);
 		showCounts(data.counts);
 		showSavings(data.savings);
 
@@ -199,17 +218,29 @@
 		});
 	}
 
-	box.addEventListener('click', function (event) {
+	page.addEventListener('change', function (event) {
+		if (event.target.matches('[data-confirm-for]')) {
+			updateButtons();
+		}
+	});
+
+	page.addEventListener('click', function (event) {
 		var start = event.target.closest('[data-job]');
-		var control = event.target.closest('[data-control]');
+		var control = event.target.closest('.oio-job [data-control]');
 		if (start) {
 			var job = start.getAttribute('data-job');
-			if (CONFIRMS[job] && !window.confirm(CONFIRMS[job])) {
+			if (start.hasAttribute('data-confirm') && !window.confirm(start.getAttribute('data-confirm'))) {
 				return;
 			}
 			request('oio_job_start', {job: job}).then(function (response) {
 				if (response.success) {
+					// The box is ticked again for the next time.
+					var tick = page.querySelector('[data-confirm-for="' + job + '"]');
+					if (tick) {
+						tick.checked = false;
+					}
 					render(response.data);
+					box.scrollIntoView({behavior: 'smooth', block: 'center'});
 				} else {
 					window.alert(response.data && response.data.message ? response.data.message : 'The job could not start.');
 				}
