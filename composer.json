@@ -38,5 +38,10 @@
     },
     "require-dev": {
         "brianhenryie/strauss": "^0.31.1"
+    },
+    "config": {
+        "platform": {
+            "php": "8.2"
+        }
     }
 }
