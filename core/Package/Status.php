@@ -133,7 +133,8 @@ class Status
 	/**
 	 * Returns the meta key and current settings of each
 	 * library expected to process the images: enabled
-	 * and installed.
+	 * and available (installed, or the image editor
+	 * for WebP and AVIF).
 	 *
 	 * @return array Signature by meta key.
 	 * @since 1.0.0
@@ -144,7 +145,7 @@ class Status
 		$expected = [];
 		foreach (Optimiser::settings() as $format => $args) {
 			$service = Optimiser::SERVICES[$format];
-			if ($service::installed()) {
+			if ($service::available()) {
 				$expected[$service::meta_key()] = $service::signature($args);
 			}
 		}

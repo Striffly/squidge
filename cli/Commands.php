@@ -60,8 +60,8 @@ class OIO_CLI extends WP_CLI_Command
 		$this->print_health("jpegoptim", JPG::installed());
 		$this->print_health(PNG::library(), PNG::installed());
 		$this->print_health("pngquant (optional)", PNG::installed('pngquant'));
-		$this->print_health("cwebp", WebP::installed());
-		$this->print_health("avifenc", AVIF::installed());
+		$this->print_converter('WebP', WebP::class);
+		$this->print_converter('AVIF', AVIF::class);
 	}
 
 	/**
@@ -293,6 +293,25 @@ class OIO_CLI extends WP_CLI_Command
 			return;
 		}
 		WP_CLI::log(WP_CLI::colorize("%RError: %n") . $type . ' not installed, visit docs.');
+	}
+
+	/**
+	 * Prints the health information of a format made by
+	 * its library, or by the image editor (GD or
+	 * Imagick) where the library is missing.
+	 *
+	 * @param string $format
+	 * @param string $service
+	 * @since 1.0.0
+	 * @date 25/10/2026
+	 */
+	private function print_converter($format, $service)
+	{
+		if ($service::installed() || $service::editor() === null) {
+			$this->print_health($service::cmd_name(), $service::installed());
+			return;
+		}
+		WP_CLI::success(sprintf('%s active for %s: %s not installed, recommended.', $service::editor(), $format, $service::cmd_name()));
 	}
 }
 

@@ -26,5 +26,6 @@ if (!defined('ABSPATH')) {
 <p class="oio-intro">
 	OIO optimises your images with libraries installed on your own server: <b>free</b>, unlimited, and your
 	images never leave it. Below is the health status of each library. If a library is not installed, its
-	tab shows how to install it on your operating system.
+	tab shows how to install it on your operating system. Without their library, the WebP and AVIF files are
+	made by PHP itself, with GD or Imagick.
 </p>

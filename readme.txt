@@ -12,7 +12,7 @@ Squeezes images. Spills no ink, sends no bill. JPG, PNG, WebP and AVIF optimised
 
 == Description ==
 
-OIO optimises the images of your media library with the libraries of your own server: `jpegoptim`, `optipng` or `oxipng`, `pngquant`, `cwebp` and `avifenc`. Free and unlimited, no API key, no quota: your images never leave your server.
+OIO optimises the images of your media library with the libraries of your own server: `jpegoptim`, `optipng` or `oxipng`, `pngquant`, `cwebp` and `avifenc`, or GD and Imagick for the WebP and AVIF formats. Free and unlimited, no API key, no quota: your images never leave your server.
 
 = Optimisation =
 
@@ -43,7 +43,7 @@ See the [README on GitHub](https://github.com/Striffly/octopus-image-optimizer) 
 
 == Installation ==
 
-OIO needs a Linux or macOS server where PHP can run programs (`proc_open()` or `exec()`), with the libraries installed, e.g. on Debian or Ubuntu: `sudo apt install jpegoptim optipng webp libavif-bin`. Each format works on its own: a missing library only turns its format off. `oxipng`, faster, replaces `optipng` when installed, and `pngquant` adds an optional lossy compression of the PNG images.
+The JPG and PNG compression needs a Linux or macOS server where PHP can run programs (`proc_open()` or `exec()`), with `jpegoptim` and `optipng` or `oxipng` installed. The WebP and AVIF formats work without their libraries, with GD or Imagick when they support them (AVIF since WordPress 6.5), but `cwebp` and `avifenc` are better. E.g. on Debian or Ubuntu: `sudo apt install jpegoptim optipng webp libavif-bin`. Each format works on its own: a missing library only turns its format off, or hands the WebP or AVIF to GD or Imagick. `oxipng`, faster, replaces `optipng` when installed, and `pngquant` adds an optional lossy compression of the PNG images.
 
 1. Upload the plugin in `Plugins > Add New > Upload Plugin`, and activate it.
 2. Open `Settings > OIO`: the Overview tab checks the libraries and shows how to install the missing ones.
@@ -69,7 +69,7 @@ The background jobs run the libraries with the lowest priority: the requests of 
 
 = Does it work on shared hosting? =
 
-If the libraries are installed and PHP can run them. Most shared hosts do not let you install them: ask your host, the Overview tab tells what is missing.
+Yes for the WebP and AVIF formats: without their libraries, or where PHP cannot run programs, GD or Imagick make them. The JPG and PNG compression needs the libraries installed and PHP allowed to run them: most shared hosts do not let you install them, ask your host. The Overview tab tells what is missing.
 
 = Are the original images public? =
 

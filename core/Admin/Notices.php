@@ -66,6 +66,7 @@ class Notices
 	const REASONS = [
 		'/unsupported color conversion/i' => 'the image uses CMYK colours (a print format) that the library cannot read.',
 		'/no space left/i' => 'the server disk is full.',
+		'/not enough PHP memory/i' => 'the image is too big for the PHP memory: install the library, or lower the maximum image size.',
 		'/permission denied|read-only|cannot (open|create|write)/i' => 'the file could not be written, check the permissions of the uploads folder.',
 		'/cannot read the image/i' => 'the image file is damaged or incomplete, WordPress cannot read it.',
 		'/premature end|corrupt|not a (jpeg|png)|recoverable errors|bad huffman|invalid|input file read error|cannot read input file/i' => 'the image file seems damaged or incomplete.',

@@ -5,7 +5,8 @@
  *
  * WebP is responsible for converting JPG and PNG
  * images to webp with the .webp extension using
- * the cwebp library.
+ * the cwebp library, or the WordPress image editor
+ * (GD or Imagick) where it is missing.
  *
  * @package     OIO
  * @author      Clément Gayot
@@ -44,6 +45,12 @@ class WebP extends Service implements Convertor
 	const NEAR_LOSSLESS = 60;
 
 	/**
+	 * EDITOR_MIME is the format of the image editor,
+	 * without cwebp (see Service::editor()).
+	 */
+	const EDITOR_MIME = 'image/webp';
+
+	/**
 	 * Compress all image sizes if they are jpg or png
 	 * to webp with the given file path.
 	 *
@@ -64,6 +71,13 @@ class WebP extends Service implements Convertor
 		}
 		if (!isset($args['quality'])) {
 			$args['quality'] = self::DEFAULT_QUALITY;
+		}
+		// Without cwebp, GD and Imagick encode with libwebp too, at the same
+		// quality: the files are alike, but the PNGs are not tried in
+		// near-lossless mode.
+		if (!self::installed()) {
+			self::convert_with_editor($filepath, $mime, (int)$args['quality'], $args);
+			return;
 		}
 		$original = self::original($filepath);
 		$source = self::readable_source($original, $mime);

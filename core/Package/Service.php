@@ -17,9 +17,13 @@
 namespace OIO\Package;
 
 use Exception;
+use Imagick;
 use OIO\Log\Errors;
 use OIO\Log\Logger;
 use OIO\Types\Mimes;
+use Throwable;
+use WP_Error;
+use WP_Image_Editor_Imagick;
 
 if (!defined('ABSPATH')) {
 	exit; // Exit if accessed directly
@@ -62,6 +66,25 @@ class Service
 	const VERSION_OPTIONS = ['cwebp' => '-version'];
 
 	/**
+	 * EDITOR_MIME is the mime type of the files the
+	 * WordPress image editor makes when the library is
+	 * missing (see editor()): the WebP and AVIF
+	 * formats. Empty for the compressions, GD and
+	 * Imagick could only encode the images again.
+	 */
+	const EDITOR_MIME = '';
+
+	/**
+	 * EDITOR_BYTES_PER_PIXEL is the PHP memory GD needs
+	 * to make a WebP or AVIF file, by type of image:
+	 * measured 8.5 to 9 bytes per pixel for a JPG (the
+	 * pixels, then a copy for libwebp), 9 to 13 for a
+	 * PNG (a palette is turned to true colour), plus a
+	 * margin.
+	 */
+	const EDITOR_BYTES_PER_PIXEL = [Mimes::JPG => 10, Mimes::PNG => 14];
+
+	/**
 	 * The versions of the libraries, by name, with
 	 * their path, once read in this request.
 	 *
@@ -76,6 +99,15 @@ class Service
 	 * @var array
 	 */
 	private static $binaries = [];
+
+	/**
+	 * The image editor classes making each format, by
+	 * mime type, once looked up in this request (see
+	 * editor_class()).
+	 *
+	 * @var array
+	 */
+	private static $editors = [];
 
 	/**
 	 * Processes the file attachment.
@@ -93,8 +125,8 @@ class Service
 		if (is_int($attachment)) {
 			$attachment = wp_get_attachment_metadata($attachment);
 		}
-		// Return if the library is not installed.
-		if (!static::installed()) {
+		// Return if neither the library nor the image editor can make the format.
+		if (!static::available()) {
 			return;
 		}
 
@@ -381,6 +413,230 @@ class Service
 		if ($source !== $filepath && file_exists($source)) {
 			unlink($source);
 		}
+	}
+
+	/**
+	 * Makes the WebP or AVIF version of a file with the
+	 * WordPress image editor, where the library is
+	 * missing (see editor()): from the original, at the
+	 * same path, remembered as with the library. The
+	 * editor reads the CMYK JPGs, as for the
+	 * thumbnails: no RGB copy is needed (see
+	 * readable_source()).
+	 *
+	 * @param string $filepath
+	 * @param string $mime
+	 * @param int $quality The quality of the editor, 0 to 100.
+	 * @param array $args
+	 * @since 1.0.0
+	 * @date 25/10/2026
+	 */
+	protected static function convert_with_editor($filepath, $mime, $quality, $args)
+	{
+		$output = $filepath . static::extension();
+		if (self::save_with_editor(self::original($filepath), $mime, $output, $quality, $filepath, $args)) {
+			Logger::info(sprintf('Successfully converted with %s: %s', static::editor(), $output));
+			self::remember($args, $output);
+		}
+	}
+
+	/**
+	 * Saves an image in the format of the service with
+	 * the image editor, and records an error if it
+	 * fails, as run() does for a library. The editor
+	 * works in the PHP memory: the limit is raised as
+	 * WordPress does, and an image too big for it gets
+	 * an error instead of stopping PHP, with the whole
+	 * job (see fits_in_memory()).
+	 *
+	 * @param string $source
+	 * @param string $mime The mime type of the source.
+	 * @param string $output
+	 * @param int $quality
+	 * @param string $filepath The file of the attachment, for the errors.
+	 * @param array $args
+	 * @return bool
+	 * @since 1.0.0
+	 * @date 25/10/2026
+	 */
+	private static function save_with_editor($source, $mime, $output, $quality, $filepath, $args)
+	{
+		$id = isset($args['id']) ? $args['id'] : 0;
+		$class = self::editor_class();
+		wp_raise_memory_limit('image');
+		if (!self::fits_in_memory($source, $mime, $class)) {
+			Errors::add($id, static::cmd_name(), $filepath, sprintf('not enough PHP memory for %s to read the image', static::editor()));
+			return false;
+		}
+
+		// The editor of the format, even if WordPress picks another one for the
+		// thumbnails. And the quality given: saving in another format than the
+		// image sets the default quality of the format again.
+		$editors = function () use ($class) {
+			return [$class];
+		};
+		$set_quality = function () use ($quality) {
+			return $quality;
+		};
+		add_filter('wp_image_editors', $editors, PHP_INT_MAX);
+		add_filter('wp_editor_set_quality', $set_quality, PHP_INT_MAX);
+		try {
+			$saved = wp_get_image_editor($source, ['mime_type' => $mime]);
+			if (!is_wp_error($saved)) {
+				$editor = $saved;
+				self::strip_metadata($editor);
+				$saved = $editor->save($output, static::EDITOR_MIME);
+			}
+		} catch (Throwable $e) {
+			$saved = new WP_Error('oio_editor_error', $e->getMessage());
+		} finally {
+			remove_filter('wp_image_editors', $editors, PHP_INT_MAX);
+			remove_filter('wp_editor_set_quality', $set_quality, PHP_INT_MAX);
+		}
+
+		// A filter of the output formats (image_editor_output_format) made
+		// another format, with another extension.
+		if (!is_wp_error($saved) && wp_normalize_path($saved['path']) !== wp_normalize_path($output)) {
+			if (file_exists($saved['path']) && !in_array($saved['path'], [$source, $filepath], true) && self::contained($saved['path'])) {
+				unlink($saved['path']);
+			}
+			$saved = new WP_Error('oio_editor_error', sprintf('saved as %s instead of %s', $saved['mime-type'], static::EDITOR_MIME));
+		}
+		if (is_wp_error($saved)) {
+			Errors::add($id, static::cmd_name(), $filepath, static::editor() . ': ' . $saved->get_error_message());
+			return false;
+		}
+		return true;
+	}
+
+	/**
+	 * Determines if GD has enough PHP memory to make
+	 * the WebP or AVIF file of an image: past the
+	 * limit, PHP stops with a fatal error, that no
+	 * error handler catches. Imagick works out of the
+	 * PHP memory, with its own limits.
+	 *
+	 * @param string $source
+	 * @param string $mime
+	 * @param string $class The class of the editor.
+	 * @return bool
+	 * @since 1.0.0
+	 * @date 25/10/2026
+	 */
+	private static function fits_in_memory($source, $mime, $class)
+	{
+		if (!is_a($class, 'WP_Image_Editor_GD', true)) {
+			return true;
+		}
+		$limit = wp_convert_hr_to_bytes(ini_get('memory_limit'));
+		$size = @getimagesize($source);
+		if ($limit <= 0 || !$size) {
+			return true;
+		}
+		$bytes = isset(self::EDITOR_BYTES_PER_PIXEL[$mime]) ? self::EDITOR_BYTES_PER_PIXEL[$mime] : max(self::EDITOR_BYTES_PER_PIXEL);
+		return memory_get_usage() + $size[0] * $size[1] * $bytes < $limit;
+	}
+
+	/**
+	 * Removes the metadata of the image loaded by an
+	 * Imagick editor but its colour profile: Exif (GPS
+	 * position, camera), XMP and IPTC, which
+	 * ImageMagick writes in the WebP and AVIF files.
+	 * WP_Image_Editor_Imagick::strip_meta() keeps them,
+	 * and only runs on resize. A CMYK image loses its
+	 * profile too: ImageMagick turns it to RGB on
+	 * saving, the profile would not match. GD keeps no
+	 * metadata.
+	 *
+	 * @param object $editor A WP_Image_Editor.
+	 * @since 1.0.0
+	 * @date 25/10/2026
+	 */
+	private static function strip_metadata($editor)
+	{
+		if (!$editor instanceof WP_Image_Editor_Imagick) {
+			return;
+		}
+		// The Imagick object of the editor is protected: run in its scope.
+		$strip = function () {
+			$keep = $this->image->getImageColorspace() === Imagick::COLORSPACE_CMYK ? [] : ['icc', 'icm'];
+			foreach ($this->image->getImageProfiles('*', false) as $name) {
+				if (!in_array(strtolower($name), $keep, true)) {
+					$this->image->removeImageProfile($name);
+				}
+			}
+		};
+		$strip->call($editor);
+	}
+
+	/**
+	 * Returns the class of the WordPress image editor
+	 * making the format of the service, once per
+	 * request: the first one of the wp_image_editors
+	 * filter supporting it (Imagick, then GD by
+	 * default), as wp_image_editor_supports() tells.
+	 * Null if none does, or for the compressions.
+	 *
+	 * @return string|null
+	 * @since 1.0.0
+	 * @date 25/10/2026
+	 */
+	private static function editor_class()
+	{
+		$mime = static::EDITOR_MIME;
+		if ($mime === '') {
+			return null;
+		}
+		if (!array_key_exists($mime, self::$editors)) {
+			$class = _wp_image_editor_choose(['mime_type' => $mime]);
+			self::$editors[$mime] = $class ? $class : null;
+		}
+		return self::$editors[$mime];
+	}
+
+	/**
+	 * Returns the name of the WordPress image editor
+	 * making the format of the service when its
+	 * library is missing, e.g. GD or Imagick, or null
+	 * if none supports it: the format is then not
+	 * available.
+	 *
+	 * @return string|null
+	 * @since 1.0.0
+	 * @date 25/10/2026
+	 */
+	public static function editor()
+	{
+		$class = self::editor_class();
+		return $class === null ? null : preg_replace('/^WP_Image_Editor_/', '', $class);
+	}
+
+	/**
+	 * Determines if the service can make its files:
+	 * with its library, or with the image editor for
+	 * the WebP and AVIF formats.
+	 *
+	 * @return bool
+	 * @since 1.0.0
+	 * @date 25/10/2026
+	 */
+	public static function available()
+	{
+		return static::installed() || self::editor_class() !== null;
+	}
+
+	/**
+	 * Returns what makes the files of the service: the
+	 * library when installed, preferred, otherwise the
+	 * image editor, null if none can.
+	 *
+	 * @return string|null
+	 * @since 1.0.0
+	 * @date 25/10/2026
+	 */
+	public static function engine()
+	{
+		return static::installed() ? static::library() : static::editor();
 	}
 
 	/**

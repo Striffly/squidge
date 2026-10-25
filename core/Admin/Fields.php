@@ -200,6 +200,8 @@ class Fields
 			$sections[$id]['version'] = $section['service']::version_number();
 			$sections[$id]['enabled'] = self::get('oio_' . $id . '_enable');
 			$sections[$id]['library'] = $section['service']::library();
+			// The library, or GD or Imagick for WebP and AVIF without it, null if none.
+			$sections[$id]['engine'] = $section['service']::engine();
 			// Optional libraries, e.g. pngquant: what they add, and if they are installed.
 			$sections[$id]['optional'] = isset($section['optional']) ? $section['optional'] : [];
 			$sections[$id]['extras'] = [];
@@ -234,10 +236,14 @@ class Fields
 									<span class="oio-status__format"><?php echo esc_html($section['title']); ?></span>
 									<?php $this->render_badge(self::state($section), self::STATE_LABELS[self::state($section)]); ?>
 								</span>
-								<span class="oio-status__library oio-status__library--<?php echo $section['installed'] ? 'on' : 'off'; ?>">
-									<code><?php echo esc_html($section['library']); ?></code>
-									<span class="dashicons dashicons-<?php echo $section['installed'] ? 'yes' : 'no-alt'; ?>" aria-hidden="true"></span>
-									<?php echo $section['installed'] ? 'installed' : 'not installed'; ?>
+								<span class="oio-status__library oio-status__library--<?php echo $section['engine'] ? 'on' : 'off'; ?>">
+									<code><?php echo esc_html($section['engine'] ? $section['engine'] : $section['library']); ?></code>
+									<span class="dashicons dashicons-<?php echo $section['engine'] ? 'yes' : 'no-alt'; ?>" aria-hidden="true"></span>
+									<?php if ($section['installed'] || !$section['engine']) : ?>
+										<?php echo $section['installed'] ? 'installed' : 'not installed'; ?>
+									<?php else : ?>
+										(<?php echo esc_html($section['library']); ?> not installed)
+									<?php endif; ?>
 									<?php if ($section['version']) : ?>
 										<span class="oio-status__version"><?php echo esc_html($section['version']); ?></span>
 									<?php endif; ?>
@@ -278,10 +284,16 @@ class Fields
 					<section class="oio-panel" id="oio-panel-<?php echo esc_attr($id); ?>" role="tabpanel" data-panel="<?php echo esc_attr($id); ?>">
 						<div class="oio-card">
 							<header class="oio-card__header">
-								<h2><?php echo esc_html($section['title']); ?> <code><?php echo esc_html($section['library']); ?></code></h2>
-								<?php $this->render_badge($section['installed'] ? 'on' : 'off', $section['installed'] ? 'Installed' : 'Not installed'); ?>
+								<h2><?php echo esc_html($section['title']); ?> <code><?php echo esc_html($section['engine'] ? $section['engine'] : $section['library']); ?></code></h2>
+								<?php $this->render_badge($section['engine'] ? 'on' : 'off', $section['installed'] ? 'Installed' : ($section['engine'] ? 'PHP extension' : 'Not installed')); ?>
 							</header>
-							<?php if (!$section['installed']) : ?>
+							<?php if (!$section['installed'] && $section['engine']) : ?>
+								<details class="oio-install" open>
+									<summary>Recommended: install <?php echo esc_html($section['library']); ?></summary>
+									<p class="description"><?php echo esc_html(sprintf($section['recommendation'], $section['engine'])); ?></p>
+									<?php echo $this->render_template('health' . DIRECTORY_SEPARATOR . $section['template']); ?>
+								</details>
+							<?php elseif (!$section['installed']) : ?>
 								<details class="oio-install" open>
 									<summary>How to install <?php echo esc_html($section['library']); ?></summary>
 									<?php echo $this->render_template('health' . DIRECTORY_SEPARATOR . $section['template']); ?>
@@ -454,9 +466,10 @@ class Fields
 
 	/**
 	 * Returns the state of a format, used for the
-	 * tab dots and overview badges: on (enabled and
-	 * installed), off (enabled but not installed)
-	 * or muted (disabled).
+	 * tab dots and overview badges: on (enabled, and
+	 * its library installed or the image editor making
+	 * it), off (enabled but nothing can make it) or
+	 * muted (disabled).
 	 *
 	 * @param array $section
 	 * @return string
@@ -468,7 +481,7 @@ class Fields
 		if (!$section['enabled']) {
 			return 'muted';
 		}
-		return $section['installed'] ? 'on' : 'off';
+		return $section['engine'] ? 'on' : 'off';
 	}
 
 	/**
@@ -624,6 +637,7 @@ class Fields
 				'title' => 'WebP',
 				'service' => WebP::class,
 				'template' => 'webp.php',
+				'recommendation' => '%s makes the WebP files for now, in the PHP process. cwebp runs apart from PHP, and makes the PNG graphics and screenshots much lighter.',
 				'fields' => [
 					'oio_webp_enable' => [
 						'type' => 'checkbox',
@@ -645,6 +659,7 @@ class Fields
 				'title' => 'AVIF',
 				'service' => AVIF::class,
 				'template' => 'avif.php',
+				'recommendation' => '%s makes the AVIF files for now, in the PHP process. avifenc runs apart from PHP, on several threads, and keeps the colours of the PNG images sharper.',
 				'fields' => [
 					'oio_avif_enable' => [
 						'type' => 'checkbox',

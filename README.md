@@ -7,8 +7,8 @@
 🐙 **Squeezes images. Spills no ink, sends no bill.**
 
 OIO optimises the images of your WordPress media library with the libraries of your own server: `jpegoptim`,
-`optipng` or `oxipng`, `pngquant`, `cwebp` and `avifenc`. Free and unlimited, no API key, no quota: your images never
-leave your server.
+`optipng` or `oxipng`, `pngquant`, `cwebp` and `avifenc`, or GD and Imagick for the WebP and AVIF formats. Free and
+unlimited, no API key, no quota: your images never leave your server.
 
 [![GNU General Public License 3.0](https://img.shields.io/github/license/Striffly/octopus-image-optimizer.svg)](https://www.gnu.org/licenses/gpl-3.0.en.html)
 
@@ -40,15 +40,21 @@ leave your server.
 
 ## Requirements
 
-- WordPress 6.0 and PHP 7.4 or later, on a Linux or macOS server, with `proc_open()` or `exec()` enabled.
-- The libraries installed on the server. The settings page shows the missing ones and how to install them, e.g. on
-  Debian or Ubuntu:
+- WordPress 6.0 and PHP 7.4 or later.
+- The JPG and PNG compression needs `jpegoptim` and `optipng` or `oxipng` installed on the server, on Linux or macOS,
+  and PHP allowed to run them (`proc_open()` or `exec()`).
+- The WebP and AVIF formats work without their libraries, with GD or Imagick when they support them (AVIF since
+  WordPress 6.5). `cwebp` and `avifenc` are better: they run apart from PHP, `cwebp` makes the PNG graphics much
+  lighter and `avifenc` keeps their colours sharper.
+
+The settings page shows the missing libraries and how to install them, e.g. on Debian or Ubuntu:
 
 ```bash
 sudo apt install jpegoptim optipng webp libavif-bin
 ```
 
-Each format works on its own: a missing library only turns its format off. `oxipng`, faster than `optipng`, replaces it
+Each format works on its own: a missing library only turns its format off, or hands the WebP or AVIF to GD or
+Imagick. `oxipng`, faster than `optipng`, replaces it
 when installed (`apt install oxipng` on recent systems, or from its
 [releases](https://github.com/oxipng/oxipng/releases)), and `pngquant` (`apt install pngquant`) adds an optional lossy
 compression of the PNG images.
@@ -90,8 +96,9 @@ the [filters](#filters) slow the jobs down further.
 
 ### Does it work on shared hosting?
 
-If the libraries are installed and PHP can run them. Most shared hosts do not let you install them: ask your host,
-the Overview tab tells what is missing.
+Yes for the WebP and AVIF formats: without their libraries, or where PHP cannot run programs, GD or Imagick make
+them. The JPG and PNG compression needs the libraries installed and PHP allowed to run them: most shared hosts do not
+let you install them, ask your host. The Overview tab tells what is missing.
 
 ### What happens when I delete OIO?
 
@@ -116,6 +123,10 @@ avifenc -q {quality} --speed 6 --ignore-exif --ignore-xmp photo.jpg photo.jpg.av
 installed, after `pngquant` when the lossy compression is on (it then compresses `tmp.png`). In background jobs, `cwebp`
 runs without `-mt`, `avifenc` with `--jobs 2` and `oxipng` with `--threads 2`. A PNG is also encoded with `cwebp -near_lossless 60`, kept if lighter: graphics
 and screenshots get much lighter and sharper, photos are left lossy.
+
+Without `cwebp` or `avifenc`, the WordPress image editor (GD or Imagick) makes the WebP at the same quality, and the
+AVIF at the quality + 5 (up to 89, from 90 as is), for files close to the ones of `avifenc`. The PNG images are not
+tried in near-lossless.
 
 ## Privacy
 
@@ -206,8 +217,9 @@ nothing is encoded again.
 the site 2.
 
 `oio_binary_path` receives the name of the library as second argument (`jpegoptim`, `optipng`, `cwebp`, `avifenc`,
-or `nice`). OIO looks the libraries up in the folders of the `PATH`, then in `/usr/bin`, `/usr/local/bin`, `/bin`,
-`/opt/homebrew/bin` and `/opt/local/bin`: PHP-FPM often passes an empty `PATH`.
+or `nice`); without `cwebp` or `avifenc`, GD or Imagick make the format. OIO looks the libraries up in the folders of
+the `PATH`, then in `/usr/bin`, `/usr/local/bin`, `/bin`, `/opt/homebrew/bin` and `/opt/local/bin`: PHP-FPM often
+passes an empty `PATH`.
 
 ```php
 // In a mu-plugin: lighter background jobs on a small server.
