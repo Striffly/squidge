@@ -116,35 +116,89 @@ class Service
 	}
 
 	/**
-	 * Runs a library command on a file, and records
-	 * an error if it exits with a non zero code.
+	 * Runs the library on a file with the arguments
+	 * given, and records an error if it exits with a
+	 * non zero code.
 	 *
-	 * @param string $command
+	 * @param string[] $arguments
 	 * @param string $filepath
 	 * @param array $args
 	 * @return bool
 	 * @since 1.0.0
 	 * @date 25/10/2026
 	 */
-	protected static function run($command, $filepath, $args)
+	protected static function run($arguments, $filepath, $args)
 	{
-		$output = [];
-		exec(self::nice() . $command . ' 2>&1', $output, $code);
+		$command = array_merge(self::nice(), [self::binary(static::cmd_name())], $arguments);
+		list($code, $output) = self::execute($command);
 		if ($code === 0) {
 			return true;
 		}
-		Errors::add(isset($args['id']) ? $args['id'] : 0, static::cmd_name(), $filepath, self::error_message($output, $code, $filepath));
+		$lines = preg_split('/\r?\n/', $output);
+		Errors::add(isset($args['id']) ? $args['id'] : 0, static::cmd_name(), $filepath, self::error_message($lines, $code, $filepath));
 		return false;
 	}
 
 	/**
-	 * Returns the nice prefix lowering the priority of
-	 * the commands: in background jobs by default, the
-	 * requests of the site go first. The oio_nice
+	 * Executes a command without shell: each argument
+	 * reaches the program as given, nothing is
+	 * interpreted. Falls back on exec(), with escaped
+	 * arguments, where proc_open() is disabled.
+	 *
+	 * @param string[] $command The program, then its arguments.
+	 * @return array The exit code and the output (stdout and stderr).
+	 * @since 1.0.0
+	 * @date 25/10/2026
+	 */
+	protected static function execute($command)
+	{
+		$command = array_map('strval', $command);
+		if (function_exists('proc_open')) {
+			$process = @proc_open($command, [0 => ['file', '/dev/null', 'r'], 1 => ['pipe', 'w'], 2 => ['redirect', 1]], $pipes);
+			if (is_resource($process)) {
+				$output = stream_get_contents($pipes[1]);
+				fclose($pipes[1]);
+				return [proc_close($process), (string)$output];
+			}
+		}
+		if (function_exists('exec')) {
+			exec(implode(' ', array_map('escapeshellarg', $command)) . ' 2>&1', $lines, $code);
+			return [$code, implode("\n", $lines)];
+		}
+		return [127, 'cannot run ' . basename($command[0])];
+	}
+
+	/**
+	 * Returns the absolute path of a program, or null
+	 * if it is not installed. The shell finds it with
+	 * its default PATH, which PHP-FPM may not pass on;
+	 * the name is an argument of the shell script, not
+	 * a part of it.
+	 *
+	 * @param string $name
+	 * @return string|null
+	 * @since 1.0.0
+	 * @date 25/10/2026
+	 */
+	protected static function binary($name)
+	{
+		static $paths = [];
+		if (!array_key_exists($name, $paths)) {
+			list($code, $output) = self::execute(['/bin/sh', '-c', 'command -v "$1"', 'sh', $name]);
+			$path = trim($output);
+			$paths[$name] = $code === 0 && strpos($path, '/') === 0 ? $path : null;
+		}
+		return $paths[$name];
+	}
+
+	/**
+	 * Returns the nice command lowering the priority
+	 * of the libraries: in background jobs by default,
+	 * the requests of the site go first. The oio_nice
 	 * filter sets the level, from 0 (normal) to 19
 	 * (lowest), by context (see Optimiser::$context).
 	 *
-	 * @return string
+	 * @return string[]
 	 * @since 1.0.0
 	 * @date 25/10/2026
 	 */
@@ -152,14 +206,8 @@ class Service
 	{
 		$default = Optimiser::$context === 'background' ? 19 : 0;
 		$level = (int)apply_filters('oio_nice', $default, Optimiser::$context);
-		if ($level <= 0) {
-			return '';
-		}
-		static $available = null;
-		if ($available === null) {
-			$available = !empty(shell_exec('which nice'));
-		}
-		return $available ? sprintf('nice -n %d ', min(19, $level)) : '';
+		$nice = $level > 0 ? self::binary('nice') : null;
+		return $nice ? [$nice, '-n', (string)min(19, $level)] : [];
 	}
 
 	/**
@@ -218,7 +266,7 @@ class Service
 	 * of a failed command: its error lines, or its
 	 * last line, without the directory of the file.
 	 *
-	 * @param array $output
+	 * @param string[] $output
 	 * @param int $code
 	 * @param string $filepath
 	 * @return string
@@ -485,12 +533,10 @@ class Service
 	}
 
 	/**
-	 * Checks if a command exists.
-	 *
-	 * shell_exec is required to check to see if the library
-	 * is installed on the client's operating system.
-	 * Checks to see if the command name is in the allowed
-	 * array before continuing.
+	 * Checks if the library is installed on the
+	 * server, once per request (the status of the
+	 * images asks it often). Only the supported
+	 * libraries can be run.
 	 *
 	 * @return bool
 	 * @since 0.1.2
@@ -504,16 +550,10 @@ class Service
 			'cwebp',
 			'avifenc',
 		];
-		if (!in_array(static::cmd_name(), $allowed)) {
+		if (!in_array(static::cmd_name(), $allowed, true)) {
 			return false;
 		}
-		// Checked once per request, the status of the images asks it often.
-		static $installed = [];
-		if (!isset($installed[static::cmd_name()])) {
-			$return = shell_exec(sprintf("which %s", escapeshellarg(static::cmd_name())));
-			$installed[static::cmd_name()] = !empty($return);
-		}
-		return $installed[static::cmd_name()];
+		return self::binary(static::cmd_name()) !== null;
 	}
 
 	/**

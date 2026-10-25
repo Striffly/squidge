@@ -40,7 +40,8 @@ class PNG extends Service implements Convertor
 	 * Compresses all image sizes have a jpg mime type
 	 * with the given file path.
 	 *
-	 * exec is required to compress the WP PNG image.
+	 * The library runs without shell, see
+	 * Service::execute().
 	 *
 	 * @param $filepath
 	 * @param $mime
@@ -61,7 +62,7 @@ class PNG extends Service implements Convertor
 		$original = self::backup_path($filepath);
 		// optipng keeps a .bak of an output file it overwrites: remove it first.
 		unlink($filepath);
-		if (self::run(sprintf('%s -clobber -strip all -o %d -out %s %s', escapeshellarg(self::cmd_name()), self::optimization_level($args), escapeshellarg($filepath), escapeshellarg($original)), $filepath, $args)) {
+		if (self::run(['-clobber', '-strip', 'all', '-o', self::optimization_level($args), '-out', $filepath, $original], $filepath, $args)) {
 			Logger::info("Successfully compressed image PNG file: " . $filepath);
 		} else {
 			// Back to the original, without backup: it is retried next time.

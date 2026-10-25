@@ -39,8 +39,8 @@ class WebP extends Service implements Convertor
 	 * Compress all image sizes if they are jpg or png
 	 * to webp with the given file path.
 	 *
-	 * exec is required to convert the WP image into
-	 * a WebP file.
+	 * The library runs without shell, see
+	 * Service::execute().
 	 *
 	 * @param $filepath
 	 * @param $mime
@@ -60,7 +60,7 @@ class WebP extends Service implements Convertor
 		$original = self::original($filepath);
 		$source = self::readable_source($original, $mime);
 		$output = $filepath . self::extension();
-		if (self::run(sprintf('%s -q %d %s -o %s', escapeshellarg(self::cmd_name()), $args['quality'], escapeshellarg($source), escapeshellarg($output)), $filepath, $args)) {
+		if (self::run(['-q', (int)$args['quality'], $source, '-o', $output], $filepath, $args)) {
 			Logger::info("Successfully converted to WebP file: " . $output);
 			self::remember($args, $output);
 		}

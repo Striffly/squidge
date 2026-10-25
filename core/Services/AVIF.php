@@ -49,8 +49,8 @@ class AVIF extends Service implements Convertor
 	 * Compresses all image sizes have a png mime type
 	 * with the given file path.
 	 *
-	 * exec is required to convert the WP image into
-	 * a AVIF file.
+	 * The library runs without shell, see
+	 * Service::execute().
 	 *
 	 * @param $filepath
 	 * @param $mime
@@ -73,16 +73,16 @@ class AVIF extends Service implements Convertor
 		// mapped the same way libavif maps -q. tune=ssim has no
 		// effect on the still image mode of libavif 1.x.
 		if (self::version() >= 1) {
-			$options = sprintf('-q %d', $quality);
+			$options = ['-q', $quality];
 		} else {
-			$options = sprintf('--min 0 --max 63 -a end-usage=q -a cq-level=%d -a tune=ssim', (int)(((100 - $quality) * 63 + 50) / 100));
+			$options = ['--min', 0, '--max', 63, '-a', 'end-usage=q', '-a', 'cq-level=' . (int)(((100 - $quality) * 63 + 50) / 100), '-a', 'tune=ssim'];
 		}
-		$options .= self::metadata_options();
+		$options = array_merge($options, self::metadata_options());
 
 		$original = self::original($filepath);
 		$source = self::readable_source($original, $mime);
 		$output = $filepath . self::extension();
-		if (self::run(sprintf('%s %s --speed %d --jobs %s %s %s', escapeshellarg(self::cmd_name()), $options, $speed, $jobs, escapeshellarg($source), escapeshellarg($output)), $filepath, $args)) {
+		if (self::run(array_merge($options, ['--speed', $speed, '--jobs', $jobs, $source, $output]), $filepath, $args)) {
 			Logger::info("Successfully converted to AVIF file: " . $output);
 			self::remember($args, $output);
 		}
@@ -121,8 +121,8 @@ class AVIF extends Service implements Convertor
 	{
 		static $major = null;
 		if ($major === null) {
-			exec(escapeshellarg(self::cmd_name()) . ' --version 2>&1', $output);
-			$major = preg_match('/Version:\s*(\d+)\./', implode("\n", $output), $matches) ? (int)$matches[1] : 0;
+			list(, $output) = self::execute([self::binary(self::cmd_name()), '--version']);
+			$major = preg_match('/Version:\s*(\d+)\./', $output, $matches) ? (int)$matches[1] : 0;
 		}
 		return $major;
 	}
@@ -135,7 +135,7 @@ class AVIF extends Service implements Convertor
 	 * colour profile is kept. Versions without these
 	 * options do not copy the metadata.
 	 *
-	 * @return string
+	 * @return string[]
 	 * @since 1.0.0
 	 * @date 25/10/2026
 	 */
@@ -143,12 +143,11 @@ class AVIF extends Service implements Convertor
 	{
 		static $options = null;
 		if ($options === null) {
-			exec(escapeshellarg(self::cmd_name()) . ' --help 2>&1', $output);
-			$help = implode("\n", $output);
-			$options = '';
+			list(, $help) = self::execute([self::binary(self::cmd_name()), '--help']);
+			$options = [];
 			foreach (['--ignore-exif', '--ignore-xmp'] as $option) {
 				if (strpos($help, $option) !== false) {
-					$options .= ' ' . $option;
+					$options[] = $option;
 				}
 			}
 		}

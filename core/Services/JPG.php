@@ -40,7 +40,8 @@ class JPG extends Service implements Convertor
 	 * Compresses all image sizes have a png mime type
 	 * with the given file path.
 	 *
-	 * exec is required to compress the WP JPG image.
+	 * The library runs without shell, see
+	 * Service::execute().
 	 *
 	 * @param $filepath
 	 * @param $mime
@@ -67,7 +68,7 @@ class JPG extends Service implements Convertor
 			Errors::add(isset($args['id']) ? $args['id'] : 0, self::cmd_name(), $filepath, 'cannot write ' . basename($filepath));
 			return;
 		}
-		if (self::run(sprintf('%s --strip-all --overwrite --max=%d %s', escapeshellarg(self::cmd_name()), $args['quality'], escapeshellarg($filepath)), $filepath, $args)) {
+		if (self::run(['--strip-all', '--overwrite', '--max=' . (int)$args['quality'], $filepath], $filepath, $args)) {
 			Logger::info("Successfully compressed image JPG file: " . $filepath);
 		} else {
 			// Back to the original, without backup: it is retried next time.
