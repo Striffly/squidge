@@ -110,6 +110,13 @@ function squidge_image($image_id, $class = '', $lazy = false)
 Yes, the JPG and PNG files of the uploads folder are replaced with their compressed version, so your whole site
 uses them. The originals are kept in `uploads/squidge-originals/` and every new optimisation starts again from them.
 
+### What happens when I delete Squidge?
+
+Deleting Squidge removes its settings and data from the database, and keeps the files: the compressed images, their
+WebP and AVIF versions and the originals in `uploads/squidge-originals/`. To get your original images back and remove
+every Squidge file, run `Restore original images` on the settings page (or `wp squidge restore`) before deleting it.
+Squidge reminds it when it is deactivated.
+
 ### What are the supported operating systems?
 
 Windows, Linux, & Mac OSX.
