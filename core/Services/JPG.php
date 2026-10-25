@@ -7,7 +7,7 @@
  * with the JPG mime type using the jpegoptim
  * library.
  *
- * @package     Squidge
+ * @package     OIO
  * @version     0.1.4
  * @author      Ainsley Clark
  * @category    Class
@@ -15,13 +15,13 @@
  *
  */
 
-namespace Squidge\Services;
+namespace OIO\Services;
 
-use Squidge\Log\Errors;
-use Squidge\Log\Logger;
-use Squidge\Package\Convertor;
-use Squidge\Package\Service;
-use Squidge\Types\Mimes;
+use OIO\Log\Errors;
+use OIO\Log\Logger;
+use OIO\Package\Convertor;
+use OIO\Package\Service;
+use OIO\Types\Mimes;
 
 if (!defined('ABSPATH')) {
 	exit; // Exit if accessed directly

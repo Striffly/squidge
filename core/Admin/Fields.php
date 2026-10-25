@@ -7,7 +7,7 @@
  * part of the plugin, using the WordPress
  * Settings API.
  *
- * @package     Squidge
+ * @package     OIO
  * @version     0.1.4
  * @author      Ainsley Clark
  * @category    Class
@@ -15,13 +15,13 @@
  *
  */
 
-namespace Squidge\Admin;
+namespace OIO\Admin;
 
-use Squidge\Package\Status;
-use Squidge\Services\AVIF;
-use Squidge\Services\JPG;
-use Squidge\Services\PNG;
-use Squidge\Services\WebP;
+use OIO\Package\Status;
+use OIO\Services\AVIF;
+use OIO\Services\JPG;
+use OIO\Services\PNG;
+use OIO\Services\WebP;
 
 if (!defined('ABSPATH')) {
 	exit; // Exit if accessed directly
@@ -34,7 +34,7 @@ class Fields
 	 *
 	 * @var string
 	 */
-	const PAGE = 'squidge';
+	const PAGE = 'oio';
 
 	/**
 	 * Prefix of the option names in the database,
@@ -89,7 +89,7 @@ class Fields
 	}
 
 	/**
-	 * Returns the value of a Squidge option, or its
+	 * Returns the value of an OIO option, or its
 	 * default if it has never been saved.
 	 *
 	 * @param string $name
@@ -132,9 +132,9 @@ class Fields
 		if ($hook !== 'settings_page_' . self::PAGE) {
 			return;
 		}
-		wp_enqueue_style('squidge-admin', SQUIDGE_URL . 'assets/admin.css', [], filemtime(SQUIDGE_PATH . 'assets/admin.css'));
-		wp_enqueue_script('squidge-admin', SQUIDGE_URL . 'assets/admin.js', [], filemtime(SQUIDGE_PATH . 'assets/admin.js'), true);
-		wp_localize_script('squidge-admin', 'squidgeJob', [
+		wp_enqueue_style('oio-admin', OIO_URL . 'assets/admin.css', [], filemtime(OIO_PATH . 'assets/admin.css'));
+		wp_enqueue_script('oio-admin', OIO_URL . 'assets/admin.js', [], filemtime(OIO_PATH . 'assets/admin.js'), true);
+		wp_localize_script('oio-admin', 'oioJob', [
 			'ajaxurl' => admin_url('admin-ajax.php'),
 			'nonce' => wp_create_nonce(Tools::NONCE),
 		]);
@@ -148,7 +148,7 @@ class Fields
 	 */
 	public function add_page()
 	{
-		add_options_page('Squidge', 'Squidge Options', 'manage_options', self::PAGE, [$this, 'render_page']);
+		add_options_page('OIO – Octopus Image Optimizer', 'OIO', 'manage_options', self::PAGE, [$this, 'render_page']);
 	}
 
 	/**
@@ -190,18 +190,19 @@ class Fields
 		unset($sections['display']);
 		foreach ($sections as $id => $section) {
 			$sections[$id]['installed'] = $section['service']::installed();
-			$sections[$id]['enabled'] = self::get('squidge_' . $id . '_enable');
+			$sections[$id]['enabled'] = self::get('oio_' . $id . '_enable');
 			$sections[$id]['library'] = $section['service']::cmd_name();
 		}
 		?>
-		<div class="wrap squidge-page">
-			<h1>Squidge</h1>
+		<div class="wrap oio-page">
+			<h1>OIO <span class="oio-title__name">Octopus Image Optimizer</span></h1>
+			<p class="oio-tagline">Squeezes images. Spills no ink, sends no bill.</p>
 
-			<nav class="nav-tab-wrapper squidge-tabs" role="tablist">
+			<nav class="nav-tab-wrapper oio-tabs" role="tablist">
 				<a href="#overview" class="nav-tab nav-tab-active" role="tab" data-tab="overview">Overview</a>
 				<?php foreach ($sections as $id => $section) : ?>
 					<a href="#<?php echo esc_attr($id); ?>" class="nav-tab" role="tab" data-tab="<?php echo esc_attr($id); ?>">
-						<span class="squidge-dot squidge-dot--<?php echo esc_attr(self::state($section)); ?>" aria-hidden="true"></span>
+						<span class="oio-dot oio-dot--<?php echo esc_attr(self::state($section)); ?>" aria-hidden="true"></span>
 						<?php echo esc_html($section['title']); ?>
 					</a>
 				<?php endforeach; ?>
@@ -210,16 +211,16 @@ class Fields
 			<form action="options.php" method="post">
 				<?php settings_fields(self::PAGE); ?>
 
-				<section class="squidge-panel" id="squidge-panel-overview" role="tabpanel" data-panel="overview">
+				<section class="oio-panel" id="oio-panel-overview" role="tabpanel" data-panel="overview">
 					<?php echo $this->render_template('info.php'); ?>
-					<div class="squidge-status-grid">
+					<div class="oio-status-grid">
 						<?php foreach ($sections as $id => $section) : ?>
-							<a class="squidge-status" href="#<?php echo esc_attr($id); ?>" data-tab="<?php echo esc_attr($id); ?>">
-								<span class="squidge-status__head">
-									<span class="squidge-status__format"><?php echo esc_html($section['title']); ?></span>
+							<a class="oio-status" href="#<?php echo esc_attr($id); ?>" data-tab="<?php echo esc_attr($id); ?>">
+								<span class="oio-status__head">
+									<span class="oio-status__format"><?php echo esc_html($section['title']); ?></span>
 									<?php $this->render_badge(self::state($section), self::STATE_LABELS[self::state($section)]); ?>
 								</span>
-								<span class="squidge-status__library squidge-status__library--<?php echo $section['installed'] ? 'on' : 'off'; ?>">
+								<span class="oio-status__library oio-status__library--<?php echo $section['installed'] ? 'on' : 'off'; ?>">
 									<code><?php echo esc_html($section['library']); ?></code>
 									<span class="dashicons dashicons-<?php echo $section['installed'] ? 'yes' : 'no-alt'; ?>" aria-hidden="true"></span>
 									<?php echo $section['installed'] ? 'installed' : 'not installed'; ?>
@@ -228,8 +229,8 @@ class Fields
 						<?php endforeach; ?>
 					</div>
 					<?php $this->render_library(); ?>
-					<div class="squidge-card squidge-display">
-						<header class="squidge-card__header squidge-card__header--text">
+					<div class="oio-card oio-display">
+						<header class="oio-card__header oio-card__header--text">
 							<h2><?php echo esc_html($display['title']); ?></h2>
 							<p class="description"><?php echo esc_html($display['description']); ?></p>
 						</header>
@@ -241,14 +242,14 @@ class Fields
 				</section>
 
 				<?php foreach ($sections as $id => $section) : ?>
-					<section class="squidge-panel" id="squidge-panel-<?php echo esc_attr($id); ?>" role="tabpanel" data-panel="<?php echo esc_attr($id); ?>">
-						<div class="squidge-card">
-							<header class="squidge-card__header">
+					<section class="oio-panel" id="oio-panel-<?php echo esc_attr($id); ?>" role="tabpanel" data-panel="<?php echo esc_attr($id); ?>">
+						<div class="oio-card">
+							<header class="oio-card__header">
 								<h2><?php echo esc_html($section['title']); ?> <code><?php echo esc_html($section['library']); ?></code></h2>
 								<?php $this->render_badge($section['installed'] ? 'on' : 'off', $section['installed'] ? 'Installed' : 'Not installed'); ?>
 							</header>
 							<?php if (!$section['installed']) : ?>
-								<details class="squidge-install" open>
+								<details class="oio-install" open>
 									<summary>How to install <?php echo esc_html($section['library']); ?></summary>
 									<?php echo $this->render_template('health' . DIRECTORY_SEPARATOR . $section['template']); ?>
 								</details>
@@ -267,7 +268,7 @@ class Fields
 	}
 
 	/**
-	 * Renders how to use squidge_image() in a custom
+	 * Renders how to use oio_image() in a custom
 	 * theme, whose images this option does not change.
 	 *
 	 * @since 0.1.5
@@ -275,17 +276,17 @@ class Fields
 	 */
 	private function render_theme_help()
 	{
-		$code = "<?php\nif (function_exists('squidge_image')) {\n\techo squidge_image(\$image_id, 'my-class');\n} else {\n\techo wp_get_attachment_image(\$image_id, 'full');\n}";
+		$code = "<?php\nif (function_exists('oio_image')) {\n\techo oio_image(\$image_id, 'my-class');\n} else {\n\techo wp_get_attachment_image(\$image_id, 'full');\n}";
 		?>
-		<div class="squidge-theme-help">
+		<div class="oio-theme-help">
 			<p><strong>Custom themes</strong>: images output with your own markup (e.g. from an ACF field) are not changed by
-				this option. Use the <code>squidge_image()</code> helper: it returns a <code>&lt;picture&gt;</code> with the
+				this option. Use the <code>oio_image()</code> helper: it returns a <code>&lt;picture&gt;</code> with the
 				AVIF and WebP versions, whatever this option.</p>
 			<pre><code><?php echo esc_html($code); ?></code></pre>
 			<p class="description">The second argument is the class of the <code>&lt;picture&gt;</code> element. Pass
 				<code>true</code> as third argument to output <code>data-src</code> and <code>data-srcset</code> for a
 				JavaScript lazy loader. Keep the <code>function_exists()</code> check: without it, the pages break while
-				Squidge is deactivated.</p>
+				OIO is deactivated.</p>
 		</div>
 		<?php
 	}
@@ -301,57 +302,57 @@ class Fields
 	{
 		$counts = Status::counts();
 		?>
-		<div class="squidge-card squidge-library">
-			<header class="squidge-card__header squidge-card__header--text">
+		<div class="oio-card oio-library">
+			<header class="oio-card__header oio-card__header--text">
 				<h2>Media library</h2>
 				<p class="description">
 					<?php echo esc_html(sprintf(_n('%s JPG or PNG image', '%s JPG and PNG images', $counts['total']), number_format_i18n($counts['total']))); ?>
 				</p>
 			</header>
-			<ul class="squidge-counts">
+			<ul class="oio-counts">
 				<?php foreach (Media::LABELS as $status => $label) : ?>
-					<li class="squidge-counts__item">
+					<li class="oio-counts__item">
 						<strong data-count="<?php echo esc_attr($status); ?>"><?php echo esc_html(number_format_i18n($counts[$status])); ?></strong>
-						<span class="squidge-status-label squidge-status-label--<?php echo esc_attr($status); ?>"><?php echo esc_html($label); ?></span>
+						<span class="oio-status-label oio-status-label--<?php echo esc_attr($status); ?>"><?php echo esc_html($label); ?></span>
 					</li>
 				<?php endforeach; ?>
 			</ul>
-			<?php if (class_exists('Squidge_Vendor_WP_Background_Process')) : ?>
-				<div class="squidge-job" hidden>
-					<div class="squidge-job__actions">
-						<h3 class="squidge-job__group">Optimise</h3>
-						<div class="squidge-action">
+			<?php if (class_exists('OIO_Vendor_WP_Background_Process')) : ?>
+				<div class="oio-job" hidden>
+					<div class="oio-job__actions">
+						<h3 class="oio-job__group">Optimise</h3>
+						<div class="oio-action">
 							<button type="button" class="button button-primary" data-job="new">Optimise new images</button>
 							<p class="description"><strong data-count="new"></strong> images are not optimised yet, or their optimisation failed.</p>
 						</div>
-						<div class="squidge-action">
+						<div class="oio-action">
 							<button type="button" class="button" data-job="outdated">Re-optimise outdated images</button>
 							<p class="description"><strong data-count="outdated"></strong> images were optimised before a quality, a format or the thumbnail sizes changed. They are re-optimised from their originals, and their thumbnails are regenerated if the sizes changed.</p>
 						</div>
-						<div class="squidge-action">
+						<div class="oio-action">
 							<button type="button" class="button" data-job="all">Re-optimise all images</button>
 							<p class="description">Every image is optimised again from its original, with its thumbnails regenerated.</p>
 						</div>
-						<h3 class="squidge-job__group">Clean up</h3>
-						<div class="squidge-action">
+						<h3 class="oio-job__group">Clean up</h3>
+						<div class="oio-action">
 							<button type="button" class="button" data-job="remove_formats">Remove WebP and AVIF</button>
 							<p class="description">Deletes the WebP and AVIF files of the <strong data-count="processed"></strong> images optimised. The JPG and PNG files stay compressed.</p>
 						</div>
-						<div class="squidge-action">
-							<button type="button" class="button squidge-button-danger" data-job="restore">Restore original images</button>
-							<p class="description">Puts the original images back and deletes every file made by Squidge (WebP, AVIF, backups). Do it before deleting Squidge.</p>
+						<div class="oio-action">
+							<button type="button" class="button oio-button-danger" data-job="restore">Restore original images</button>
+							<p class="description">Puts the original images back and deletes every file made by OIO (WebP, AVIF, backups). Do it before deleting OIO.</p>
 						</div>
 					</div>
-					<div class="squidge-job__progress">
-						<p class="squidge-job__label" aria-live="polite"></p>
-						<progress class="squidge-job__bar" max="100" value="0"></progress>
-						<div class="squidge-job__controls">
+					<div class="oio-job__progress">
+						<p class="oio-job__label" aria-live="polite"></p>
+						<progress class="oio-job__bar" max="100" value="0"></progress>
+						<div class="oio-job__controls">
 							<button type="button" class="button" data-control="pause">Pause</button>
 							<button type="button" class="button" data-control="resume">Resume</button>
 							<button type="button" class="button-link button-link-delete" data-control="cancel">Cancel</button>
 						</div>
 					</div>
-					<p class="squidge-job__result" aria-live="polite"></p>
+					<p class="oio-job__result" aria-live="polite"></p>
 				</div>
 			<?php endif; ?>
 		</div>
@@ -387,7 +388,7 @@ class Fields
 	 */
 	private function render_badge($variant, $label)
 	{
-		printf('<span class="squidge-badge squidge-badge--%s">%s</span>', esc_attr($variant), esc_html($label));
+		printf('<span class="oio-badge oio-badge--%s">%s</span>', esc_attr($variant), esc_html($label));
 	}
 
 	/**
@@ -404,14 +405,14 @@ class Fields
 		$value = self::get($name);
 
 		if ($field['type'] === 'checkbox') {
-			echo '<div class="squidge-field squidge-field--toggle">';
+			echo '<div class="oio-field oio-field--toggle">';
 			printf(
-				'<label class="squidge-toggle"><input type="checkbox" id="%s" name="%s" value="%s" %s><span class="squidge-toggle__track" aria-hidden="true"></span><span class="squidge-field__label">%s</span></label>',
+				'<label class="oio-toggle"><input type="checkbox" id="%s" name="%s" value="%s" %s><span class="oio-toggle__track" aria-hidden="true"></span><span class="oio-field__label">%s</span></label>',
 				$id, $id, self::CHECKBOX_ON, checked($value, true, false), esc_html($field['label'])
 			);
 		} else {
-			echo '<div class="squidge-field squidge-field--option">';
-			printf('<label class="squidge-field__label" for="%s">%s</label>', $id, esc_html($field['label']));
+			echo '<div class="oio-field oio-field--option">';
+			printf('<label class="oio-field__label" for="%s">%s</label>', $id, esc_html($field['label']));
 			if ($field['type'] === 'number') {
 				printf('<input type="number" class="small-text" id="%s" name="%s" value="%s" min="%d" max="%d" step="1">', $id, $id, esc_attr($value), $field['min'], $field['max']);
 			} elseif ($field['type'] === 'select') {
@@ -466,13 +467,13 @@ class Fields
 				'service' => JPG::class,
 				'template' => 'jpg.php',
 				'fields' => [
-					'squidge_jpg_enable' => [
+					'oio_jpg_enable' => [
 						'type' => 'checkbox',
 						'label' => 'Enable JPEG Compression',
 						'default' => true,
 						'help' => 'Select this box to enable JPEG compression.',
 					],
-					'squidge_jpg_quality' => [
+					'oio_jpg_quality' => [
 						'type' => 'number',
 						'label' => 'JPEG Optim Quality',
 						'min' => 0,
@@ -487,13 +488,13 @@ class Fields
 				'service' => PNG::class,
 				'template' => 'png.php',
 				'fields' => [
-					'squidge_png_enable' => [
+					'oio_png_enable' => [
 						'type' => 'checkbox',
 						'label' => 'Enable PNG Compression',
 						'default' => true,
 						'help' => 'Select this box to enable PNG compression.',
 					],
-					'squidge_png_quality' => [
+					'oio_png_quality' => [
 						'type' => 'select',
 						'label' => 'Opti PNG Level',
 						'options' => [
@@ -516,13 +517,13 @@ class Fields
 				'service' => WebP::class,
 				'template' => 'webp.php',
 				'fields' => [
-					'squidge_webp_enable' => [
+					'oio_webp_enable' => [
 						'type' => 'checkbox',
 						'label' => 'Enable WebP Conversion',
 						'default' => true,
 						'help' => 'Select this box to enable webp conversion.',
 					],
-					'squidge_webp_quality' => [
+					'oio_webp_quality' => [
 						'type' => 'number',
 						'label' => 'WebP Quality',
 						'min' => 0,
@@ -537,13 +538,13 @@ class Fields
 				'service' => AVIF::class,
 				'template' => 'avif.php',
 				'fields' => [
-					'squidge_avif_enable' => [
+					'oio_avif_enable' => [
 						'type' => 'checkbox',
 						'label' => 'Enable AVIF Conversion',
 						'default' => true,
 						'help' => 'Select this box to enable AVIF conversion.',
 					],
-					'squidge_avif_quality' => [
+					'oio_avif_quality' => [
 						'type' => 'number',
 						'label' => 'AVIF Quality',
 						'min' => 0,
@@ -557,7 +558,7 @@ class Fields
 				'title' => 'Display on the site',
 				'description' => 'Your site already displays the compressed JPG and PNG images. Choose if the AVIF and WebP versions are used too.',
 				'fields' => [
-					'squidge_display_formats' => [
+					'oio_display_formats' => [
 						'type' => 'checkbox',
 						'label' => 'Use modern formats (WebP, AVIF)',
 						'default' => false,
@@ -569,7 +570,7 @@ class Fields
 	}
 
 	/**
-	 * Renders a Squidge template in the /templates
+	 * Renders an OIO template in the /templates
 	 * folder.
 	 *
 	 * @param $name
@@ -580,7 +581,7 @@ class Fields
 	private function render_template($name)
 	{
 		ob_start();
-		include SQUIDGE_TEMPLATE_PATH . DIRECTORY_SEPARATOR . $name;
+		include OIO_TEMPLATE_PATH . DIRECTORY_SEPARATOR . $name;
 		return ob_get_clean();
 	}
 }

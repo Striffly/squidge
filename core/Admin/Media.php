@@ -3,11 +3,11 @@
 /**
  * Media
  *
- * Media shows the Squidge status of each image in
+ * Media shows the OIO status of each image in
  * the media library (list mode), with an action to
  * optimise it.
  *
- * @package     Squidge
+ * @package     OIO
  * @version     0.1.4
  * @author      Ainsley Clark
  * @category    Admin
@@ -15,11 +15,11 @@
  *
  */
 
-namespace Squidge\Admin;
+namespace OIO\Admin;
 
-use Squidge\Package\Cleaner;
-use Squidge\Package\Optimiser;
-use Squidge\Package\Status;
+use OIO\Package\Cleaner;
+use OIO\Package\Optimiser;
+use OIO\Package\Status;
 
 if (!defined('ABSPATH')) {
 	exit; // Exit if accessed directly
@@ -32,14 +32,14 @@ class Media
 	 *
 	 * @var string
 	 */
-	const ACTION = 'squidge_optimise';
+	const ACTION = 'oio_optimise';
 
 	/**
 	 * Action restoring the original of one image.
 	 *
 	 * @var string
 	 */
-	const RESTORE = 'squidge_restore';
+	const RESTORE = 'oio_restore';
 
 	/**
 	 * Labels of the statuses, as shown to the user.
@@ -71,7 +71,7 @@ class Media
 	}
 
 	/**
-	 * Determines if Squidge optimises an attachment.
+	 * Determines if OIO optimises an attachment.
 	 *
 	 * @param int $id
 	 * @return bool
@@ -84,7 +84,7 @@ class Media
 	}
 
 	/**
-	 * Adds the Squidge column.
+	 * Adds the OIO column.
 	 *
 	 * @param array $columns
 	 * @return array
@@ -93,7 +93,7 @@ class Media
 	 */
 	public function columns($columns)
 	{
-		$columns['squidge'] = 'Squidge';
+		$columns['oio'] = 'OIO';
 		return $columns;
 	}
 
@@ -107,7 +107,7 @@ class Media
 	 */
 	public function column($name, $id)
 	{
-		if ($name !== 'squidge') {
+		if ($name !== 'oio') {
 			return;
 		}
 		if (!$this->is_image($id)) {
@@ -115,7 +115,7 @@ class Media
 			return;
 		}
 		$status = Status::of($id);
-		printf('<span class="squidge-status-label squidge-status-label--%s">%s</span>', esc_attr($status), esc_html(self::LABELS[$status]));
+		printf('<span class="oio-status-label oio-status-label--%s">%s</span>', esc_attr($status), esc_html(self::LABELS[$status]));
 	}
 
 	/**
@@ -166,12 +166,12 @@ class Media
 		}
 
 		$redirect = wp_get_referer() ?: admin_url('upload.php?mode=list');
-		wp_safe_redirect(add_query_arg('squidge_optimised', $id, remove_query_arg('squidge_optimised', $redirect)));
+		wp_safe_redirect(add_query_arg('oio_optimised', $id, remove_query_arg('oio_optimised', $redirect)));
 		exit;
 	}
 
 	/**
-	 * Determines if Squidge processed an image.
+	 * Determines if OIO processed an image.
 	 *
 	 * @param int $id
 	 * @return bool
@@ -181,7 +181,7 @@ class Media
 	private function is_processed($id)
 	{
 		foreach (array_keys(get_post_meta($id)) as $key) {
-			if (strpos($key, '_squidge_') === 0) {
+			if (strpos($key, '_oio_') === 0) {
 				return true;
 			}
 		}
@@ -190,7 +190,7 @@ class Media
 
 	/**
 	 * Restores the original of an image and removes its
-	 * Squidge files.
+	 * OIO files.
 	 *
 	 * @since 0.1.5
 	 * @date 25/10/2026
@@ -204,8 +204,8 @@ class Media
 		}
 		$restored = Cleaner::restore($id);
 
-		$redirect = remove_query_arg(['squidge_optimised', 'squidge_restored'], wp_get_referer() ?: admin_url('upload.php?mode=list'));
-		wp_safe_redirect(add_query_arg('squidge_restored', $restored ? $id : -$id, $redirect));
+		$redirect = remove_query_arg(['oio_optimised', 'oio_restored'], wp_get_referer() ?: admin_url('upload.php?mode=list'));
+		wp_safe_redirect(add_query_arg('oio_restored', $restored ? $id : -$id, $redirect));
 		exit;
 	}
 
@@ -221,23 +221,23 @@ class Media
 		if (!current_user_can('upload_files')) {
 			return;
 		}
-		if (!empty($_GET['squidge_restored'])) {
-			$id = (int)$_GET['squidge_restored'];
+		if (!empty($_GET['oio_restored'])) {
+			$id = (int)$_GET['oio_restored'];
 			if ($id > 0) {
-				printf('<div class="notice notice-success is-dismissible"><p><strong>Squidge</strong> restored the original of %s.</p></div>', esc_html(get_the_title($id)));
+				printf('<div class="notice notice-success is-dismissible"><p><strong>OIO</strong> restored the original of %s.</p></div>', esc_html(get_the_title($id)));
 			} else {
-				printf('<div class="notice notice-warning is-dismissible"><p><strong>Squidge</strong> removed its files of %s, but it was compressed by an older version of Squidge without keeping its original: it stays compressed.</p></div>', esc_html(get_the_title(-$id)));
+				printf('<div class="notice notice-warning is-dismissible"><p><strong>OIO</strong> removed its files of %s, but it was compressed by an older version of OIO without keeping its original: it stays compressed.</p></div>', esc_html(get_the_title(-$id)));
 			}
 			return;
 		}
-		if (empty($_GET['squidge_optimised'])) {
+		if (empty($_GET['oio_optimised'])) {
 			return;
 		}
-		$id = (int)$_GET['squidge_optimised'];
+		$id = (int)$_GET['oio_optimised'];
 		if (Status::of($id) === Status::ERROR) {
 			return;
 		}
-		printf('<div class="notice notice-success is-dismissible"><p><strong>Squidge</strong> optimised %s.</p></div>', esc_html(get_the_title($id)));
+		printf('<div class="notice notice-success is-dismissible"><p><strong>OIO</strong> optimised %s.</p></div>', esc_html(get_the_title($id)));
 	}
 
 	/**
@@ -253,6 +253,6 @@ class Media
 		if ($hook !== 'upload.php') {
 			return;
 		}
-		wp_add_inline_style('wp-admin', '.column-squidge{width:120px}.squidge-status-label::before{content:"";display:inline-block;width:8px;height:8px;margin-right:6px;border-radius:50%;background:#a7aaad}.squidge-status-label--optimised::before{background:#00a32a}.squidge-status-label--outdated::before{background:#dba617}.squidge-status-label--error::before{background:#d63638}');
+		wp_add_inline_style('wp-admin', '.column-oio{width:120px}.oio-status-label::before{content:"";display:inline-block;width:8px;height:8px;margin-right:6px;border-radius:50%;background:#a7aaad}.oio-status-label--optimised::before{background:#00a32a}.oio-status-label--outdated::before{background:#dba617}.oio-status-label--error::before{background:#d63638}');
 	}
 }

@@ -1,19 +1,19 @@
 <?php
 
 /**
- * Plugin Name:     Squidge
+ * Plugin Name:     OIO – Octopus Image Optimizer
  * Plugin URI:      https://github.com/ainsleyclark/squidge
- * Description:     A image optimisation plugin to compress and convert images using cwebp, jpegoptim, optipng and libavif.
+ * Description:     Compresses JPG and PNG images and converts them to WebP and AVIF on your own server, with cwebp, avifenc, jpegoptim and optipng. Free, unlimited, no API key.
  * Author:          Ainsley Clark
  * Author URI:      https://github.com/ainsleyclark
- * Text Domain:     squidge
+ * Text Domain:     octopus-image-optimizer
  * Version:         0.1.4
  * Requires at least: 6.0
  * Requires PHP:    7.4
  * License:         GPLv3 or later
  * License URI:     https://www.gnu.org/licenses/gpl-3.0.html
  *
- * @package         Squidge
+ * @package         OIO
  * @repo            https://github.com/ainsleyclark/squidge
  */
 
@@ -21,9 +21,9 @@ if (!defined('ABSPATH')) {
 	exit; // Exit if accessed directly
 }
 
-// Autoload Squidge classes (Squidge\Foo\Bar => core/Foo/Bar.php).
+// Autoload OIO classes (OIO\Foo\Bar => core/Foo/Bar.php).
 spl_autoload_register(function ($class) {
-	$prefix = 'Squidge\\';
+	$prefix = 'OIO\\';
 	if (strpos($class, $prefix) !== 0) {
 		return;
 	}
@@ -38,12 +38,12 @@ if (file_exists(__DIR__ . '/vendor-prefixed/autoload.php')) {
 	require __DIR__ . '/vendor-prefixed/autoload.php';
 } else {
 	add_action('admin_notices', function () {
-		echo '<div class="notice notice-error"><p><strong>Squidge</strong>: its dependencies are missing, run <code>composer install</code> in the plugin folder.</p></div>';
+		echo '<div class="notice notice-error"><p><strong>OIO</strong>: its dependencies are missing, run <code>composer install</code> in the plugin folder.</p></div>';
 	});
 }
 
-// Boot Squidge (Once).
-Squidge\Squidge::boot();
+// Boot OIO (Once).
+OIO\OIO::boot();
 
 // Require CLI.
 if (file_exists(__DIR__ . '/cli/Commands.php')) {
@@ -55,7 +55,7 @@ if (file_exists(__DIR__ . '/functions/functions.php')) {
 	require(__DIR__ . '/functions/functions.php');
 }
 
-if (!function_exists('squidge_add_settings_link')) {
+if (!function_exists('oio_add_settings_link')) {
 
 	/**
 	 * Add Settings Link.
@@ -65,12 +65,12 @@ if (!function_exists('squidge_add_settings_link')) {
 	 * @since 0.1.0
 	 * @date 24/11/2021
 	 */
-	function squidge_add_settings_link($links)
+	function oio_add_settings_link($links)
 	{
 		$links[] = '<a href="' .
-			Squidge\Admin\Fields::page_url() .
+			OIO\Admin\Fields::page_url() .
 			'">' . __('Settings') . '</a>';
 		return $links;
 	}
-	add_filter('plugin_action_links_' . plugin_basename(__FILE__), 'squidge_add_settings_link');
+	add_filter('plugin_action_links_' . plugin_basename(__FILE__), 'oio_add_settings_link');
 }

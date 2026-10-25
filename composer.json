@@ -16,8 +16,8 @@
     "extra": {
         "strauss": {
             "target_directory": "vendor-prefixed",
-            "namespace_prefix": "Squidge\\Vendor\\",
-            "classmap_prefix": "Squidge_Vendor_",
+            "namespace_prefix": "OIO\\Vendor\\",
+            "classmap_prefix": "OIO_Vendor_",
             "packages": [
                 "deliciousbrains/wp-background-processing"
             ],

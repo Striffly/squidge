@@ -7,7 +7,7 @@
  * same way on upload, from the CLI and in the
  * background tasks.
  *
- * @package     Squidge
+ * @package     OIO
  * @version     0.1.4
  * @author      Ainsley Clark
  * @category    Class
@@ -15,15 +15,15 @@
  *
  */
 
-namespace Squidge\Package;
+namespace OIO\Package;
 
 use Exception;
-use Squidge\Admin\Fields;
-use Squidge\Log\Logger;
-use Squidge\Services\AVIF;
-use Squidge\Services\JPG;
-use Squidge\Services\PNG;
-use Squidge\Services\WebP;
+use OIO\Admin\Fields;
+use OIO\Log\Logger;
+use OIO\Services\AVIF;
+use OIO\Services\JPG;
+use OIO\Services\PNG;
+use OIO\Services\WebP;
 
 if (!defined('ABSPATH')) {
 	exit; // Exit if accessed directly
@@ -58,8 +58,8 @@ class Optimiser
 	 * Where the images are optimised: "upload" during a
 	 * request of the admin (upload, media library
 	 * action), "background" in a background job, "cli"
-	 * in WP-CLI. Passed to the squidge_nice and
-	 * squidge_avif_jobs filters.
+	 * in WP-CLI. Passed to the oio_nice and
+	 * oio_avif_jobs filters.
 	 *
 	 * @var string
 	 */
@@ -77,13 +77,13 @@ class Optimiser
 	public static function settings($enabled_only = true)
 	{
 		$settings = [
-			'webp' => ['quality' => Fields::get('squidge_webp_quality')],
-			'avif' => ['quality' => Fields::get('squidge_avif_quality')],
-			'jpg' => ['quality' => Fields::get('squidge_jpg_quality')],
-			'png' => ['optimization' => Fields::get('squidge_png_quality')],
+			'webp' => ['quality' => Fields::get('oio_webp_quality')],
+			'avif' => ['quality' => Fields::get('oio_avif_quality')],
+			'jpg' => ['quality' => Fields::get('oio_jpg_quality')],
+			'png' => ['optimization' => Fields::get('oio_png_quality')],
 		];
 		foreach (array_keys($settings) as $format) {
-			if ($enabled_only && !Fields::get('squidge_' . $format . '_enable')) {
+			if ($enabled_only && !Fields::get('oio_' . $format . '_enable')) {
 				unset($settings[$format]);
 			}
 		}

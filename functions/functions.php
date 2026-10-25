@@ -5,7 +5,7 @@
  *
  * Helper template functions.
  *
- * @package     Squidge
+ * @package     OIO
  * @version     0.1.4
  * @author      Ainsley Clark
  * @category    Functions
@@ -17,10 +17,10 @@ if (!defined('ABSPATH')) {
 	exit; // Exit if accessed directly
 }
 
-use Squidge\Front\Display;
-use Squidge\Package\Picture;
+use OIO\Front\Display;
+use OIO\Package\Picture;
 
-if (!function_exists('squidge_image')) {
+if (!function_exists('oio_image')) {
 
 	/**
 	 * Returns a <picture> element for an image of the media library: AVIF
@@ -37,10 +37,10 @@ if (!function_exists('squidge_image')) {
 	 * @since 0.1.0
 	 * @date 24/11/2021
 	 */
-	function squidge_image($image_id, $class = '', $lazy = false)
+	function oio_image($image_id, $class = '', $lazy = false)
 	{
 		// The Display filter would wrap the image depending on the Display tab:
-		// squidge_image() always offers the AVIF and WebP versions.
+		// oio_image() always offers the AVIF and WebP versions.
 		Display::$bypass = true;
 		$html = wp_get_attachment_image($image_id, 'full');
 		Display::$bypass = false;

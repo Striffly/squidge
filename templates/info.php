@@ -4,9 +4,9 @@
  * info
  *
  * Information tab for general information
- * about Squidge.
+ * about OIO.
  *
- * @package     Squidge
+ * @package     OIO
  * @version     0.1.4
  * @author      Ainsley Clark
  * @category    Templates
@@ -23,8 +23,8 @@ if (!defined('ABSPATH')) {
 <!-- =====================
     Info
     ===================== -->
-<p class="squidge-intro">
-	Welcome to the simpliest, <b>free</b> image optimisation platform for Wordpress.
-	Below is the health status for each library that Squidge depends on. If a library is not installed,
-	installation instructions will appear to install on your operating system.
+<p class="oio-intro">
+	OIO optimises your images with libraries installed on your own server: <b>free</b>, unlimited, and your
+	images never leave it. Below is the health status of each library. If a library is not installed, its
+	tab shows how to install it on your operating system.
 </p>

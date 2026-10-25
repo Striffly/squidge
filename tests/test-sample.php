@@ -2,7 +2,7 @@
 /**
  * Class SampleTest
  *
- * @package Wp_Squidge
+ * @package Wp_OIO
  */
 
 /**

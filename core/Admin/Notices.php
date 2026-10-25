@@ -8,7 +8,7 @@
  * as an admin notice on the media screens until
  * it is dismissed.
  *
- * @package     Squidge
+ * @package     OIO
  * @version     0.1.4
  * @author      Ainsley Clark
  * @category    Admin
@@ -16,9 +16,9 @@
  *
  */
 
-namespace Squidge\Admin;
+namespace OIO\Admin;
 
-use Squidge\Log\Errors;
+use OIO\Log\Errors;
 
 if (!defined('ABSPATH')) {
 	exit; // Exit if accessed directly
@@ -31,7 +31,7 @@ class Notices
 	 *
 	 * @var string
 	 */
-	const NONCE = 'squidge_dismiss_errors';
+	const NONCE = 'oio_dismiss_errors';
 
 	/**
 	 * Screens where the notice is shown: media library,
@@ -112,8 +112,8 @@ class Notices
 			return;
 		}
 		?>
-		<div class="notice notice-warning is-dismissible squidge-errors-notice">
-			<p><strong>Squidge</strong> could not fully optimise some images:</p>
+		<div class="notice notice-warning is-dismissible oio-errors-notice">
+			<p><strong>OIO</strong> could not fully optimise some images:</p>
 			<ul>
 				<?php foreach ($this->items_html($errors) as $html) : ?>
 					<li><?php echo $html; ?></li>
@@ -150,7 +150,7 @@ class Notices
 		$items = [];
 		foreach ($groups as $group) {
 			$items[] = sprintf(
-				'%s &mdash; %s failed: %s <details class="squidge-error-details"><summary>Technical details</summary><code>%s</code></details>',
+				'%s &mdash; %s failed: %s <details class="oio-error-details"><summary>Technical details</summary><code>%s</code></details>',
 				$this->image_html($group['id'], $group['file']),
 				esc_html(implode(' and ', $group['actions'])),
 				esc_html($group['reason']),
@@ -211,12 +211,12 @@ class Notices
 		if (!$this->is_notice_screen()) {
 			return;
 		}
-		wp_enqueue_script('squidge-media', SQUIDGE_URL . 'assets/media.js', ['jquery'], filemtime(SQUIDGE_PATH . 'assets/media.js'), true);
-		wp_localize_script('squidge-media', 'squidgeMedia', [
+		wp_enqueue_script('oio-media', OIO_URL . 'assets/media.js', ['jquery'], filemtime(OIO_PATH . 'assets/media.js'), true);
+		wp_localize_script('oio-media', 'oioMedia', [
 			'action' => self::NONCE,
 			'nonce' => wp_create_nonce(self::NONCE),
 		]);
-		wp_add_inline_style('wp-admin', '.squidge-error-details{display:inline}.squidge-error-details summary{display:inline;margin-left:4px;color:#646970;font-size:12px;cursor:pointer}.squidge-error-details[open]{display:block}.squidge-error-details code{display:block;margin:4px 0 0;font-size:12px}');
+		wp_add_inline_style('wp-admin', '.oio-error-details{display:inline}.oio-error-details summary{display:inline;margin-left:4px;color:#646970;font-size:12px;cursor:pointer}.oio-error-details[open]{display:block}.oio-error-details code{display:block;margin:4px 0 0;font-size:12px}');
 	}
 
 	/**
@@ -254,7 +254,7 @@ class Notices
 		}
 		$errors = Errors::for_attachment($attachment->ID);
 		if (!empty($errors)) {
-			$response['squidgeErrors'] = $this->items_html($errors);
+			$response['oioErrors'] = $this->items_html($errors);
 		}
 		return $response;
 	}

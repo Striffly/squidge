@@ -5,7 +5,7 @@
  *
  * Mime times for files stored here.
  *
- * @package     Squidge
+ * @package     OIO
  * @version     0.1.4
  * @author      Ainsley Clark
  * @category    Class
@@ -13,7 +13,7 @@
  *
  */
 
-namespace Squidge\Types;
+namespace OIO\Types;
 
 if (!defined('ABSPATH')) {
 	exit; // Exit if accessed directly

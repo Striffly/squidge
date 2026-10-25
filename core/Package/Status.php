@@ -7,7 +7,7 @@
  * are optimised with the current settings, from the
  * meta saved by each library.
  *
- * @package     Squidge
+ * @package     OIO
  * @version     0.1.4
  * @author      Ainsley Clark
  * @category    Class
@@ -15,9 +15,9 @@
  *
  */
 
-namespace Squidge\Package;
+namespace OIO\Package;
 
-use Squidge\Log\Errors;
+use OIO\Log\Errors;
 use WP_Query;
 
 if (!defined('ABSPATH')) {
@@ -57,7 +57,7 @@ class Status
 	const PROCESSED = 'processed';
 
 	/**
-	 * Image types Squidge optimises.
+	 * Image types OIO optimises.
 	 */
 	const MIMES = ['image/jpeg', 'image/png'];
 
@@ -65,7 +65,7 @@ class Status
 	 * Meta key saving the thumbnail sizes an image was
 	 * optimised with, when its thumbnails match them.
 	 */
-	const SIZES_KEY = '_squidge_sizes';
+	const SIZES_KEY = '_oio_sizes';
 
 	/**
 	 * Returns a signature of the thumbnail sizes

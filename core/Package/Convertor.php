@@ -6,7 +6,7 @@
  * Should be implemented by any service that
  * coverts or compresses an image.
  *
- * @package     Squidge
+ * @package     OIO
  * @version     0.1.4
  * @author      Ainsley Clark
  * @category    Class
@@ -14,7 +14,7 @@
  *
  */
 
-namespace Squidge\Package;
+namespace OIO\Package;
 
 if (!defined('ABSPATH')) {
 	exit; // Exit if accessed directly

@@ -7,7 +7,7 @@
  * with the PNG mime type using the optipng
  * library.
  *
- * @package     Squidge
+ * @package     OIO
  * @version     0.1.4
  * @author      Ainsley Clark
  * @category    Class
@@ -15,12 +15,12 @@
  *
  */
 
-namespace Squidge\Services;
+namespace OIO\Services;
 
-use Squidge\Log\Logger;
-use Squidge\Package\Convertor;
-use Squidge\Package\Service;
-use Squidge\Types\Mimes;
+use OIO\Log\Logger;
+use OIO\Package\Convertor;
+use OIO\Package\Service;
+use OIO\Types\Mimes;
 
 if (!defined('ABSPATH')) {
 	exit; // Exit if accessed directly

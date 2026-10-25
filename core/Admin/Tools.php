@@ -7,7 +7,7 @@
  * the overview of the options page, and reports
  * their progress.
  *
- * @package     Squidge
+ * @package     OIO
  * @version     0.1.4
  * @author      Ainsley Clark
  * @category    Admin
@@ -15,11 +15,11 @@
  *
  */
 
-namespace Squidge\Admin;
+namespace OIO\Admin;
 
-use Squidge\Package\Cleaner;
-use Squidge\Package\Job;
-use Squidge\Package\Status;
+use OIO\Package\Cleaner;
+use OIO\Package\Job;
+use OIO\Package\Status;
 
 if (!defined('ABSPATH')) {
 	exit; // Exit if accessed directly
@@ -32,7 +32,7 @@ class Tools
 	 *
 	 * @var string
 	 */
-	const NONCE = 'squidge_job';
+	const NONCE = 'oio_job';
 
 	/**
 	 * The jobs that can be started: their action, their
@@ -56,9 +56,9 @@ class Tools
 	 */
 	public function __construct()
 	{
-		add_action('wp_ajax_squidge_job_start', [$this, 'start']);
-		add_action('wp_ajax_squidge_job_status', [$this, 'status']);
-		add_action('wp_ajax_squidge_job_control', [$this, 'control']);
+		add_action('wp_ajax_oio_job_start', [$this, 'start']);
+		add_action('wp_ajax_oio_job_status', [$this, 'status']);
+		add_action('wp_ajax_oio_job_control', [$this, 'control']);
 	}
 
 	/**
@@ -89,7 +89,7 @@ class Tools
 			wp_send_json_error(null, 400);
 		}
 		$job = self::JOBS[$name];
-		// The cleanup jobs process every image Squidge processed.
+		// The cleanup jobs process every image OIO processed.
 		$ids = $job['statuses'] ? [] : Cleaner::ids();
 		foreach ($job['statuses'] as $status) {
 			$ids = array_merge($ids, Status::ids($status));

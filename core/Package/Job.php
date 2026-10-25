@@ -8,7 +8,7 @@
  * per image, in batches within the PHP limits, and
  * keeps its progress for the options page.
  *
- * @package     Squidge
+ * @package     OIO
  * @version     0.1.4
  * @author      Ainsley Clark
  * @category    Class
@@ -16,15 +16,15 @@
  *
  */
 
-namespace Squidge\Package;
+namespace OIO\Package;
 
-use Squidge_Vendor_WP_Background_Process;
+use OIO_Vendor_WP_Background_Process;
 
 if (!defined('ABSPATH')) {
 	exit; // Exit if accessed directly
 }
 
-class Job extends Squidge_Vendor_WP_Background_Process
+class Job extends OIO_Vendor_WP_Background_Process
 {
 	/**
 	 * Optimises the images.
@@ -56,12 +56,12 @@ class Job extends Squidge_Vendor_WP_Background_Process
 	 *
 	 * @var string
 	 */
-	const PROGRESS = 'squidge_job';
+	const PROGRESS = 'oio_job';
 
 	/**
 	 * @var string
 	 */
-	protected $prefix = 'squidge';
+	protected $prefix = 'oio';
 
 	/**
 	 * @var string
@@ -87,7 +87,7 @@ class Job extends Squidge_Vendor_WP_Background_Process
 	{
 		if (self::$instance === null) {
 			self::$instance = new self();
-			add_action('squidge_job_cancelled', [self::$instance, 'cancelled_progress']);
+			add_action('oio_job_cancelled', [self::$instance, 'cancelled_progress']);
 		}
 		return self::$instance;
 	}

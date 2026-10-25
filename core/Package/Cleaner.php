@@ -3,12 +3,12 @@
 /**
  * Cleaner
  *
- * Cleaner undoes what Squidge did to an image: it
+ * Cleaner undoes what OIO did to an image: it
  * removes the WebP and AVIF files, or restores the
- * original images and removes every Squidge file
+ * original images and removes every OIO file
  * and meta.
  *
- * @package     Squidge
+ * @package     OIO
  * @version     0.1.4
  * @author      Ainsley Clark
  * @category    Class
@@ -16,13 +16,13 @@
  *
  */
 
-namespace Squidge\Package;
+namespace OIO\Package;
 
-use Squidge\Log\Errors;
-use Squidge\Services\AVIF;
-use Squidge\Services\JPG;
-use Squidge\Services\PNG;
-use Squidge\Services\WebP;
+use OIO\Log\Errors;
+use OIO\Services\AVIF;
+use OIO\Services\JPG;
+use OIO\Services\PNG;
+use OIO\Services\WebP;
 
 if (!defined('ABSPATH')) {
 	exit; // Exit if accessed directly
@@ -31,8 +31,8 @@ if (!defined('ABSPATH')) {
 class Cleaner
 {
 	/**
-	 * Returns the IDs of the images Squidge processed:
-	 * with a Squidge meta. One query on the meta keys,
+	 * Returns the IDs of the images OIO processed:
+	 * with an OIO meta. One query on the meta keys,
 	 * meta queries joining postmeta for each key are slow.
 	 *
 	 * @return int[]
@@ -44,7 +44,7 @@ class Cleaner
 		global $wpdb;
 		$ids = $wpdb->get_col($wpdb->prepare(
 			"SELECT DISTINCT post_id FROM {$wpdb->postmeta} WHERE meta_key LIKE %s ORDER BY post_id",
-			$wpdb->esc_like('_squidge_') . '%'
+			$wpdb->esc_like('_oio_') . '%'
 		));
 		return array_map('intval', $ids);
 	}
@@ -80,7 +80,7 @@ class Cleaner
 
 	/**
 	 * Restores the original images of an image: the
-	 * backups are put back in place, then every Squidge
+	 * backups are put back in place, then every OIO
 	 * file (WebP, AVIF, backups) and meta is removed.
 	 *
 	 * @param int $id
@@ -110,7 +110,7 @@ class Cleaner
 			self::unlink($path);
 		}
 		foreach (array_keys(get_post_meta($id)) as $key) {
-			if (strpos($key, '_squidge_') === 0) {
+			if (strpos($key, '_oio_') === 0) {
 				delete_post_meta($id, $key);
 			}
 		}

@@ -9,7 +9,7 @@
  * image.jpg.webp). Only files that exist are used,
  * the JPG or PNG is the fallback.
  *
- * @package     Squidge
+ * @package     OIO
  * @version     0.1.4
  * @author      Ainsley Clark
  * @category    Class
@@ -17,7 +17,7 @@
  *
  */
 
-namespace Squidge\Package;
+namespace OIO\Package;
 
 if (!defined('ABSPATH')) {
 	exit; // Exit if accessed directly
@@ -31,7 +31,7 @@ class Picture
 	 *
 	 * @var string
 	 */
-	const MARKER = 'data-squidge';
+	const MARKER = 'data-oio';
 
 	/**
 	 * Modern formats, best first, as offered to the
@@ -79,7 +79,7 @@ class Picture
 		}
 
 		if ($sources !== '' || $picture_class !== null) {
-			$class = trim('squidge-picture ' . $picture_class);
+			$class = trim('oio-picture ' . $picture_class);
 			$new_img = sprintf('<picture class="%s">%s%s</picture>', esc_attr($class), $sources, $new_img);
 		}
 

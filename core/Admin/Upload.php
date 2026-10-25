@@ -7,7 +7,7 @@
  * and actions for the WordPress media
  * library.
  *
- * @package     Squidge
+ * @package     OIO
  * @version     0.1.4
  * @author      Ainsley Clark
  * @category    Admin
@@ -15,10 +15,10 @@
  *
  */
 
-namespace Squidge\Admin;
+namespace OIO\Admin;
 
-use Squidge\Package\Optimiser;
-use Squidge\Package\Service;
+use OIO\Package\Optimiser;
+use OIO\Package\Service;
 
 if (!defined('ABSPATH')) {
 	exit; // Exit if accessed directly

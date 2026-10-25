@@ -7,7 +7,7 @@
  * images to avif with the .avif extension using
  * the avifenc library.
  *
- * @package     Squidge
+ * @package     OIO
  * @version     0.1.4
  * @author      Ainsley Clark
  * @category    Class
@@ -15,13 +15,13 @@
  *
  */
 
-namespace Squidge\Services;
+namespace OIO\Services;
 
-use Squidge\Log\Logger;
-use Squidge\Package\Convertor;
-use Squidge\Package\Optimiser;
-use Squidge\Package\Service;
-use Squidge\Types\Mimes;
+use OIO\Log\Logger;
+use OIO\Package\Convertor;
+use OIO\Package\Optimiser;
+use OIO\Package\Service;
+use OIO\Types\Mimes;
 
 if (!defined('ABSPATH')) {
 	exit; // Exit if accessed directly
@@ -92,7 +92,7 @@ class AVIF extends Service implements Convertor
 	 * Returns the number of threads of avifenc, the only
 	 * library using several cores: 4 on upload (about
 	 * as fast as all cores on a photo), 2 in background
-	 * jobs, all in the CLI. The squidge_avif_jobs filter
+	 * jobs, all in the CLI. The oio_avif_jobs filter
 	 * sets it by context (see Optimiser::$context).
 	 *
 	 * @return string A number, or "all".
@@ -103,7 +103,7 @@ class AVIF extends Service implements Convertor
 	{
 		$defaults = ['upload' => 4, 'background' => 2, 'cli' => 'all'];
 		$default = isset($defaults[Optimiser::$context]) ? $defaults[Optimiser::$context] : 4;
-		$jobs = apply_filters('squidge_avif_jobs', $default, Optimiser::$context);
+		$jobs = apply_filters('oio_avif_jobs', $default, Optimiser::$context);
 		return $jobs === 'all' ? 'all' : (string)max(1, (int)$jobs);
 	}
 

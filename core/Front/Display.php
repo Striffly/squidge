@@ -4,11 +4,11 @@
  * Display
  *
  * Display offers the AVIF and WebP versions made by
- * Squidge, if enabled in the Display tab: for the
+ * OIO, if enabled in the Display tab: for the
  * images of the post content and the ones rendered
  * by wp_get_attachment_image().
  *
- * @package     Squidge
+ * @package     OIO
  * @version     0.1.4
  * @author      Ainsley Clark
  * @category    Front
@@ -16,10 +16,10 @@
  *
  */
 
-namespace Squidge\Front;
+namespace OIO\Front;
 
-use Squidge\Admin\Fields;
-use Squidge\Package\Picture;
+use OIO\Admin\Fields;
+use OIO\Package\Picture;
 
 if (!defined('ABSPATH')) {
 	exit; // Exit if accessed directly
@@ -28,7 +28,7 @@ if (!defined('ABSPATH')) {
 class Display
 {
 	/**
-	 * Skips the filters, for squidge_image() which
+	 * Skips the filters, for oio_image() which
 	 * rewrites the image itself.
 	 *
 	 * @var bool
@@ -60,7 +60,7 @@ class Display
 	 */
 	public function filter($html)
 	{
-		if (self::$bypass || (is_admin() && !wp_doing_ajax()) || !Fields::get('squidge_display_formats')) {
+		if (self::$bypass || (is_admin() && !wp_doing_ajax()) || !Fields::get('oio_display_formats')) {
 			return $html;
 		}
 		return Picture::render($html);

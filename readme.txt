@@ -1,4 +1,4 @@
-=== Squidge ===
+=== OIO – Octopus Image Optimizer ===
 Contributors: ainsleyclark
 Donate link: https://www.paypal.com/donate?hosted_button_id=PQG5A34KWUXRJ
 Tags: image, compression, plugin, image compression, webp, lazy load, optimization, seo, lossless, lossy, jpg, png, avif, convert
@@ -9,15 +9,14 @@ Stable tag: 0.1.4
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
-Squidge is a FREE WordpPress Plugin built for developers in mind compressing and convert images using jpegoptim,
-optipng, cwebp, and libavif. It's extremley simple to use and is designed to increase PSI and boost rankings.
+Squeezes images. Spills no ink, sends no bill. JPG, PNG, WebP and AVIF optimised on your own server, free and unlimited.
 
 == Description ==
 
 ## Why?
 
 Image compression in WordPress can be costly, confusing and sometimes just simply don't work. We have aimed to simplify
-the process by requiring the developer to install the required package on the operating system and Squidge does the
+the process by requiring the developer to install the required package on the operating system and OIO does the
 hard work for you.
 
 - **IT'S FREE**
@@ -27,10 +26,10 @@ hard work for you.
 - Helper functions to output images in templates.
 - Uses the native `cwebp` and `libavif` libraries.
 
-## What does Squidge do?
+## What does OIO do?
 
-Squidge compresses and converts image files when the user has uploaded a file to WordPress.
-The original images are kept in `uploads/squidge-originals/` (same tree as the uploads folder), and every
+OIO compresses and converts image files when the user has uploaded a file to WordPress.
+The original images are kept in `uploads/oio-originals/` (same tree as the uploads folder), and every
 optimisation starts again from them.
 
 - Compresses JPG images in place using `jpegoptim`.
@@ -41,9 +40,9 @@ optimisation starts again from them.
 == Installation ==
 
 1. Go to the [releases](https://github.com/ainsleyclark/squidge/releases) section and download the plugin.
-2. Upload the `squidge` plugin to your `/wp-content/plugins/` directory.
+2. Upload the `octopus-image-optimizer` plugin to your `/wp-content/plugins/` directory.
 3. Activate the plugin through the "Plugins" menu in WordPress.
-4. Check the Settings tab under `Settings | Squidge Options` to ensure the libraries are installed, if they aren't,
+4. Check the Settings tab under `Settings | OIO` to ensure the libraries are installed, if they aren't,
 run the commands listed dependent on your operating system.
 5. Check the individual optimisation tabs and adjust settings accordingly.
 6. Done!
@@ -57,7 +56,7 @@ offer the AVIF and WebP versions.
 content and images rendered by `wp_get_attachment_image()` (featured images, galleries, most themes) are then wrapped
 in a `<picture>` element with AVIF and WebP sources. This option is off by default.
 
-**In templates**: the `squidge_image` helper function always returns a `<picture>` element with the AVIF and WebP
+**In templates**: the `oio_image` helper function always returns a `<picture>` element with the AVIF and WebP
 versions that exist on the file system, whatever this option.
 
 = Function =
@@ -75,15 +74,15 @@ versions that exist on the file system, whatever this option.
  * @param false $lazy
  * @return string
  */
-function squidge_image($image_id, $class = '', $lazy = false)
+function oio_image($image_id, $class = '', $lazy = false)
 ```
 
 = Output =
 ```html
-<picture class="squidge-picture hero">
+<picture class="oio-picture hero">
 	<source type="image/avif" srcset="/sample-image.jpg.avif 2500w, /sample-image-300x200.jpg.avif 300w" sizes="(max-width: 2500px) 100vw, 2500px">
 	<source type="image/webp" srcset="/sample-image.jpg.webp 2500w, /sample-image-300x200.jpg.webp 300w" sizes="(max-width: 2500px) 100vw, 2500px">
-	<img data-squidge src="/sample-image.jpg" srcset="/sample-image.jpg 2500w, /sample-image-300x200.jpg 300w" sizes="(max-width: 2500px) 100vw, 2500px" width="2500" height="1667" alt="Alt text">
+	<img data-oio src="/sample-image.jpg" srcset="/sample-image.jpg 2500w, /sample-image-300x200.jpg 300w" sizes="(max-width: 2500px) 100vw, 2500px" width="2500" height="1667" alt="Alt text">
 </picture>
 ```
 

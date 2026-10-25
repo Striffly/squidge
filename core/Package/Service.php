@@ -6,7 +6,7 @@
  * Service os responsible for processing file attachments
  * and executing commands.
  *
- * @package     Squidge
+ * @package     OIO
  * @version     0.1.4
  * @author      Ainsley Clark
  * @category    Class
@@ -14,12 +14,12 @@
  *
  */
 
-namespace Squidge\Package;
+namespace OIO\Package;
 
 use Exception;
-use Squidge\Log\Errors;
-use Squidge\Log\Logger;
-use Squidge\Types\Mimes;
+use OIO\Log\Errors;
+use OIO\Log\Logger;
+use OIO\Types\Mimes;
 
 if (!defined('ABSPATH')) {
 	exit; // Exit if accessed directly
@@ -32,7 +32,7 @@ class Service
 	 * META_KEY is the meta key for lookup for the
 	 * service.
 	 */
-	const META_KEY = "_squidge_compressed";
+	const META_KEY = "_oio_compressed";
 
 	/**
 	 * BACKUP_DIR is the folder, in the uploads folder,
@@ -40,14 +40,14 @@ class Service
 	 * optimised in place, with the same tree as the
 	 * uploads folder.
 	 */
-	const BACKUP_DIR = 'squidge-originals';
+	const BACKUP_DIR = 'oio-originals';
 
 	/**
 	 * FILES_KEY is the meta key listing the files made
-	 * by Squidge for an attachment (WebP, AVIF and
+	 * by OIO for an attachment (WebP, AVIF and
 	 * backups), relative to the uploads folder.
 	 */
-	const FILES_KEY = '_squidge_files';
+	const FILES_KEY = '_oio_files';
 
 	/**
 	 * Processes the file attachment.
@@ -140,7 +140,7 @@ class Service
 	/**
 	 * Returns the nice prefix lowering the priority of
 	 * the commands: in background jobs by default, the
-	 * requests of the site go first. The squidge_nice
+	 * requests of the site go first. The oio_nice
 	 * filter sets the level, from 0 (normal) to 19
 	 * (lowest), by context (see Optimiser::$context).
 	 *
@@ -151,7 +151,7 @@ class Service
 	private static function nice()
 	{
 		$default = Optimiser::$context === 'background' ? 19 : 0;
-		$level = (int)apply_filters('squidge_nice', $default, Optimiser::$context);
+		$level = (int)apply_filters('oio_nice', $default, Optimiser::$context);
 		if ($level <= 0) {
 			return '';
 		}
@@ -189,7 +189,7 @@ class Service
 		if (is_wp_error($editor)) {
 			return $filepath;
 		}
-		$saved = $editor->save(get_temp_dir() . uniqid('squidge-') . '.png', 'image/png');
+		$saved = $editor->save(get_temp_dir() . uniqid('oio-') . '.png', 'image/png');
 		if (is_wp_error($saved)) {
 			return $filepath;
 		}
@@ -257,7 +257,7 @@ class Service
 	/**
 	 * Returns the path of the backup of an image of
 	 * the uploads folder: the same path, in the
-	 * squidge-originals folder.
+	 * oio-originals folder.
 	 *
 	 * @param string $filepath
 	 * @return string
@@ -310,7 +310,7 @@ class Service
 	}
 
 	/**
-	 * Adds a file made by Squidge to the list of files
+	 * Adds a file made by OIO to the list of files
 	 * of the attachment, used to delete them.
 	 *
 	 * @param array $args
@@ -333,7 +333,7 @@ class Service
 	}
 
 	/**
-	 * Deletes the files Squidge made for an attachment:
+	 * Deletes the files OIO made for an attachment:
 	 * the WebP and AVIF files and the backups of the
 	 * original and of every size, plus any other file
 	 * listed for the attachment (e.g. of sizes that no
