@@ -96,7 +96,11 @@ class Optimiser
 			'webp' => ['quality' => Fields::get('oio_webp_quality')],
 			'avif' => ['quality' => Fields::get('oio_avif_quality')],
 			'jpg' => ['quality' => Fields::get('oio_jpg_quality')],
-			'png' => ['optimization' => Fields::get('oio_png_quality')],
+			'png' => [
+				'optimization' => Fields::get('oio_png_quality'),
+				'lossy' => Fields::get('oio_png_lossy'),
+				'lossy_quality' => Fields::get('oio_png_lossy_quality'),
+			],
 		];
 		foreach (array_keys($settings) as $format) {
 			if ($enabled_only && !Fields::get('oio_' . $format . '_enable')) {

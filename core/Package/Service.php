@@ -94,7 +94,7 @@ class Service
 			$attachment = wp_get_attachment_metadata($attachment);
 		}
 		// Return if the library is not installed.
-		if (!self::installed()) {
+		if (!static::installed()) {
 			return;
 		}
 
@@ -162,7 +162,7 @@ class Service
 	 */
 	protected static function run($arguments, $filepath, $args)
 	{
-		$command = array_merge(self::nice(), [self::binary(static::cmd_name())], $arguments);
+		$command = array_merge(self::nice(), [self::binary(static::library())], $arguments);
 		list($code, $output) = self::execute($command);
 		if ($code === 0) {
 			return true;
@@ -313,7 +313,7 @@ class Service
 	 * @since 1.0.0
 	 * @date 25/10/2026
 	 */
-	private static function nice()
+	protected static function nice()
 	{
 		if (self::is_windows()) {
 			return [];
@@ -697,27 +697,45 @@ class Service
 	}
 
 	/**
-	 * Checks if the library is installed on the
-	 * server, once per request (the status of the
-	 * images asks it often). Only the supported
-	 * libraries can be run.
+	 * Checks if the library, or another one by name, is
+	 * installed on the server, once per request (the
+	 * status of the images asks it often). Only the
+	 * supported libraries can be run.
 	 *
+	 * @param string|null $name
 	 * @return bool
 	 * @since 0.1.2
 	 * @date 05/12/2021
 	 */
-	public static function installed()
+	public static function installed($name = null)
 	{
 		$allowed = [
 			'jpegoptim',
 			'optipng',
+			'oxipng',
+			'pngquant',
 			'cwebp',
 			'avifenc',
 		];
-		if (!in_array(static::cmd_name(), $allowed, true)) {
+		$name = $name === null ? static::cmd_name() : $name;
+		if (!in_array($name, $allowed, true)) {
 			return false;
 		}
-		return self::binary(static::cmd_name()) !== null;
+		return self::binary($name) !== null;
+	}
+
+	/**
+	 * Returns the library the service runs: its
+	 * command name, unless the service picks one of
+	 * several (see PNG::library()).
+	 *
+	 * @return string
+	 * @since 1.0.0
+	 * @date 25/10/2026
+	 */
+	public static function library()
+	{
+		return static::cmd_name();
 	}
 
 	/**
@@ -737,7 +755,7 @@ class Service
 		if (!static::installed()) {
 			return '';
 		}
-		$name = static::cmd_name();
+		$name = static::library();
 		$path = self::binary($name);
 		if (self::$versions === null) {
 			$cached = get_transient(self::VERSIONS_TRANSIENT);

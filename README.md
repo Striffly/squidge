@@ -7,7 +7,8 @@
 🐙 **Squeezes images. Spills no ink, sends no bill.**
 
 OIO optimises the images of your WordPress media library with the libraries of your own server: `jpegoptim`,
-`optipng`, `cwebp` and `avifenc`. Free and unlimited, no API key, no quota: your images never leave your server.
+`optipng` or `oxipng`, `pngquant`, `cwebp` and `avifenc`. Free and unlimited, no API key, no quota: your images never
+leave your server.
 
 [![GNU General Public License 3.0](https://img.shields.io/github/license/Striffly/octopus-image-optimizer.svg)](https://www.gnu.org/licenses/gpl-3.0.en.html)
 
@@ -45,7 +46,10 @@ OIO optimises the images of your WordPress media library with the libraries of y
 sudo apt install jpegoptim optipng webp libavif-bin
 ```
 
-Each format works on its own: a missing library only turns its format off.
+Each format works on its own: a missing library only turns its format off. `oxipng`, faster than `optipng`, replaces it
+when installed (`apt install oxipng` on recent systems, or from its
+[releases](https://github.com/oxipng/oxipng/releases)), and `pngquant` (`apt install pngquant`) adds an optional lossy
+compression of the PNG images.
 
 ## Installation
 
@@ -100,12 +104,15 @@ Every optimisation starts from the original image:
 ```bash
 jpegoptim --strip-all --all-progressive --overwrite --max={quality} photo.jpg
 optipng -clobber -strip all -o {level} -out photo.png oio-originals/photo.png
+oxipng -o {level} --strip safe --force --out photo.png oio-originals/photo.png
+pngquant --quality={quality - 15}-{quality} --strip --skip-if-larger --force --output tmp.png -- oio-originals/photo.png
 cwebp -q {quality} -mt photo.jpg -o photo.jpg.webp
 avifenc -q {quality} --speed 6 --ignore-exif --ignore-xmp photo.jpg photo.jpg.avif
 ```
 
-`avifenc` older than 1.0 gets the quality as `cq-level` instead of `-q`. In background jobs, `cwebp` runs without
-`-mt` and `avifenc` with `--jobs 2`. A PNG is also encoded with `cwebp -near_lossless 60`, kept if lighter: graphics
+`avifenc` older than 1.0 gets the quality as `cq-level` instead of `-q`. `oxipng` runs instead of `optipng` when
+installed, after `pngquant` when the lossy compression is on (it then compresses `tmp.png`). In background jobs, `cwebp`
+runs without `-mt`, `avifenc` with `--jobs 2` and `oxipng` with `--threads 2`. A PNG is also encoded with `cwebp -near_lossless 60`, kept if lighter: graphics
 and screenshots get much lighter and sharper, photos are left lossy.
 
 ## Privacy
@@ -183,12 +190,14 @@ Keep the `function_exists()` check: without it, the pages break while OIO is dea
 | `oio_nice`                        | `19` in background jobs, `0` otherwise        | The priority of the libraries, `0` (normal) to `19`.     |
 | `oio_avif_jobs`                   | `4` on upload, `2` in background, `all` in CLI | The threads of `avifenc`.                                |
 | `oio_webp_mt`                     | `false` in background jobs, `true` otherwise  | A second thread for `cwebp` (`-mt`).                     |
+| `oio_oxipng_threads`              | `4` on upload, `2` in background, `all` in CLI | The threads of `oxipng`.                                 |
 | `oio_job_seconds_between_batches` | `0`                                           | A pause after each image of a background job, seconds.   |
 | `oio_job_default_time_limit`      | `20`                                          | The duration of a batch of a background job, seconds.    |
 | `oio_binary_path`                 | Found in the `PATH`, then `/usr/bin`...       | The path of a library, or `false` to turn it off.        |
 
-`oio_nice`, `oio_avif_jobs` and `oio_webp_mt` receive the context as second argument: `upload`, `background` or
-`cli`. On multisite, the two job filters carry the ID of the site: `oio_2_job_default_time_limit` on the site 2.
+`oio_nice`, `oio_avif_jobs`, `oio_webp_mt` and `oio_oxipng_threads` receive the context as second argument: `upload`,
+`background` or `cli`. On multisite, the two job filters carry the ID of the site: `oio_2_job_default_time_limit` on
+the site 2.
 
 `oio_binary_path` receives the name of the library as second argument (`jpegoptim`, `optipng`, `cwebp`, `avifenc`,
 or `nice`). OIO looks the libraries up in the folders of the `PATH`, then in `/usr/bin`, `/usr/local/bin`, `/bin`,

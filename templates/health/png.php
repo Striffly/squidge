@@ -3,8 +3,10 @@
 /**
  * png
  *
- * PNG installation instructions, shown
- * when optipng is not installed.
+ * PNG installation instructions: optipng, or
+ * oxipng (faster) which replaces it when
+ * installed, and pngquant for the lossy
+ * compression.
  *
  * @package     OIO
  * @author      Clément Gayot
@@ -26,16 +28,18 @@ if (!defined('ABSPATH')) {
 <ul class="oio-install__list">
 	<li>
 		<span class="oio-install__os">Linux</span>
-		<code>sudo apt-get install optipng</code>
-		<a href="https://zoomadmin.com/HowToInstall/UbuntuPackage/optipng" target="_blank" rel="noopener">More information</a>
+		<code>sudo apt install optipng pngquant</code>
+		<a href="https://packages.debian.org/search?keywords=pngquant" target="_blank" rel="noopener">More information</a>
+	</li>
+	<li>
+		<span class="oio-install__os">Faster</span>
+		<code>sudo apt install oxipng</code>
+		<span>replaces optipng, on recent systems, or from its</span>
+		<a href="https://github.com/oxipng/oxipng/releases" target="_blank" rel="noopener">releases</a>
 	</li>
 	<li>
 		<span class="oio-install__os">Mac</span>
-		<code>brew install optipng</code>
-		<a href="https://formulae.brew.sh/formula/optipng" target="_blank" rel="noopener">More information</a>
-	</li>
-	<li>
-		<span class="oio-install__os">Windows</span>
-		<a href="http://optipng.sourceforge.net/" target="_blank" rel="noopener">Download for Windows</a>
+		<code>brew install oxipng pngquant</code>
+		<a href="https://formulae.brew.sh/formula/oxipng" target="_blank" rel="noopener">More information</a>
 	</li>
 </ul>

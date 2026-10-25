@@ -56,7 +56,8 @@ class OIO_CLI extends WP_CLI_Command
 	{
 		$this->print_welcome();
 		$this->print_health("jpegoptim", JPG::installed());
-		$this->print_health("optipng", PNG::installed());
+		$this->print_health(PNG::library(), PNG::installed());
+		$this->print_health("pngquant (optional)", PNG::installed('pngquant'));
 		$this->print_health("cwebp", WebP::installed());
 		$this->print_health("avifenc", AVIF::installed());
 	}

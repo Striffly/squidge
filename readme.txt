@@ -12,7 +12,7 @@ Squeezes images. Spills no ink, sends no bill. JPG, PNG, WebP and AVIF optimised
 
 == Description ==
 
-OIO optimises the images of your media library with the libraries of your own server: `jpegoptim`, `optipng`, `cwebp` and `avifenc`. Free and unlimited, no API key, no quota: your images never leave your server.
+OIO optimises the images of your media library with the libraries of your own server: `jpegoptim`, `optipng` or `oxipng`, `pngquant`, `cwebp` and `avifenc`. Free and unlimited, no API key, no quota: your images never leave your server.
 
 = Optimisation =
 
@@ -36,13 +36,13 @@ OIO optimises the images of your media library with the libraries of your own se
 = For developers =
 
 * WP-CLI: `wp oio run`, `clean`, `restore` and `health`. `wp oio run --regenerate` makes the thumbnails again from the originals first.
-* Filters: `oio_backup_dir` (folder of the originals), `oio_nice`, `oio_avif_jobs` and `oio_webp_mt` (priority and threads of the libraries), `oio_job_seconds_between_batches` and `oio_job_default_time_limit` (pace of the background jobs), `oio_binary_path` (path of a library installed out of the usual folders).
+* Filters: `oio_backup_dir` (folder of the originals), `oio_nice`, `oio_avif_jobs`, `oio_webp_mt` and `oio_oxipng_threads` (priority and threads of the libraries), `oio_job_seconds_between_batches` and `oio_job_default_time_limit` (pace of the background jobs), `oio_binary_path` (path of a library installed out of the usual folders).
 
 See the [README on GitHub](https://github.com/Striffly/octopus-image-optimizer) for the details.
 
 == Installation ==
 
-OIO needs a Linux or macOS server where PHP can run programs (`proc_open()` or `exec()`), with the libraries installed, e.g. on Debian or Ubuntu: `sudo apt install jpegoptim optipng webp libavif-bin`. Each format works on its own: a missing library only turns its format off.
+OIO needs a Linux or macOS server where PHP can run programs (`proc_open()` or `exec()`), with the libraries installed, e.g. on Debian or Ubuntu: `sudo apt install jpegoptim optipng webp libavif-bin`. Each format works on its own: a missing library only turns its format off. `oxipng`, faster, replaces `optipng` when installed, and `pngquant` adds an optional lossy compression of the PNG images.
 
 1. Upload the plugin in `Plugins > Add New > Upload Plugin`, and activate it.
 2. Open `Settings > OIO`: the Overview tab checks the libraries and shows how to install the missing ones.

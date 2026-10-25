@@ -198,7 +198,13 @@ class Fields
 			$sections[$id]['installed'] = $section['service']::installed();
 			$sections[$id]['version'] = $section['service']::version_number();
 			$sections[$id]['enabled'] = self::get('oio_' . $id . '_enable');
-			$sections[$id]['library'] = $section['service']::cmd_name();
+			$sections[$id]['library'] = $section['service']::library();
+			// Optional libraries, e.g. pngquant: what they add, and if they are installed.
+			$sections[$id]['optional'] = isset($section['optional']) ? $section['optional'] : [];
+			$sections[$id]['extras'] = [];
+			foreach (array_keys($sections[$id]['optional']) as $name) {
+				$sections[$id]['extras'][$name] = $section['service']::installed($name);
+			}
 		}
 		?>
 		<div class="wrap oio-page">
@@ -235,6 +241,13 @@ class Fields
 										<span class="oio-status__version"><?php echo esc_html($section['version']); ?></span>
 									<?php endif; ?>
 								</span>
+								<?php foreach ($section['extras'] as $name => $installed) : ?>
+									<span class="oio-status__library oio-status__library--<?php echo $installed ? 'on' : 'off'; ?>">
+										<code><?php echo esc_html($name); ?></code>
+										<span class="dashicons dashicons-<?php echo $installed ? 'yes' : 'no-alt'; ?>" aria-hidden="true"></span>
+										<?php echo $installed ? 'installed' : 'not installed'; ?>
+									</span>
+								<?php endforeach; ?>
 							</a>
 						<?php endforeach; ?>
 					</div>
@@ -272,6 +285,15 @@ class Fields
 									<summary>How to install <?php echo esc_html($section['library']); ?></summary>
 									<?php echo $this->render_template('health' . DIRECTORY_SEPARATOR . $section['template']); ?>
 								</details>
+							<?php else : ?>
+								<?php foreach ($section['optional'] as $name => $use) : ?>
+									<?php if (!$section['extras'][$name]) : ?>
+										<details class="oio-install">
+											<summary>How to install <?php echo esc_html($name); ?>, for the <?php echo esc_html($use); ?></summary>
+											<?php echo $this->render_template('health' . DIRECTORY_SEPARATOR . $section['template']); ?>
+										</details>
+									<?php endif; ?>
+								<?php endforeach; ?>
 							<?php endif; ?>
 							<?php foreach ($section['fields'] as $name => $field) : ?>
 								<?php $this->render_field($name, $field); ?>
@@ -516,6 +538,7 @@ class Fields
 				'title' => 'PNG',
 				'service' => PNG::class,
 				'template' => 'png.php',
+				'optional' => ['pngquant' => 'lossy compression'],
 				'fields' => [
 					'oio_png_enable' => [
 						'type' => 'checkbox',
@@ -525,7 +548,7 @@ class Fields
 					],
 					'oio_png_quality' => [
 						'type' => 'select',
-						'label' => 'Opti PNG Level',
+						'label' => 'Optimisation Level',
 						'options' => [
 							'0' => 'o0',
 							'1' => 'o1',
@@ -537,7 +560,21 @@ class Fields
 							'7' => 'o7',
 						],
 						'default' => '2',
-						'help' => 'Select the optimisation level of the PNG compression, from o0 (fastest) to o7 (slowest, smallest files). The default is o2.',
+						'help' => 'Select the optimisation level of the PNG compression, from o0 (fastest) to o7 (slowest, smallest files). The default is o2. oxipng goes up to o6, used for o7.',
+					],
+					'oio_png_lossy' => [
+						'type' => 'checkbox',
+						'label' => 'Lossy compression (pngquant)',
+						'default' => false,
+						'help' => 'Reduces the colours of the PNG images before compressing them, often 60 to 80 % lighter. Suits graphics, logos and screenshots; gradients and photos may show some grain. An image that cannot keep the minimum quality stays lossless. Needs pngquant.',
+					],
+					'oio_png_lossy_quality' => [
+						'type' => 'number',
+						'label' => 'pngquant Quality',
+						'min' => 0,
+						'max' => 100,
+						'default' => 80,
+						'help' => 'Enter the quality aimed at, from 0 to 100, with the default being 80. The minimum quality is 15 below.',
 					],
 				],
 			],

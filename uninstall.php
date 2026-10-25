@@ -43,11 +43,14 @@ $settings = [
 	'oio_jpg_quality',
 	'oio_png_enable',
 	'oio_png_quality',
+	'oio_png_lossy',
+	'oio_png_lossy_quality',
 	'oio_webp_enable',
 	'oio_webp_quality',
 	'oio_avif_enable',
 	'oio_avif_quality',
 	'oio_display_formats',
+	'oio_max_size',
 ];
 foreach ($settings as $setting) {
 	$options[] = '_' . $setting;
