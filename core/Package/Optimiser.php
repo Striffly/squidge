@@ -18,6 +18,7 @@ namespace OIO\Package;
 
 use Exception;
 use OIO\Admin\Fields;
+use OIO\Log\Errors;
 use OIO\Log\Logger;
 use OIO\Services\AVIF;
 use OIO\Services\JPG;
@@ -43,6 +44,14 @@ class Optimiser
 		'jpg' => JPG::class,
 		'png' => PNG::class,
 	];
+
+	/**
+	 * The tool of the errors of the images WordPress
+	 * cannot read, as the libraries for their failures.
+	 *
+	 * @var string
+	 */
+	const READER = 'wordpress';
 
 	/**
 	 * Set while WordPress regenerates the thumbnails of
@@ -105,6 +114,9 @@ class Optimiser
 	public static function attachment($id, $metadata, $settings, $force = false, $thumbnails_only = false)
 	{
 		return Lock::run($id, function () use ($id, $metadata, $settings, $force, $thumbnails_only) {
+			if (!self::readable($id, $metadata)) {
+				return true;
+			}
 			$attachment = $metadata ?: (int)$id;
 			foreach (self::SERVICES as $format => $service) {
 				if (!isset($settings[$format])) {
@@ -128,6 +140,32 @@ class Optimiser
 			}
 			return true;
 		});
+	}
+
+	/**
+	 * Determines if WordPress could read an image: its
+	 * metadata has its file. A JPG or PNG it could not
+	 * read (damaged or incomplete) gets an error, it
+	 * would stay to optimise forever. Other attachments
+	 * without file (e.g. a PDF) have nothing to optimise.
+	 *
+	 * @param int $id
+	 * @param array|null $metadata The metadata, when it is not saved yet.
+	 * @return bool
+	 * @since 1.0.0
+	 * @date 25/10/2026
+	 */
+	private static function readable($id, $metadata)
+	{
+		Errors::clear_attachment($id, self::READER);
+		$metadata = $metadata ?: wp_get_attachment_metadata($id);
+		if (!empty($metadata['file'])) {
+			return true;
+		}
+		if (in_array(get_post_mime_type($id), Status::MIMES, true)) {
+			Errors::add($id, self::READER, (string)get_attached_file($id), 'cannot read the image, its metadata has no file');
+		}
+		return false;
 	}
 
 	/**

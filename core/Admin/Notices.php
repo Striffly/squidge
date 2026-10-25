@@ -18,6 +18,7 @@
 namespace OIO\Admin;
 
 use OIO\Log\Errors;
+use OIO\Package\Optimiser;
 
 if (!defined('ABSPATH')) {
 	exit; // Exit if accessed directly
@@ -42,10 +43,13 @@ class Notices
 
 	/**
 	 * What each library does, as shown to the user.
+	 * WordPress reads the images first, see
+	 * Optimiser::readable().
 	 *
 	 * @var array
 	 */
 	const ACTIONS = [
+		Optimiser::READER => 'Optimisation',
 		'jpegoptim' => 'JPG compression',
 		'optipng' => 'PNG compression',
 		'cwebp' => 'WebP conversion',
@@ -63,7 +67,8 @@ class Notices
 		'/unsupported color conversion/i' => 'the image uses CMYK colours (a print format) that the library cannot read.',
 		'/no space left/i' => 'the server disk is full.',
 		'/permission denied|read-only|cannot (open|create|write)/i' => 'the file could not be written, check the permissions of the uploads folder.',
-		'/premature end|corrupt|not a (jpeg|png)|recoverable errors|bad huffman|invalid/i' => 'the image file seems damaged or incomplete.',
+		'/cannot read the image/i' => 'the image file is damaged or incomplete, WordPress cannot read it.',
+		'/premature end|corrupt|not a (jpeg|png)|recoverable errors|bad huffman|invalid|input file read error|cannot read input file/i' => 'the image file seems damaged or incomplete.',
 		'/not found|code 127/i' => 'the library does not work on the server, check its installation.',
 	];
 
