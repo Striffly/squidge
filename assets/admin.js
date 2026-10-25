@@ -59,3 +59,115 @@
 	page.classList.add('squidge-js');
 	show(initial || 'overview');
 })();
+
+/**
+ * Background job of the media library card: starts it,
+ * shows its progress until it ends, pauses, resumes and
+ * cancels it, and keeps the counts up to date.
+ */
+(function () {
+	var box = document.querySelector('.squidge-job');
+	var settings = window.squidgeJob;
+	if (!box || !settings) {
+		return;
+	}
+
+	var label = box.querySelector('.squidge-job__label');
+	var bar = box.querySelector('.squidge-job__bar');
+	var result = box.querySelector('.squidge-job__result');
+	var timer = null;
+	// Set while a job runs on this page, to report its end.
+	var following = false;
+	var LABELS = {optimise: 'Optimising'};
+
+	function request(action, data) {
+		var body = new URLSearchParams(Object.assign({action: action, _ajax_nonce: settings.nonce}, data || {}));
+		return fetch(settings.ajaxurl, {method: 'POST', credentials: 'same-origin', body: body})
+			.then(function (response) {
+				return response.json();
+			});
+	}
+
+	function number(value) {
+		return Number(value).toLocaleString();
+	}
+
+	function showCounts(counts) {
+		counts['new'] = counts['to-optimise'] + counts.error;
+		document.querySelectorAll('[data-count]').forEach(function (element) {
+			var name = element.getAttribute('data-count');
+			if (name in counts) {
+				element.textContent = number(counts[name]);
+			}
+		});
+		box.querySelectorAll('[data-job]').forEach(function (button) {
+			var name = button.getAttribute('data-job');
+			button.disabled = (name === 'all' ? counts.total : counts[name]) === 0;
+		});
+	}
+
+	function render(data) {
+		var job = data.job;
+		var state = job && (job.state === 'running' || job.state === 'paused') ? job.state : 'idle';
+		box.hidden = false;
+		box.setAttribute('data-state', state);
+		showCounts(data.counts);
+
+		if (state !== 'idle') {
+			following = true;
+			var percent = job.total ? Math.round(job.done / job.total * 100) : 0;
+			bar.value = percent;
+			label.textContent = (state === 'paused' ? 'Paused: ' : (LABELS[job.action] || 'Processing') + '… ')
+				+ number(job.done) + ' / ' + number(job.total) + ' images'
+				+ (job.failed ? ', ' + number(job.failed) + ' with errors' : '');
+			box.removeAttribute('data-result');
+		} else if (following && job && (job.state === 'finished' || job.state === 'cancelled')) {
+			following = false;
+			result.textContent = (job.state === 'cancelled' ? 'Cancelled after ' : 'Done: ')
+				+ number(job.done) + ' / ' + number(job.total) + ' images processed'
+				+ (job.failed ? ', ' + number(job.failed) + ' with errors (see the Media library).' : '.');
+			box.setAttribute('data-result', '');
+		}
+
+		clearTimeout(timer);
+		timer = state === 'idle' ? null : setTimeout(refresh, state === 'running' ? 2000 : 5000);
+	}
+
+	function refresh() {
+		request('squidge_job_status').then(function (response) {
+			if (response.success) {
+				render(response.data);
+			}
+		});
+	}
+
+	box.addEventListener('click', function (event) {
+		var start = event.target.closest('[data-job]');
+		var control = event.target.closest('[data-control]');
+		if (start) {
+			var job = start.getAttribute('data-job');
+			if (job === 'all' && !window.confirm('Force the re-optimisation of all images, from their originals? This can take a while.')) {
+				return;
+			}
+			request('squidge_job_start', {job: job}).then(function (response) {
+				if (response.success) {
+					render(response.data);
+				} else {
+					window.alert(response.data && response.data.message ? response.data.message : 'The job could not start.');
+				}
+			});
+		} else if (control) {
+			var command = control.getAttribute('data-control');
+			if (command === 'cancel' && !window.confirm('Cancel the job? The images already processed stay processed.')) {
+				return;
+			}
+			request('squidge_job_control', {command: command}).then(function (response) {
+				if (response.success) {
+					render(response.data);
+				}
+			});
+		}
+	});
+
+	refresh();
+})();

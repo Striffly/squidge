@@ -78,6 +78,11 @@ final class Squidge
 		new Admin\Upload();
 		new Admin\Notices();
 		new Admin\Media();
+		// The background jobs need the dependencies of composer install.
+		if (class_exists('Squidge_Vendor_WP_Background_Process')) {
+			Package\Job::instance();
+			new Admin\Tools();
+		}
 		new Front\Display();
 	}
 

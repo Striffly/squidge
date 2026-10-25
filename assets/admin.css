@@ -59,6 +59,59 @@
 	display: none;
 }
 
+/* Background job of the media library card. */
+.squidge-job {
+	padding: 16px 20px;
+	border-top: 1px solid #f0f0f1;
+}
+
+.squidge-job__actions {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 8px 12px;
+}
+
+.squidge-job__progress,
+.squidge-job__result {
+	display: none;
+	margin: 0;
+}
+
+.squidge-job[data-state="running"] .squidge-job__progress,
+.squidge-job[data-state="paused"] .squidge-job__progress,
+.squidge-job[data-result] .squidge-job__result {
+	display: block;
+}
+
+.squidge-job[data-state="running"] .squidge-job__actions,
+.squidge-job[data-state="paused"] .squidge-job__actions,
+.squidge-job[data-state="running"] [data-control="resume"],
+.squidge-job[data-state="paused"] [data-control="pause"] {
+	display: none;
+}
+
+.squidge-job[data-result] .squidge-job__result {
+	margin-top: 12px;
+}
+
+.squidge-job__label {
+	margin: 0 0 8px;
+}
+
+.squidge-job__bar {
+	width: 100%;
+	height: 8px;
+	margin-bottom: 12px;
+	accent-color: var(--squidge-accent);
+}
+
+.squidge-job__controls {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+}
+
 /* Media library and display settings, below the status cards of the overview. */
 .squidge-library,
 .squidge-display {

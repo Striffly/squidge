@@ -134,6 +134,10 @@ class Fields
 		}
 		wp_enqueue_style('squidge-admin', SQUIDGE_URL . 'assets/admin.css', [], filemtime(SQUIDGE_PATH . 'assets/admin.css'));
 		wp_enqueue_script('squidge-admin', SQUIDGE_URL . 'assets/admin.js', [], filemtime(SQUIDGE_PATH . 'assets/admin.js'), true);
+		wp_localize_script('squidge-admin', 'squidgeJob', [
+			'ajaxurl' => admin_url('admin-ajax.php'),
+			'nonce' => wp_create_nonce(Tools::NONCE),
+		]);
 	}
 
 	/**
@@ -282,11 +286,30 @@ class Fields
 			<ul class="squidge-counts">
 				<?php foreach (Media::LABELS as $status => $label) : ?>
 					<li class="squidge-counts__item">
-						<strong><?php echo esc_html(number_format_i18n($counts[$status])); ?></strong>
+						<strong data-count="<?php echo esc_attr($status); ?>"><?php echo esc_html(number_format_i18n($counts[$status])); ?></strong>
 						<span class="squidge-status-label squidge-status-label--<?php echo esc_attr($status); ?>"><?php echo esc_html($label); ?></span>
 					</li>
 				<?php endforeach; ?>
 			</ul>
+			<?php if (class_exists('Squidge_Vendor_WP_Background_Process')) : ?>
+				<div class="squidge-job" hidden>
+					<div class="squidge-job__actions">
+						<button type="button" class="button button-primary" data-job="new">Optimise <span data-count="new"></span> images</button>
+						<button type="button" class="button" data-job="outdated">Update <span data-count="outdated"></span> images with older settings</button>
+						<button type="button" class="button-link" data-job="all">Force re-optimisation of all images</button>
+					</div>
+					<div class="squidge-job__progress">
+						<p class="squidge-job__label" aria-live="polite"></p>
+						<progress class="squidge-job__bar" max="100" value="0"></progress>
+						<div class="squidge-job__controls">
+							<button type="button" class="button" data-control="pause">Pause</button>
+							<button type="button" class="button" data-control="resume">Resume</button>
+							<button type="button" class="button-link button-link-delete" data-control="cancel">Cancel</button>
+						</div>
+					</div>
+					<p class="squidge-job__result" aria-live="polite"></p>
+				</div>
+			<?php endif; ?>
 		</div>
 		<?php
 	}
