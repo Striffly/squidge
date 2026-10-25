@@ -423,7 +423,7 @@ class Fields
 			}
 		}
 
-		printf('<p class="description">%s</p></div>', esc_html($field['help']));
+		printf('<p class="description">%s</p></div>', wp_kses($field['help'], ['strong' => [], 'code' => []]));
 	}
 
 	/**
@@ -561,7 +561,7 @@ class Fields
 						'type' => 'checkbox',
 						'label' => 'Use modern formats (WebP, AVIF)',
 						'default' => false,
-						'help' => 'Images of the post content, featured images and galleries are offered in AVIF and WebP, lighter modern formats. Each browser picks the best one it supports, and older browsers get the JPG or PNG. Technically, images are wrapped in a <picture> tag: untick this if your theme layout breaks around images.',
+						'help' => 'Images of the post content, featured images and galleries are offered in AVIF and WebP, lighter modern formats. Each browser picks the best one it supports, and older browsers get the JPG or PNG. Technically, images are wrapped in a <code>&lt;picture&gt;</code> tag: <strong>untick this if your theme layout breaks around images.</strong>',
 					],
 				],
 			],
