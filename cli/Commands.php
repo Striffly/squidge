@@ -70,7 +70,7 @@ class Squidge_CLI extends WP_CLI_Command
 	 *    - webp=true     To enable WebP conversion.
 	 *    - avif=true       To enable AVIF conversion.
 	 *    - quality=80     The quality of compression
-	 *    - optimization=02  Optimization of PNG images
+	 *    - optimization=o2  Optimization of PNG images (o0 to o7)
 	 *    - force=false  Force reoptimization of already optimized images
 	 *    - thumbnails-only=false  Only optimize thumbnails
 	 *

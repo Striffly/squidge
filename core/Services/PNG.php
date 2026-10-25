@@ -30,10 +30,11 @@ class PNG extends Service implements Convertor
 {
 
 	/**
-	 * DEFAULT_QUALITY is the default image quality
-	 * when processing a PNG image.
+	 * DEFAULT_OPTIMIZATION is the default optipng
+	 * optimisation level (-o2) when processing a
+	 * PNG image.
 	 */
-	const DEFAULT_OPTIMIZATION = 'o2';
+	const DEFAULT_OPTIMIZATION = 2;
 
 	/**
 	 * Compresses all image sizes have a jpg mime type
@@ -53,11 +54,27 @@ class PNG extends Service implements Convertor
 		if ($mime != Mimes::PNG) {
 			return;
 		}
-		if (!isset($args['quality'])) {
-			$args['quality'] = self::DEFAULT_OPTIMIZATION;
-		}
-		exec(sprintf('%s -clobber -strip all -o %d %s 2> /dev/null', escapeshellarg(self::cmd_name()), escapeshellarg($args['optimization']), escapeshellarg($filepath)));
+		exec(sprintf('%s -clobber -strip all -o %d %s 2> /dev/null', escapeshellarg(self::cmd_name()), self::optimization_level($args), escapeshellarg($filepath)));
 		Logger::info("Successfully compressed image PNG file: " . $filepath);
+	}
+
+	/**
+	 * Returns the optipng level (0 to 7) from the
+	 * optimization arg, which can be "o3" (CLI)
+	 * or "3" (options page).
+	 *
+	 * @param $args
+	 * @return int
+	 * @since 0.1.5
+	 * @date 25/10/2026
+	 */
+	private static function optimization_level($args)
+	{
+		$level = isset($args['optimization']) ? ltrim((string)$args['optimization'], 'oO') : '';
+		if (!ctype_digit($level)) {
+			return self::DEFAULT_OPTIMIZATION;
+		}
+		return min(7, (int)$level);
 	}
 
 	/**

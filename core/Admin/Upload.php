@@ -93,7 +93,7 @@ class Upload
 
 		try {
 			$args = [
-				'optimization' => Fields::get('squidge_webp_quality'),
+				'optimization' => Fields::get('squidge_png_quality'),
 				'force' => false,
 				'thumbnailsOnly' => false
 			];
