@@ -1,12 +1,12 @@
 {
-    "name": "ainsley-clark/squidge",
-    "description": "A WordPress plugin to compress and convert images using cwebp, jpegoptim, optipng and libavif.",
+    "name": "striffly/octopus-image-optimizer",
+    "description": "OIO – Octopus Image Optimizer: compresses JPG and PNG images and converts them to WebP and AVIF on your own server.",
     "type": "wordpress-plugin",
     "license": "GPL-3.0-or-later",
     "authors": [
         {
-            "name": "Ainsley Clark",
-            "email": "info@ainsleyclark.com"
+            "name": "Clément Gayot",
+            "homepage": "https://github.com/Striffly"
         }
     ],
     "require": {

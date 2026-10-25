@@ -1,6 +1,5 @@
 === OIO – Octopus Image Optimizer ===
-Contributors: ainsleyclark
-Donate link: https://www.paypal.com/donate?hosted_button_id=PQG5A34KWUXRJ
+Contributors: striffly
 Tags: image, compression, plugin, image compression, webp, lazy load, optimization, seo, lossless, lossy, jpg, png, avif, convert
 Requires at least: 6.0
 Tested up to: 7.1
@@ -39,7 +38,7 @@ optimisation starts again from them.
 
 == Installation ==
 
-1. Go to the [releases](https://github.com/ainsleyclark/squidge/releases) section and download the plugin.
+1. Go to the [releases](https://github.com/Striffly/squidge/releases) section and download the plugin.
 2. Upload the `octopus-image-optimizer` plugin to your `/wp-content/plugins/` directory.
 3. Activate the plugin through the "Plugins" menu in WordPress.
 4. Check the Settings tab under `Settings | OIO` to ensure the libraries are installed, if they aren't,
@@ -98,4 +97,6 @@ function oio_image($image_id, $class = '', $lazy = false)
 
 == Credits ==
 
-Written by [Ainsley Clark](https://github.com/ainsleyclark)
+OIO is developed by [Clément Gayot](https://github.com/Striffly).
+
+It started as a fork of [Squidge](https://github.com/ainsleyclark/squidge), created by [Ainsley Clark](https://github.com/ainsleyclark) in 2021 with contributions from Roman K, Rohinish and karbivskij, and was largely rewritten in 2026. Many thanks to them for the foundations: the idea of relying on the native libraries of the server comes from Squidge.

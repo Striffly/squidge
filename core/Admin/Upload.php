@@ -9,9 +9,10 @@
  *
  * @package     OIO
  * @version     0.1.4
- * @author      Ainsley Clark
+ * @author      Clément Gayot
+ * @author      Ainsley Clark (Squidge, original author)
  * @category    Admin
- * @repo        https://github.com/ainsleyclark/squidge
+ * @repo        https://github.com/Striffly/squidge
  *
  */
 

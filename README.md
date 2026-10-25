@@ -1,5 +1,5 @@
 <p align="left">
-    <img alt="logo" src="https://github.com/ainsleyclark/squidge/blob/master/assets/icon.svg" width="40%">
+    <img alt="logo" src="assets/icon.svg" width="40%">
 </p>
 
 # OIO – Octopus Image Optimizer
@@ -9,10 +9,7 @@
 OIO compresses JPG and PNG images and converts them to WebP and AVIF on your own server, with `jpegoptim`, `optipng`,
 `cwebp` and `libavif`. Free, unlimited, no API key: your images never leave your server.
 
-[![Maintenance](https://img.shields.io/badge/Maintained%3F-yes-green.svg)](https://GitHub.com/Naereen/StrapDown.js/graphs/commit-activity)
-[![GNU General Public License 3.0](https://img.shields.io/github/license/ainsleyclark/squidge.svg)](https://www.gnu.org/licenses/gpl-3.0.en.html)
-[![Donate](https://img.shields.io/badge/Donate-PayPal-green.svg)](https://www.paypal.com/donate?hosted_button_id=PQG5A34KWUXRJ)
-[![Twitter](https://img.shields.io/twitter/follow/ainsleydev)](https://twitter.com/ainsleydev)
+[![GNU General Public License 3.0](https://img.shields.io/github/license/Striffly/squidge.svg)](https://www.gnu.org/licenses/gpl-3.0.en.html)
 
 
 ## Why?
@@ -44,7 +41,7 @@ Converts JPG and PNG images to `.avif` files using `libavif` with the appended e
 
 ## Installation
 
-1. Go to the [releases](https://github.com/ainsleyclark/squidge/releases) section and download the plugin.
+1. Go to the [releases](https://github.com/Striffly/squidge/releases) section and download the plugin.
 2. Upload the `octopus-image-optimizer` plugin to your `/wp-content/plugins/` directory.
 3. Activate the plugin through the "Plugins" menu in WordPress.
 4. Check the Settings tab under `Settings | OIO` to ensure the libraries are installed, if they aren't,
@@ -99,11 +96,11 @@ function oio_image($image_id, $class = '', $lazy = false)
 
 ### Plugin settings page
 
-![OIO Settings Page](https://github.com/ainsleyclark/squidge/blob/master/assets/screenshot-1.png)
+![OIO Settings Page](assets/screenshot-1.png)
 
 ### Example compression tab
 
-![OIO Example Compression Tab](https://github.com/ainsleyclark/squidge/blob/master/assets/screenshot-2.png)
+![OIO Example Compression Tab](assets/screenshot-2.png)
 
 ## FAQs
 
@@ -280,3 +277,12 @@ add_filter('oio_job_default_time_limit', function () {
 - Update meta data when images are converted or compressed.
 - Output compression info in the Media Library.
 - Create unit tests.
+
+## Credits
+
+OIO is developed by [Clément Gayot](https://github.com/Striffly).
+
+It started as a fork of [Squidge](https://github.com/ainsleyclark/squidge), created by
+[Ainsley Clark](https://github.com/ainsleyclark) in 2021 with contributions from Roman K, Rohinish and karbivskij, and
+was largely rewritten in 2026. Many thanks to them for the foundations: the idea of relying on the native libraries
+of the server comes from Squidge.

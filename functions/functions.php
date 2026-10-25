@@ -7,9 +7,10 @@
  *
  * @package     OIO
  * @version     0.1.4
- * @author      Ainsley Clark
+ * @author      Clément Gayot
+ * @author      Ainsley Clark (Squidge, original author)
  * @category    Functions
- * @repo        https://github.com/ainsleyclark/squidge
+ * @repo        https://github.com/Striffly/squidge
  *
  */
 
