@@ -120,6 +120,57 @@ class Service
 	}
 
 	/**
+	 * Returns a file the converters can read: the file
+	 * itself or, for a CMYK JPG that cwebp and avifenc
+	 * cannot read, a temporary RGB copy made with the
+	 * WordPress image editor (as for the thumbnails).
+	 * The copy is a PNG: lossless, and always RGB.
+	 * Remove it with release_source().
+	 *
+	 * @param string $filepath
+	 * @param string $mime
+	 * @return string
+	 * @since 0.1.5
+	 * @date 25/10/2026
+	 */
+	protected static function readable_source($filepath, $mime)
+	{
+		if ($mime != Mimes::JPG) {
+			return $filepath;
+		}
+		$info = @getimagesize($filepath);
+		if (!$info || !isset($info['channels']) || $info['channels'] != 4) {
+			return $filepath;
+		}
+		$editor = wp_get_image_editor($filepath);
+		if (is_wp_error($editor)) {
+			return $filepath;
+		}
+		$saved = $editor->save(get_temp_dir() . uniqid('squidge-') . '.png', 'image/png');
+		if (is_wp_error($saved)) {
+			return $filepath;
+		}
+		Logger::info("Converted CMYK image to RGB before conversion: " . $filepath);
+		return $saved['path'];
+	}
+
+	/**
+	 * Removes the temporary copy made by
+	 * readable_source(), if any.
+	 *
+	 * @param string $source
+	 * @param string $filepath
+	 * @since 0.1.5
+	 * @date 25/10/2026
+	 */
+	protected static function release_source($source, $filepath)
+	{
+		if ($source !== $filepath && file_exists($source)) {
+			unlink($source);
+		}
+	}
+
+	/**
 	 * Returns a short error message from the output
 	 * of a failed command: its error lines, or its
 	 * last line, without the directory of the file.
