@@ -238,8 +238,10 @@ class Optimiser
 	 * Deletes the WebP and AVIF files of an image that
 	 * are not lighter than the JPG or PNG they replace,
 	 * as compressed: on small graphics and thumbnails,
-	 * serving them would slow the page down. They are
-	 * listed, so that they count as done.
+	 * serving them would slow the page down. An AVIF
+	 * not lighter than its WebP goes too: browsers take
+	 * the AVIF first. They are listed, so that they
+	 * count as done.
 	 *
 	 * @param int $id
 	 * @param array $metadata
@@ -269,13 +271,18 @@ class Optimiser
 					continue;
 				}
 				$relative = substr($variant, strlen($base));
-				if (filesize($variant) < filesize($file)) {
+				$limit = filesize($file);
+				// WebP comes first: the AVIF is compared to the WebP kept.
+				if ($extension === AVIF::extension() && file_exists($file . WebP::extension())) {
+					$limit = min($limit, filesize($file . WebP::extension()));
+				}
+				if (filesize($variant) < $limit) {
 					$heavier = array_diff($heavier, [$relative]);
 					continue;
 				}
 				unlink($variant);
 				$heavier[] = $relative;
-				Logger::info("Deleted, not lighter than the image: " . $variant);
+				Logger::info("Deleted, not lighter than the image or its WebP: " . $variant);
 			}
 		}
 		$heavier = array_values(array_unique($heavier));
