@@ -17,13 +17,8 @@
 
 namespace Squidge\Admin;
 
-use Exception;
-use Squidge\Log\Logger;
+use Squidge\Package\Optimiser;
 use Squidge\Package\Service;
-use Squidge\Services\AVIF;
-use Squidge\Services\JPG;
-use Squidge\Services\PNG;
-use Squidge\Services\WebP;
 
 if (!defined('ABSPATH')) {
 	exit; // Exit if accessed directly
@@ -33,8 +28,8 @@ class Upload
 {
 
 	/**
-	 * Adds filters to process web and jpg
-	 * images.
+	 * Optimises the images on upload, and deletes their
+	 * files with the attachment.
 	 *
 	 * @since 0.1.0
 	 * @date 24/11/2021
@@ -42,130 +37,30 @@ class Upload
 	public function __construct()
 	{
 		add_filter('big_image_size_threshold', '__return_false');
-		add_filter("wp_generate_attachment_metadata", [$this, 'process_webp'], 20, 1);
-		add_filter("wp_generate_attachment_metadata", [$this, 'process_avif'], 30, 1);
-		add_filter("wp_generate_attachment_metadata", [$this, 'process_jpg'], 40, 1);
-		add_filter("wp_generate_attachment_metadata", [$this, 'process_png'], 50, 1);
-		add_filter("delete_attachment", [$this, 'delete_files'], 20, 1);
+		add_filter('wp_generate_attachment_metadata', [$this, 'process'], 20, 2);
+		add_filter('delete_attachment', [$this, 'delete_files'], 20, 1);
 	}
 
 	/**
-	 * Compress a JPG file on upload.
+	 * Optimises an uploaded image with the enabled
+	 * formats. Its metadata is not saved yet, so it
+	 * is passed along.
 	 *
-	 * @param $attachment
-	 * @return mixed
-	 * @since 0.1.0
-	 * @date 24/11/2021
+	 * @param array $metadata
+	 * @param int $attachment_id
+	 * @return array
+	 * @since 0.1.5
+	 * @date 25/10/2026
 	 */
-	public function process_jpg($attachment)
+	public function process($metadata, $attachment_id)
 	{
-		if (!Fields::get('squidge_jpg_enable')) {
-			return $attachment;
-		}
-
-		try {
-			$args = [
-				'quality' => Fields::get('squidge_jpg_quality'),
-				'force' => false,
-				'thumbnailsOnly' => false
-			];
-			JPG::process($attachment, $args);
-		} catch (Exception $e) {
-			Logger::error($e->getMessage());
-		}
-
-		return $attachment;
+		Optimiser::attachment($attachment_id, $metadata, Optimiser::settings());
+		return $metadata;
 	}
 
 	/**
-	 * Compress a PNG file on upload.
-	 *
-	 * @param $attachment
-	 * @return mixed
-	 * @since 0.1.0
-	 * @date 24/11/2021
-	 */
-	public function process_png($attachment)
-	{
-		if (!Fields::get('squidge_png_enable')) {
-			return $attachment;
-		}
-
-		try {
-			$args = [
-				'optimization' => Fields::get('squidge_png_quality'),
-				'force' => false,
-				'thumbnailsOnly' => false
-			];
-			PNG::process($attachment, $args);
-		} catch (Exception $e) {
-			Logger::error($e->getMessage());
-		}
-
-		return $attachment;
-	}
-
-	/**
-	 * Process a JPG/PNG upload and converts to
-	 * a WebP file with the .webp extension.
-	 *
-	 * @param $attachment
-	 * @return mixed
-	 * @since 0.1.0
-	 * @date 24/11/2021
-	 */
-	public function process_webp($attachment)
-	{
-		if (!Fields::get('squidge_webp_enable')) {
-			return $attachment;
-		}
-
-		try {
-			$args = [
-				'quality' => Fields::get('squidge_webp_quality'),
-				'force' => false,
-				'thumbnailsOnly' => false
-			];
-			WebP::process($attachment, $args);
-		} catch (Exception $e) {
-			Logger::error($e->getMessage());
-
-		}
-		return $attachment;
-	}
-
-	/**
-	 * Process a JPG/PNG upload and converts to
-	 * a WebP file with the .avif extension.
-	 *
-	 * @param $attachment
-	 * @return mixed
-	 * @since 0.1.0
-	 * @date 24/11/2021
-	 */
-	public function process_avif($attachment)
-	{
-		if (!Fields::get('squidge_avif_enable')) {
-			return $attachment;
-		}
-
-		try {
-			$args = [
-				'quality' => Fields::get('squidge_avif_quality'),
-				'force' => false,
-				'thumbnailsOnly' => false
-			];
-			AVIF::process($attachment, $args);
-		} catch (Exception $e) {
-			Logger::error($e->getMessage());
-		}
-
-		return $attachment;
-	}
-
-	/**
-	 * Deletes the compressed, .webp and .avif files
-	 * when the attachment is deleted from the media
+	 * Deletes the WebP, AVIF and backup files when
+	 * the attachment is deleted from the media
 	 * library.
 	 *
 	 * @param $attachment

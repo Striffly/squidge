@@ -192,15 +192,17 @@ wp squidge run --jpeg=false --quality=80 --optimization=o3
 
 #### Arguments
 
+The formats and qualities default to the ones of the options page, the arguments override them.
+
 | Argument        | Default Value | Accepted Values          | Description       |
 |-----------------|---------------| ------------------------ | ----------------- |
-| jpg             | `true`        | `true`/`false`           | If JPG compression should run.
-| png             | `true`        | `true`/`false`           | If PNG compression should run.
-| webp            | `true`        | `true`/`false`           | If WebP conversion should run.
-| avif            | `true`        | `true`/`false`           | If AVIF conversion should run.
-| quality         | `80`          | `0` to `100`             | Compression quality of the images.
-| optimization    | `o2`          | `o0` to `o7`             | Optimisation of PNG images.
-| avif-quality    | `70`          | `0` to `100`             | Quality of AVIF images.
+| jpg             | options page  | `true`/`false`           | If JPG compression should run.
+| png             | options page  | `true`/`false`           | If PNG compression should run.
+| webp            | options page  | `true`/`false`           | If WebP conversion should run.
+| avif            | options page  | `true`/`false`           | If AVIF conversion should run.
+| quality         | options page  | `0` to `100`             | Quality of JPG compression and WebP conversion.
+| optimization    | options page  | `o0` to `o7`             | Optimisation of PNG images.
+| avif-quality    | options page  | `0` to `100`             | Quality of AVIF images.
 | avif-speed      | `6`           | `0` to `10`              | Speed of the AVIF encoder. 0 to 6 make files of about the same size (0 is much slower), faster speeds make larger files.
 | force           | `false`       | `true`/`false`           | Force reoptimization of already optimized images.
 | thumbnails-only | `false`       | `true`/`false`           | Optimize only thumbnails.

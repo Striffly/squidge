@@ -21,6 +21,7 @@ if (!defined('ABSPATH')) {
 	exit; // Exit if accessed directly
 }
 
+use Squidge\Package\Optimiser;
 use Squidge\Squidge;
 use Squidge\Services\JPG;
 use Squidge\Services\PNG;
@@ -58,23 +59,24 @@ class Squidge_CLI extends WP_CLI_Command
 	}
 
 	/**
-	 * Processes all images from the WordPress database
-	 * and compresses & optimises.
+	 * Processes all JPG and PNG images of the media
+	 * library: converts them to .webp and .avif files
+	 * and compresses them.
 	 *
-	 * JPG and PNG Compression will be run and files will be
-	 * converted to .webp and .avif file formats.
+	 * The formats and qualities are the ones of the
+	 * options page, the args below override them.
 	 *
 	 * Args:
-	 *    - jpg=true       To enable JPG compression.
-	 *    - png=true     To enable PNG compression.
-	 *    - webp=true     To enable WebP conversion.
-	 *    - avif=true       To enable AVIF conversion.
-	 *    - quality=80     The quality of compression
-	 *    - optimization=o2  Optimization of PNG images (o0 to o7)
-	 *    - avif-quality=70  The quality of AVIF conversion
-	 *    - avif-speed=6  The speed of the AVIF encoder (0 to 10): 6 is best, faster speeds make larger files
-	 *    - force=false  Force reoptimization of already optimized images
-	 *    - thumbnails-only=false  Only optimize thumbnails
+	 *    - jpg=true|false        JPG compression.
+	 *    - png=true|false        PNG compression.
+	 *    - webp=true|false       WebP conversion.
+	 *    - avif=true|false       AVIF conversion.
+	 *    - quality=80            The quality of JPG compression and WebP conversion.
+	 *    - optimization=o2       Optimization of PNG images (o0 to o7).
+	 *    - avif-quality=70       The quality of AVIF conversion.
+	 *    - avif-speed=6          The speed of the AVIF encoder (0 to 10): 6 is best, faster speeds make larger files.
+	 *    - force=false           Force reoptimization of already optimized images.
+	 *    - thumbnails-only=false Only optimize thumbnails.
 	 *
 	 * @param $args
 	 * @param $assoc_args
@@ -85,109 +87,55 @@ class Squidge_CLI extends WP_CLI_Command
 	{
 		$this->print_welcome();
 
-		$assoc_args = wp_parse_args(
-			$assoc_args,
-			[
-				'quality' => 80,
-				'optimization' => 'o2',
-				'avif-quality' => AVIF::DEFAULT_QUALITY,
-				'avif-speed' => AVIF::DEFAULT_SPEED,
-				'jpg' => true,
-				'png' => true,
-				'webp' => true,
-				'avif' => true,
-				'force' => false,
-				'thumbnails-only' => false,
-			]
-		);
-
-		$assoc_args['jpg'] = filter_var($assoc_args['jpg'], FILTER_VALIDATE_BOOLEAN);
-		$assoc_args['png'] = filter_var($assoc_args['png'], FILTER_VALIDATE_BOOLEAN);
-		$assoc_args['webp'] = filter_var($assoc_args['webp'], FILTER_VALIDATE_BOOLEAN);
-		$assoc_args['avif'] = filter_var($assoc_args['avif'], FILTER_VALIDATE_BOOLEAN);
-		$assoc_args['force'] = filter_var($assoc_args['force'], FILTER_VALIDATE_BOOLEAN);
-		$assoc_args['thumbnailsOnly'] = filter_var($assoc_args['thumbnails-only'], FILTER_VALIDATE_BOOLEAN);
-
-		$page = 0;
-		$counter = 0;
-		$query_loop = true;
-		while ($query_loop === true) {
-			$query_images_args = array(
-				'post_type' => 'attachment',
-				'post_mime_type' => 'image',
-				'post_status' => 'inherit',
-				'posts_per_page' => 1000,
-				'paged' => $page,
-			);
-
-			$query_images = new WP_Query($query_images_args);
-
-			foreach ($query_images->posts as $image) {
-				$id = $image->ID;
-				$image_args = [
-					'quality' => $assoc_args['quality'],
-					'optimization' => $assoc_args['optimization'],
-					'force' => $assoc_args['force'],
-					'thumbnailsOnly' => $assoc_args['thumbnailsOnly'],
-				];
-
-				WP_CLI::log(WP_CLI::colorize("%BProcessing image: %n") . $image->post_title);
-
-				// WebP
-				if ($assoc_args['webp']) {
-					try {
-						WP_CLI::log('WebP Conversion...');
-						WebP::process($id, $image_args);
-					} catch (Exception $e) {
-						WP_CLI::error($e->getMessage());
-					}
-				}
-
-				// Avif
-				if ($assoc_args['avif']) {
-					try {
-						WP_CLI::log('AVIF Conversion...');
-						AVIF::process($id, array_merge($image_args, [
-							'quality' => $assoc_args['avif-quality'],
-							'speed' => $assoc_args['avif-speed'],
-						]));
-					} catch (Exception $e) {
-						WP_CLI::error($e->getMessage());
-					}
-				}
-
-				// JPG
-				if ($assoc_args['jpg']) {
-					try {
-						WP_CLI::log('JPG Compression...');
-						JPG::process($id, $image_args);
-					} catch (Exception $e) {
-						WP_CLI::error($e->getMessage());
-					}
-				}
-
-				// PNG
-				if ($assoc_args['png']) {
-					try {
-						WP_CLI::log('PNG Compression...');
-						PNG::process($id, $image_args);
-					} catch (Exception $e) {
-						WP_CLI::error($e->getMessage());
-					}
-				}
-
-				WP_CLI::success("Processed image: " . $image->post_title . PHP_EOL);
-				$counter++;
-			}
-
-			if ($query_images->max_num_pages >= $page) {
-				$query_loop = false;
-			} else {
-				$page++;
+		$settings = Optimiser::settings(false);
+		$enabled = Optimiser::settings();
+		foreach (array_keys($settings) as $format) {
+			$on = isset($assoc_args[$format]) ? filter_var($assoc_args[$format], FILTER_VALIDATE_BOOLEAN) : isset($enabled[$format]);
+			if (!$on) {
+				unset($settings[$format]);
 			}
 		}
+		if (isset($assoc_args['quality'])) {
+			foreach (['jpg', 'webp'] as $format) {
+				if (isset($settings[$format])) {
+					$settings[$format]['quality'] = $assoc_args['quality'];
+				}
+			}
+		}
+		if (isset($settings['png'], $assoc_args['optimization'])) {
+			$settings['png']['optimization'] = $assoc_args['optimization'];
+		}
+		if (isset($settings['avif'], $assoc_args['avif-quality'])) {
+			$settings['avif']['quality'] = $assoc_args['avif-quality'];
+		}
+		if (isset($settings['avif'], $assoc_args['avif-speed'])) {
+			$settings['avif']['speed'] = $assoc_args['avif-speed'];
+		}
+		$force = isset($assoc_args['force']) && filter_var($assoc_args['force'], FILTER_VALIDATE_BOOLEAN);
+		$thumbnails_only = isset($assoc_args['thumbnails-only']) && filter_var($assoc_args['thumbnails-only'], FILTER_VALIDATE_BOOLEAN);
 
-		wp_reset_postdata();
+		WP_CLI::log('Formats: ' . (empty($settings) ? 'none' : implode(', ', array_keys($settings))));
+
+		$counter = 0;
+		$page = 1;
+		do {
+			$query = new WP_Query([
+				'post_type' => 'attachment',
+				'post_mime_type' => ['image/jpeg', 'image/png'],
+				'post_status' => 'inherit',
+				'posts_per_page' => 500,
+				'paged' => $page,
+				'fields' => 'ids',
+				'orderby' => 'ID',
+				'order' => 'ASC',
+			]);
+			foreach ($query->posts as $id) {
+				WP_CLI::log(WP_CLI::colorize("%BProcessing image: %n") . get_the_title($id));
+				Optimiser::attachment($id, null, $settings, $force, $thumbnails_only);
+				$counter++;
+			}
+			$page++;
+		} while ($page <= $query->max_num_pages);
 
 		WP_CLI::success('Successfully processed ' . $counter . ' images. ');
 	}

@@ -82,7 +82,7 @@ class Service
 		}
 
 		// Check if the attachment has already been compressed.
-		$id = attachment_url_to_postid($attachment['file']);
+		$id = !empty($args['id']) ? (int)$args['id'] : attachment_url_to_postid($attachment['file']);
 		if (self::has_compressed($id) && !$args['force']) {
 			return;
 		}
@@ -93,7 +93,8 @@ class Service
 		if (!$args['thumbnailsOnly']) static::convert($mainFile, self::get_mime_type($mainFile), $args);
 
 		// Loop over the sizes and convert them.
-		foreach ($attachment['sizes'] as $size) {
+		$sizes = isset($attachment['sizes']) ? $attachment['sizes'] : [];
+		foreach ($sizes as $size) {
 			if (!isset($size['file'])) {
 				continue;
 			}
