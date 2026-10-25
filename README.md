@@ -1,5 +1,5 @@
 <p align="left">
-    <img alt="logo" src="assets/icon.svg" width="40%">
+    <img alt="OIO – Octopus Image Optimizer" src="assets/icon-256x256.png" width="200">
 </p>
 
 # OIO – Octopus Image Optimizer
