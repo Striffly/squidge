@@ -74,11 +74,19 @@
 
 	var label = box.querySelector('.oio-job__label');
 	var bar = box.querySelector('.oio-job__bar');
-	var result = box.querySelector('.oio-job__result');
+	var resultTitle = box.querySelector('.oio-job__result-title');
+	var resultDetail = box.querySelector('.oio-job__result-detail');
 	var timer = null;
 	// Set while a job runs on this page, to report its end.
 	var following = false;
 	var LABELS = {optimise: 'Optimising', remove_formats: 'Removing WebP and AVIF', restore: 'Restoring the originals'};
+	// Title when the job is done, when it is cancelled, and what was done to each image.
+	var RESULTS = {
+		optimise: ['Optimisation complete', 'Optimisation cancelled', 'optimised'],
+		remove_formats: ['WebP and AVIF files removed', 'Removal cancelled', 'cleaned up'],
+		restore: ['Original images restored', 'Restore cancelled', 'restored']
+	};
+	var MEDIA_URL = settings.ajaxurl.replace('admin-ajax.php', 'upload.php?mode=list');
 	var CONFIRMS = {
 		all: 'Re-optimise all images from their originals, with their thumbnails? This can take a while.',
 		remove_formats: 'Delete the WebP and AVIF files of all images?',
@@ -112,6 +120,38 @@
 		});
 	}
 
+	function duration(seconds) {
+		var minutes = Math.floor(seconds / 60);
+		if (minutes >= 60) {
+			return Math.floor(minutes / 60) + ' h ' + (minutes % 60) + ' min';
+		}
+		return minutes ? minutes + ' min ' + (seconds % 60) + ' s' : Math.max(1, seconds) + ' s';
+	}
+
+	// Sums up a job that ended while this page followed it.
+	function showResult(job) {
+		var texts = RESULTS[job.action] || RESULTS.optimise;
+		var cancelled = job.state === 'cancelled';
+		var processed = job.done - job.failed - job.missing;
+		var took = job.finished && job.started ? ' in ' + duration(job.finished - job.started) : '';
+		var detail = cancelled
+			? 'Stopped after ' + number(job.done) + ' of ' + number(job.total) + ' images' + took + '. The images already processed stay processed.'
+			: number(processed) + ' ' + (processed === 1 ? 'image' : 'images') + ' ' + texts[2] + took + '.';
+		resultTitle.textContent = cancelled ? texts[1] : texts[0];
+		resultDetail.textContent = detail;
+		if (job.failed) {
+			resultDetail.append(' ' + number(job.failed) + ' could not be optimised: ');
+			var link = document.createElement('a');
+			link.href = MEDIA_URL;
+			link.textContent = 'see the errors in the Media library';
+			resultDetail.append(link, '.');
+		}
+		if (job.missing) {
+			resultDetail.append(' ' + number(job.missing) + ' had no original to restore, they stay compressed.');
+		}
+		box.setAttribute('data-result', cancelled ? 'cancelled' : (job.failed || job.missing ? 'warning' : 'success'));
+	}
+
 	function render(data) {
 		var job = data.job;
 		var state = job && (job.state === 'running' || job.state === 'paused') ? job.state : 'idle';
@@ -129,12 +169,7 @@
 			box.removeAttribute('data-result');
 		} else if (following && job && (job.state === 'finished' || job.state === 'cancelled')) {
 			following = false;
-			result.textContent = (job.state === 'cancelled' ? 'Cancelled after ' : 'Done: ')
-				+ number(job.done) + ' / ' + number(job.total) + ' images processed'
-				+ (job.failed ? ', ' + number(job.failed) + ' with errors (see the Media library)' : '')
-				+ (job.missing ? ', ' + number(job.missing) + ' had no original to restore, they stay compressed' : '')
-				+ '.';
-			box.setAttribute('data-result', '');
+			showResult(job);
 		}
 
 		clearTimeout(timer);
@@ -166,6 +201,10 @@
 			});
 		} else if (control) {
 			var command = control.getAttribute('data-control');
+			if (command === 'dismiss') {
+				box.removeAttribute('data-result');
+				return;
+			}
 			if (command === 'cancel' && !window.confirm('Cancel the job? The images already processed stay processed.')) {
 				return;
 			}

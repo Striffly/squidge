@@ -122,8 +122,7 @@
 }
 
 .oio-job[data-state="running"] .oio-job__progress,
-.oio-job[data-state="paused"] .oio-job__progress,
-.oio-job[data-result] .oio-job__result {
+.oio-job[data-state="paused"] .oio-job__progress {
 	display: block;
 }
 
@@ -134,8 +133,83 @@
 	display: none;
 }
 
+/* Sum up of the last job: success, with errors, or cancelled. */
 .oio-job[data-result] .oio-job__result {
-	margin-top: 12px;
+	display: flex;
+	align-items: flex-start;
+	gap: 12px;
+	margin-bottom: 20px;
+	padding: 12px 12px 12px 16px;
+	border-left: 4px solid var(--oio-on);
+	border-radius: 4px;
+	background: var(--oio-on-bg);
+}
+
+.oio-job[data-result="warning"] .oio-job__result {
+	border-left-color: #dba617;
+	background: #fcf9e8;
+}
+
+.oio-job[data-result="cancelled"] .oio-job__result {
+	border-left-color: var(--oio-muted);
+	background: #f6f7f7;
+}
+
+.oio-job__result-icon {
+	flex: none;
+	width: 24px;
+	height: 24px;
+	font-size: 24px;
+	color: var(--oio-on);
+}
+
+.oio-job__result-icon::before {
+	content: "\f12a"; /* yes-alt */
+}
+
+.oio-job[data-result="warning"] .oio-job__result-icon {
+	color: #dba617;
+}
+
+.oio-job[data-result="warning"] .oio-job__result-icon::before {
+	content: "\f534"; /* warning */
+}
+
+.oio-job[data-result="cancelled"] .oio-job__result-icon {
+	color: var(--oio-muted);
+}
+
+.oio-job[data-result="cancelled"] .oio-job__result-icon::before {
+	content: "\f14c"; /* info-outline */
+}
+
+.oio-job__result > div {
+	flex: 1;
+}
+
+.oio-job__result-title {
+	margin: 1px 0 2px;
+	font-size: 14px;
+	font-weight: 600;
+}
+
+.oio-job__result-detail {
+	margin: 0;
+	color: #3c434a;
+}
+
+.oio-job__result-close {
+	flex: none;
+	padding: 2px;
+	border: 0;
+	background: none;
+	color: var(--oio-muted);
+	cursor: pointer;
+}
+
+.oio-job__result-close:hover,
+.oio-job__result-close:focus {
+	color: #1d2327;
 }
 
 .oio-job__label {
