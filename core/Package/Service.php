@@ -700,7 +700,8 @@ class Service
 	 * Checks if the library, or another one by name, is
 	 * installed on the server, once per request (the
 	 * status of the images asks it often). Only the
-	 * supported libraries can be run.
+	 * supported libraries can be run, and none where
+	 * PHP cannot run programs (see can_execute()).
 	 *
 	 * @param string|null $name
 	 * @return bool
@@ -718,10 +719,25 @@ class Service
 			'avifenc',
 		];
 		$name = $name === null ? static::cmd_name() : $name;
-		if (!in_array($name, $allowed, true)) {
+		if (!in_array($name, $allowed, true) || !self::can_execute()) {
 			return false;
 		}
 		return self::binary($name) !== null;
+	}
+
+	/**
+	 * Determines if PHP can run programs: proc_open()
+	 * or exec(), see execute(). Shared hosts often
+	 * disable both, with disable_functions: the
+	 * libraries are then of no use, even installed.
+	 *
+	 * @return bool
+	 * @since 1.0.0
+	 * @date 25/10/2026
+	 */
+	private static function can_execute()
+	{
+		return function_exists('proc_open') || function_exists('exec');
 	}
 
 	/**
