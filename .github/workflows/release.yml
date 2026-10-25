@@ -1,0 +1,57 @@
+# Builds the zip of the plugin and publishes the GitHub release when
+# `npm run release` pushes a version tag.
+name: Release
+
+on:
+  push:
+    tags:
+      - '[0-9]+.[0-9]+.[0-9]+*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      # Composer runs Strauss, which builds vendor-prefixed/.
+      - name: Set up PHP
+        uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # 2.40.0
+        with:
+          php-version: '8.2'
+          tools: composer
+          coverage: none
+
+      # @wordpress/scripts needs Node.js 22.22.2, 24.15.0 or later.
+      - name: Set up Node.js
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install the npm dependencies
+        run: npm ci
+
+      # composer install, license check, then plugin-zip.
+      - name: Build the zip
+        run: npm run release:zip
+
+      # The zip keeps its name, so that
+      # releases/latest/download/octopus-image-optimizer.zip always works.
+      - name: Create the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          prerelease=()
+          if [[ "$TAG" == *-* ]]; then
+            prerelease=(--prerelease)
+          fi
+          gh release create "$TAG" octopus-image-optimizer.zip \
+            --verify-tag \
+            --title "Release $TAG" \
+            --generate-notes \
+            "${prerelease[@]}"
