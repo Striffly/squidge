@@ -4,116 +4,114 @@
 
 # OIO – Octopus Image Optimizer
 
-**Squeezes images. Spills no ink, sends no bill.**
+🐙 **Squeezes images. Spills no ink, sends no bill.**
 
-OIO compresses JPG and PNG images and converts them to WebP and AVIF on your own server, with `jpegoptim`, `optipng`,
-`cwebp` and `libavif`. Free, unlimited, no API key: your images never leave your server.
+OIO optimises the images of your WordPress media library with the libraries of your own server: `jpegoptim`,
+`optipng`, `cwebp` and `avifenc`. Free and unlimited, no API key, no quota: your images never leave your server.
 
 [![GNU General Public License 3.0](https://img.shields.io/github/license/Striffly/octopus-image-optimizer.svg)](https://www.gnu.org/licenses/gpl-3.0.en.html)
 
+## Features
 
-## Why?
+**Optimisation**
 
-Image compression in WordPress can be costly, confusing and sometimes just simply don't work. We have aimed to simplify
-the process by requiring the developer to install the required package on the operating system and OIO does the
-hard work for you.
+- Compresses JPG and PNG images in place, and creates their WebP and AVIF versions next to them (`photo.jpg.webp`,
+  `photo.jpg.avif`).
+- Keeps the original images: every optimisation starts again from them, and they can be restored at any time.
+- Strips the metadata (camera, date, GPS position) from every optimised file.
+- Handles CMYK JPGs, which the WebP and AVIF encoders cannot read.
 
-- **IT'S FREE**
-- Unlimited file size, no limits.
-- Optimised for your site to rank.
-- CLI to regenerate all of your media files.
-- Helper functions to output images in templates.
-- Uses the native `cwebp` and `libavif` libraries.
+**Media library**
 
-## What does OIO do?
+- Optimises the images on upload.
+- Optimises, re-optimises or cleans up the whole library in the background, with a progress bar, pause and cancel.
+  The job goes on when the page is closed.
+- Spots the images optimised with older settings, or before the theme changed its image sizes, and makes their
+  thumbnails again from the originals.
+- Shows the status of each image in the media library, and its errors in plain words.
 
-OIO compresses and converts image files when the user has uploaded a file to WordPress.
-The original images are kept in `uploads/oio-originals/` (same tree as the uploads folder), and every
-optimisation starts again from them.
+**On the site**
 
-Compresses JPG images in place using `jpegoptim`.
+- Serves AVIF and WebP in a `<picture>` element, with the JPG or PNG as fallback (optional).
+- `oio_image()` returns the same `<picture>` in your own templates.
 
-Compresses PNG images in place using `optipng`.
+## Requirements
 
-Converts JPG and PNG images to `.webp` files using `cwebp` with the appended extension  e.g. `image.jpg.webp`.
+- WordPress 6.0 and PHP 7.4 or later, on a Linux or macOS server, with `proc_open()` or `exec()` enabled.
+- The libraries installed on the server. The settings page shows the missing ones and how to install them, e.g. on
+  Debian or Ubuntu:
 
-Converts JPG and PNG images to `.avif` files using `libavif` with the appended extension  e.g. `image.jpg.avif`.
+```bash
+sudo apt install jpegoptim optipng webp libavif-bin
+```
+
+Each format works on its own: a missing library only turns its format off.
 
 ## Installation
 
-1. Go to the [releases](https://github.com/Striffly/octopus-image-optimizer/releases) section and download the plugin.
-2. Upload the `octopus-image-optimizer` plugin to your `/wp-content/plugins/` directory.
-3. Activate the plugin through the "Plugins" menu in WordPress.
-4. Check the Settings tab under `Settings | OIO` to ensure the libraries are installed, if they aren't,
-   run the commands listed dependent on your operating system.
-5. Check the individual optimisation tabs and adjust settings accordingly.
-6. Done!
+1. Download the zip of the latest [release](https://github.com/Striffly/octopus-image-optimizer/releases).
+2. Upload it in `Plugins > Add New > Upload Plugin`, and activate it.
+3. Open `Settings > OIO`: the Overview tab checks the libraries.
+4. Click `Optimise new images` to optimise the images already in the library.
 
-To install the plugin from this repository instead of a release, run `composer install` in its folder: it installs
-the dependencies in `vendor-prefixed/`, with their classes prefixed by [Strauss](https://github.com/BrianHenryIE/strauss)
-so that they cannot collide with the copies other plugins load.
+To install it from this repository instead, run `composer install` in the plugin folder: it builds the dependencies
+in `vendor-prefixed/`.
 
-## Render Images
+## FAQ
 
-The compressed JPG and PNG files replace the originals, so your whole site uses them. There are two ways to also
-offer the AVIF and WebP versions.
+### Does OIO replace my images?
 
-**Automatically**: on the `Overview` tab of the settings, tick `Use modern formats (WebP, AVIF)`. Images of the post
-content and images rendered by `wp_get_attachment_image()` (featured images, galleries, most themes) are then wrapped
-in a `<picture>` element with AVIF and WebP sources. This option is off by default.
+Yes, the JPG and PNG files are replaced by their compressed version, so the whole site uses them right away, and
+their originals are kept in `uploads/oio-originals/`. `Restore original images` on the settings page, or
+`Restore original` on an image of the media library, puts them back.
 
-**In templates**: the `oio_image` helper function always returns a `<picture>` element with the AVIF and WebP
-versions that exist on the file system, whatever this option.
+### Does it serve WebP and AVIF automatically?
 
-### Function
-```php
-/**
- * Returns a <picture> element for an image of the media library: AVIF
- * and WebP <source> elements (when their files exist), then the <img>
- * with the srcset and sizes computed by WordPress as the fallback.
- *
- * - If lazy is true, the data-src or data-srcset will be used instead.
- * - If a class is set, the class will be outputted on the <picture> element.
- *
- * @param $image_id
- * @param string $class
- * @param false $lazy
- * @return string
- */
-function oio_image($image_id, $class = '', $lazy = false)
+Once `Use modern formats (WebP, AVIF)` is turned on, on the Overview tab. The images of the content and the ones
+output by `wp_get_attachment_image()` (featured images, galleries, most themes) are then wrapped in a `<picture>`
+element, with the JPG or PNG as fallback. In a custom theme, use [`oio_image()`](#theme-development).
+
+### What happens when the theme changes its image sizes?
+
+The images optimised before are listed as "Older settings". `Re-optimise outdated images` makes their thumbnails again
+from the originals, and optimises them.
+
+### Does it slow the site down?
+
+The background jobs run the libraries with the lowest priority: the requests of the site go first. On a small server,
+the [filters](#filters) slow the jobs down further.
+
+### Does it work on shared hosting?
+
+If the libraries are installed and PHP can run them. Most shared hosts do not let you install them: ask your host,
+the Overview tab tells what is missing.
+
+### What happens when I delete OIO?
+
+Its settings and data are removed from the database, and the files stay: the compressed images, their WebP and AVIF
+versions and the originals. To get your original images back, run `Restore original images` before deleting OIO,
+which reminds it when it is deactivated.
+
+### Which settings do the libraries use?
+
+Every optimisation starts from the original image:
+
+```bash
+jpegoptim --strip-all --overwrite --max={quality} photo.jpg
+optipng -clobber -strip all -o {level} -out photo.png oio-originals/photo.png
+cwebp -q {quality} photo.jpg -o photo.jpg.webp
+avifenc -q {quality} --speed 6 --ignore-exif --ignore-xmp photo.jpg photo.jpg.avif
 ```
 
-### Output
-```html
-<picture class="oio-picture hero">
-	<source type="image/avif" srcset="/sample-image.jpg.avif 2500w, /sample-image-300x200.jpg.avif 300w" sizes="(max-width: 2500px) 100vw, 2500px">
-	<source type="image/webp" srcset="/sample-image.jpg.webp 2500w, /sample-image-300x200.jpg.webp 300w" sizes="(max-width: 2500px) 100vw, 2500px">
-	<img data-oio src="/sample-image.jpg" srcset="/sample-image.jpg 2500w, /sample-image-300x200.jpg 300w" sizes="(max-width: 2500px) 100vw, 2500px" width="2500" height="1667" alt="Alt text">
-</picture>
-```
+`avifenc` older than 1.0 gets the quality as `cq-level` instead of `-q`.
 
-## Screenshots
+## Privacy
 
-### Plugin settings page
+OIO sends nothing out of your server: no API, no tracking, no external request.
 
-![OIO Settings Page](assets/screenshot-1.png)
-
-### Example compression tab
-
-![OIO Example Compression Tab](assets/screenshot-2.png)
-
-## FAQs
-
-### Does the plugin replace existing images?
-
-Yes, the JPG and PNG files of the uploads folder are replaced with their compressed version, so your whole site
-uses them. The originals are kept in `uploads/oio-originals/` and every new optimisation starts again from them.
-
-### Are the original images public?
-
-They should not be: the originals keep the metadata OIO strips from the optimised images, such as the GPS position
-of a photo. OIO writes a `.htaccess` in `uploads/oio-originals/` denying the web access, which works with Apache and
-LiteSpeed. With nginx, add this rule to the `server` block of the site:
+The optimised images lose their metadata, but the originals keep them, GPS position included. OIO writes a
+`.htaccess` denying the web access to `uploads/oio-originals/`, which works with Apache and LiteSpeed. With nginx, add
+this rule to the `server` block of the site:
 
 ```nginx
 location ^~ /wp-content/uploads/oio-originals/ {
@@ -121,8 +119,8 @@ location ^~ /wp-content/uploads/oio-originals/ {
 }
 ```
 
-You can also keep the originals out of the web root with the `oio_backup_dir` filter, before optimising any image.
-OIO does not move the originals already kept: move the folder yourself when you change it.
+Or keep the originals out of the web root with the `oio_backup_dir` filter, before optimising any image. OIO does not
+move the originals already kept: move the folder yourself when you change it.
 
 ```php
 // e.g. next to the web root of a Bedrock site.
@@ -131,174 +129,68 @@ add_filter('oio_backup_dir', function () {
 });
 ```
 
-### What happens when I delete OIO?
+## Developers
 
-Deleting OIO removes its settings and data from the database, and keeps the files: the compressed images, their
-WebP and AVIF versions and the originals in `uploads/oio-originals/`. To get your original images back and remove
-every OIO file, run `Restore original images` on the settings page (or `wp oio restore`) before deleting it.
-OIO reminds it when it is deactivated.
+### Theme development
 
-### What are the supported operating systems?
-
-Windows, Linux, & Mac OSX.
-
-### How are JPGs optimized?
-
-```bash
-# input-file.jpg is first restored from its original in uploads/oio-originals/
-jpegoptim --strip-all --overwrite --max={{ quality }} input-file.jpg
-```
-
-### How are PNGs optimized?
-
-```bash
-optipng -clobber -strip all -o {{ optimization }} -out input-file.png oio-originals/input-file.png
-````
-
-### How are images converted to webp files?
-
-```bash
-cwebp -q {{ quality }} input-file.jpg -o input-file.jpg.webp
-```
-
-### How are images converted to avif files?
-
-```bash
-avifenc -q {{ quality }} --speed 6 input-file.jpg input-file.jpg.avif
-```
-
-With libavif older than 1.0, `-q` does not exist and the quality is passed as the equivalent `cq-level`:
-
-```bash
-avifenc --min 0 --max 63 -a end-usage=q -a cq-level={{ (100 - quality) * 63 / 100 }} --speed 6 -a tune=ssim input-file.jpg input-file.jpg.avif
-```
-
-## CLI
-
-OIO includes a built in `WP CLI` to help convert and compress images, you can see the commands below.
-
-```bash
-wp oio
-```
-
-```bash
-usage: wp oio health
-   or: wp oio run
-   or: wp oio version
-```
-
-### Version
-
-Outputs the current version number of OIO.
-
-```bash
-wp oio version
-```
-
-### Health
-
-Checks the correct libraries are installed.
-
-```bash
-wp oio health
-```
-
-### Run
-
-Compresses and converts all images. This command will obtain images from the WP media library, compress them if they are
-JPG/PNG's and convert them to the `.webp` and `.avif` file formats.
-
-By default all optimisation methods are ran, but you can disable them using the arguments below.
-
-**Simple example:**
-
-```bash
-wp oio run
-```
-
-**With example arguments**
-
-```bash
-wp oio run --jpeg=false --quality=80 --optimization=o3
-```
-
-#### Arguments
-
-The formats and qualities default to the ones of the options page, the arguments override them.
-
-| Argument        | Default Value | Accepted Values          | Description       |
-|-----------------|---------------| ------------------------ | ----------------- |
-| jpg             | options page  | `true`/`false`           | If JPG compression should run.
-| png             | options page  | `true`/`false`           | If PNG compression should run.
-| webp            | options page  | `true`/`false`           | If WebP conversion should run.
-| avif            | options page  | `true`/`false`           | If AVIF conversion should run.
-| quality         | options page  | `0` to `100`             | Quality of JPG compression and WebP conversion.
-| optimization    | options page  | `o0` to `o7`             | Optimisation of PNG images.
-| avif-quality    | options page  | `0` to `100`             | Quality of AVIF images.
-| avif-speed      | `6`           | `0` to `10`              | Speed of the AVIF encoder. 0 to 6 make files of about the same size (0 is much slower), faster speeds make larger files.
-| force           | `false`       | `true`/`false`           | Force reoptimization of already optimized images.
-| regenerate      | `false`       | `true`/`false`           | Make the thumbnails again from the original images first (implies force), e.g. after the theme changed its image sizes.
-| thumbnails-only | `false`       | `true`/`false`           | Optimize only thumbnails.
-
-### Clean
-
-Removes the WebP and AVIF files of all images. The JPG and PNG files stay compressed.
-
-```bash
-wp oio clean
-```
-
-### Restore
-
-Restores the original images and removes every file made by OIO (WebP, AVIF, backups). Do it before deleting
-OIO to get your original images back. An image whose original was deleted from
-`uploads/oio-originals/` stays compressed.
-
-```bash
-wp oio restore
-```
-
-## Performance
-
-The libraries run with settings that suit most servers:
-
-- in the background jobs (bulk optimisation, clean up), every library runs with the lowest priority (`nice -n 19`,
-  when available): the requests of the site go first, and the jobs use the CPU left. `avifenc`, the only library using
-  several cores, uses 2 threads,
-- on upload and in the media library actions, `avifenc` uses 4 threads, about as fast as all cores on a photo,
-- in WP-CLI, `avifenc` uses all cores.
-
-Filters adjust them, by context (`upload`, `background` or `cli`), e.g. in a mu-plugin:
+The `Use modern formats (WebP, AVIF)` option serves the WebP and AVIF versions for the images of the content and the
+ones output by `wp_get_attachment_image()`. The images a theme outputs with its own markup, e.g. from an ACF field,
+are left as they are: `oio_image()` returns their `<picture>` element, whatever the option.
 
 ```php
-// Priority of the libraries, from 0 (normal) to 19 (lowest). Default: 19 in background, 0 otherwise.
-add_filter('oio_nice', function ($level, $context) {
-	return $context === 'background' ? 19 : 10;
-}, 10, 2);
-
-// Threads of avifenc: a number or "all". Default: 4 on upload, 2 in background, all in WP-CLI.
-add_filter('oio_avif_jobs', function ($jobs, $context) {
-	return 1;
-}, 10, 2);
-
-// Pause after each image of a background job, in seconds. Default: 0.
-add_filter('oio_job_seconds_between_batches', function () {
-	return 1;
-});
-
-// Duration of a batch of a background job before it starts again, in seconds. Default: 20.
-add_filter('oio_job_default_time_limit', function () {
-	return 10;
-});
+if (function_exists('oio_image')) {
+	echo oio_image($image_id, 'hero');       // Class of the <picture> element.
+	echo oio_image($image_id, 'hero', true); // data-src and data-srcset, for a JavaScript lazy loader.
+}
 ```
 
-## Road Map
+```html
+<picture class="oio-picture hero">
+	<source type="image/avif" srcset="photo.jpg.avif 2500w, photo-300x200.jpg.avif 300w" sizes="(max-width: 2500px) 100vw, 2500px">
+	<source type="image/webp" srcset="photo.jpg.webp 2500w, photo-300x200.jpg.webp 300w" sizes="(max-width: 2500px) 100vw, 2500px">
+	<img data-oio src="photo.jpg" srcset="photo.jpg 2500w, photo-300x200.jpg 300w" sizes="(max-width: 2500px) 100vw, 2500px" width="2500" height="1667" alt="">
+</picture>
+```
 
-- Add `SVGO` to optimise SVG images.
-- More arguments passed to each service.
-- Update meta data when images are converted or compressed.
-- Output compression info in the Media Library.
-- Create unit tests.
+Keep the `function_exists()` check: without it, the pages break while OIO is deactivated.
+
+### WP-CLI
+
+| Command          | What it does                                                                         |
+|------------------|--------------------------------------------------------------------------------------|
+| `wp oio health`  | Checks that the libraries are installed.                                             |
+| `wp oio run`     | Optimises the whole media library, with the settings of the settings page.           |
+| `wp oio clean`   | Removes the WebP and AVIF files. The JPG and PNG files stay compressed.              |
+| `wp oio restore` | Restores the original images and removes every file made by OIO.                     |
+| `wp oio version` | Shows the version of OIO.                                                            |
+
+`wp oio run` takes these options:
+
+- `--force` optimises the images again, `--regenerate` first makes their thumbnails again from the originals,
+  `--thumbnails-only` leaves the full size images out.
+- `--jpg=false`, `--png=false`, `--webp=false`, `--avif=false` turn a format off.
+- `--quality=<0-100>` (JPG and WebP), `--avif-quality=<0-100>`, `--avif-speed=<0-10>` and `--optimization=o<0-7>`
+  (PNG) override the settings.
+
+### Filters
+
+| Filter                            | Default                                       | Sets                                                     |
+|-----------------------------------|-----------------------------------------------|----------------------------------------------------------|
+| `oio_backup_dir`                  | `uploads/oio-originals`                       | The folder of the original images.                       |
+| `oio_nice`                        | `19` in background jobs, `0` otherwise        | The priority of the libraries, `0` (normal) to `19`.     |
+| `oio_avif_jobs`                   | `4` on upload, `2` in background, `all` in CLI | The threads of `avifenc`.                                |
+| `oio_job_seconds_between_batches` | `0`                                           | A pause after each image of a background job, seconds.   |
+| `oio_job_default_time_limit`      | `20`                                          | The duration of a batch of a background job, seconds.    |
+
+`oio_nice` and `oio_avif_jobs` receive the context as second argument: `upload`, `background` or `cli`. On
+multisite, the two job filters carry the ID of the site: `oio_2_job_default_time_limit` on the site 2.
+
+```php
+// In a mu-plugin: lighter background jobs on a small server.
+add_filter('oio_avif_jobs', function ($jobs, $context) {
+	return $context === 'background' ? 1 : $jobs;
+}, 10, 2);
+```
 
 ## Credits
 
@@ -308,3 +200,7 @@ It started as a fork of [Squidge](https://github.com/ainsleyclark/squidge), crea
 [Ainsley Clark](https://github.com/ainsleyclark) in 2021 with contributions from Roman K, Rohinish and karbivskij, and
 was largely rewritten in 2026. Many thanks to them for the foundations: the idea of relying on the native libraries
 of the server comes from Squidge.
+
+## License
+
+OIO is free software, released under the [GNU General Public License v3](LICENSE) or later.
