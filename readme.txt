@@ -2,9 +2,9 @@
 Contributors: ainsleyclark
 Donate link: https://www.paypal.com/donate?hosted_button_id=PQG5A34KWUXRJ
 Tags: image, compression, plugin, image compression, webp, lazy load, optimization, seo, lossless, lossy, jpg, png, avif, convert
-Requires at least: 5.5
-Tested up to: 5.8
-Requires PHP: 5.6
+Requires at least: 6.0
+Tested up to: 7.1
+Requires PHP: 7.4
 Stable tag: 0.1.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html

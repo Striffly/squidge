@@ -8,6 +8,8 @@
  * Author URI:      https://github.com/ainsleyclark
  * Text Domain:     squidge
  * Version:         0.1.4
+ * Requires at least: 6.0
+ * Requires PHP:    7.4
  * License:         GNU
  *
  * @package         Squidge
