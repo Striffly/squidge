@@ -59,13 +59,13 @@ class Upload
 	 */
 	public function process_jpg($attachment)
 	{
-		if (!carbon_get_theme_option('squidge_jpg_enable')) {
+		if (!Fields::get('squidge_jpg_enable')) {
 			return $attachment;
 		}
 
 		try {
 			$args = [
-				'quality' => carbon_get_theme_option('squidge_jpg_quality'),
+				'quality' => Fields::get('squidge_jpg_quality'),
 				'force' => false,
 				'thumbnailsOnly' => false
 			];
@@ -87,13 +87,13 @@ class Upload
 	 */
 	public function process_png($attachment)
 	{
-		if (!carbon_get_theme_option('squidge_png_enable')) {
+		if (!Fields::get('squidge_png_enable')) {
 			return $attachment;
 		}
 
 		try {
 			$args = [
-				'optimization' => carbon_get_theme_option('squidge_webp_quality'),
+				'optimization' => Fields::get('squidge_webp_quality'),
 				'force' => false,
 				'thumbnailsOnly' => false
 			];
@@ -116,13 +116,13 @@ class Upload
 	 */
 	public function process_webp($attachment)
 	{
-		if (!carbon_get_theme_option('squidge_webp_enable')) {
+		if (!Fields::get('squidge_webp_enable')) {
 			return $attachment;
 		}
 
 		try {
 			$args = [
-				'quality' => carbon_get_theme_option('squidge_webp_quality'),
+				'quality' => Fields::get('squidge_webp_quality'),
 				'force' => false,
 				'thumbnailsOnly' => false
 			];
@@ -145,7 +145,7 @@ class Upload
 	 */
 	public function process_avif($attachment)
 	{
-		if (!carbon_get_theme_option('squidge_avif_enable')) {
+		if (!Fields::get('squidge_avif_enable')) {
 			return $attachment;
 		}
 

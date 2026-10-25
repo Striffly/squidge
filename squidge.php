@@ -18,10 +18,17 @@ if (!defined('ABSPATH')) {
 	exit; // Exit if accessed directly
 }
 
-// Require autoload.
-if (file_exists(__DIR__ . '/vendor/autoload.php')) {
-	require(__DIR__ . '/vendor/autoload.php');
-}
+// Autoload Squidge classes (Squidge\Foo\Bar => core/Foo/Bar.php).
+spl_autoload_register(function ($class) {
+	$prefix = 'Squidge\\';
+	if (strpos($class, $prefix) !== 0) {
+		return;
+	}
+	$file = __DIR__ . '/core/' . str_replace('\\', '/', substr($class, strlen($prefix))) . '.php';
+	if (file_exists($file)) {
+		require $file;
+	}
+});
 
 // Boot Squidge (Once).
 Squidge\Squidge::boot();
@@ -49,7 +56,7 @@ if (!function_exists('squidge_add_settings_link')) {
 	function squidge_add_settings_link($links)
 	{
 		$links[] = '<a href="' .
-			admin_url('options-general.php?page=crb_carbon_fields_container_squidge.php') .
+			Squidge\Admin\Fields::page_url() .
 			'">' . __('Settings') . '</a>';
 		return $links;
 	}

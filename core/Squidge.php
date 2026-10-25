@@ -16,7 +16,6 @@
 namespace Squidge;
 
 use Squidge\Admin;
-use function Clue\StreamFilter\fun;
 
 if (!defined('ABSPATH')) {
 	exit; // Exit if accessed directly
@@ -76,9 +75,7 @@ final class Squidge
 		$this->define('SQUIDGE_UPLOAD_DIR', $uploadData['basedir']);
 		$this->define('SQUIDGE_UPLOAD_URL', $uploadData['baseurl']);
 		new Admin\Fields();
-		add_action('carbon_fields_fields_registered', function () {
-			new Admin\Upload();
-		});
+		new Admin\Upload();
 	}
 
 	/**
