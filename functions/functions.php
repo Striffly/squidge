@@ -9,7 +9,7 @@
  * @author      Clément Gayot
  * @author      Ainsley Clark (Squidge, original author)
  * @category    Functions
- * @repo        https://github.com/Striffly/squidge
+ * @repo        https://github.com/Striffly/octopus-image-optimizer
  *
  */
 

@@ -2,7 +2,7 @@
 
 /**
  * Plugin Name:     OIO – Octopus Image Optimizer
- * Plugin URI:      https://github.com/Striffly/squidge
+ * Plugin URI:      https://github.com/Striffly/octopus-image-optimizer
  * Description:     Compresses JPG and PNG images and converts them to WebP and AVIF on your own server, with cwebp, avifenc, jpegoptim and optipng. Free, unlimited, no API key.
  * Author:          Clément Gayot
  * Author URI:      https://github.com/Striffly
@@ -12,10 +12,10 @@
  * Requires PHP:    7.4
  * License:         GPLv3 or later
  * License URI:     https://www.gnu.org/licenses/gpl-3.0.html
- * Update URI:      https://github.com/Striffly/squidge
+ * Update URI:      https://github.com/Striffly/octopus-image-optimizer
  *
  * @package         OIO
- * @repo            https://github.com/Striffly/squidge
+ * @repo            https://github.com/Striffly/octopus-image-optimizer
  */
 
 if (!defined('ABSPATH')) {

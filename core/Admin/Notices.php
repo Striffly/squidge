@@ -11,7 +11,7 @@
  * @package     OIO
  * @author      Clément Gayot
  * @category    Admin
- * @repo        https://github.com/Striffly/squidge
+ * @repo        https://github.com/Striffly/octopus-image-optimizer
  *
  */
 

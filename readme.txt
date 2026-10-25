@@ -38,7 +38,7 @@ optimisation starts again from them.
 
 == Installation ==
 
-1. Go to the [releases](https://github.com/Striffly/squidge/releases) section and download the plugin.
+1. Go to the [releases](https://github.com/Striffly/octopus-image-optimizer/releases) section and download the plugin.
 2. Upload the `octopus-image-optimizer` plugin to your `/wp-content/plugins/` directory.
 3. Activate the plugin through the "Plugins" menu in WordPress.
 4. Check the Settings tab under `Settings | OIO` to ensure the libraries are installed, if they aren't,
