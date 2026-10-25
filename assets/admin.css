@@ -359,6 +359,7 @@
 
 .oio-status__library {
 	display: inline-flex;
+	flex-wrap: wrap;
 	align-items: baseline;
 	gap: 2px;
 	font-size: 12px;
@@ -392,6 +393,13 @@
 
 .oio-status__library--off .dashicons {
 	color: var(--oio-off);
+}
+
+/* At the end of the line, or of the next one in a narrow card. */
+.oio-status__version {
+	margin-left: auto;
+	padding-left: 8px;
+	font-variant-numeric: tabular-nums;
 }
 
 .oio-page code {

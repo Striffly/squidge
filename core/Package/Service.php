@@ -50,6 +50,26 @@ class Service
 	const FILES_KEY = '_oio_files';
 
 	/**
+	 * VERSIONS_TRANSIENT caches the versions of the
+	 * libraries, shown on the settings page.
+	 */
+	const VERSIONS_TRANSIENT = 'oio_versions';
+
+	/**
+	 * VERSION_OPTIONS is the option printing the version
+	 * of the libraries not using --version.
+	 */
+	const VERSION_OPTIONS = ['cwebp' => '-version'];
+
+	/**
+	 * The versions of the libraries, by name, with
+	 * their path, once read in this request.
+	 *
+	 * @var array|null
+	 */
+	private static $versions = null;
+
+	/**
 	 * Processes the file attachment.
 	 *
 	 * @param $attachment
@@ -605,6 +625,54 @@ class Service
 			return false;
 		}
 		return self::binary(static::cmd_name()) !== null;
+	}
+
+	/**
+	 * Returns the version of the library (e.g. 1.5.0),
+	 * or an empty string if it is not installed or does
+	 * not tell it. The settings page shows it on every
+	 * load: it is cached for 12 hours, and read again
+	 * when the library moves or the settings are saved
+	 * (see forget_versions()).
+	 *
+	 * @return string
+	 * @since 1.0.0
+	 * @date 25/10/2026
+	 */
+	public static function version_number()
+	{
+		if (!static::installed()) {
+			return '';
+		}
+		$name = static::cmd_name();
+		$path = self::binary($name);
+		if (self::$versions === null) {
+			$cached = get_transient(self::VERSIONS_TRANSIENT);
+			self::$versions = is_array($cached) ? $cached : [];
+		}
+		if (!isset(self::$versions[$name]['path']) || self::$versions[$name]['path'] !== $path) {
+			$option = array_key_exists($name, self::VERSION_OPTIONS) ? self::VERSION_OPTIONS[$name] : '--version';
+			list(, $output) = self::execute([$path, $option]);
+			// avifenc tells it on its Version: line, the others on their first line.
+			$line = preg_match('/^Version:.*$/mi', $output, $matches) ? $matches[0] : strtok(ltrim($output), "\n");
+			$version = preg_match('/\d+(\.\d+)+/', (string)$line, $matches) ? $matches[0] : '';
+			self::$versions[$name] = ['path' => $path, 'version' => $version];
+			set_transient(self::VERSIONS_TRANSIENT, self::$versions, 12 * HOUR_IN_SECONDS);
+		}
+		return self::$versions[$name]['version'];
+	}
+
+	/**
+	 * Forgets the versions of the libraries, read again
+	 * next time, e.g. after an upgrade.
+	 *
+	 * @since 1.0.0
+	 * @date 25/10/2026
+	 */
+	public static function forget_versions()
+	{
+		self::$versions = null;
+		delete_transient(self::VERSIONS_TRANSIENT);
 	}
 
 	/**

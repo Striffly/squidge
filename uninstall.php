@@ -31,8 +31,9 @@ global $wpdb;
  * options of another plugin using this prefix.
  */
 
-// Recent errors, progress of the background job, cached theme scan, locks of the images.
-$options = ['oio_errors', 'oio_job', 'oio_theme_calls'];
+// Recent errors, progress of the background job, cached theme scan and versions of the
+// libraries, locks of the images.
+$options = ['oio_errors', 'oio_job', 'oio_theme_calls', 'oio_versions'];
 $option_prefixes = ['oio_lock_'];
 // The settings, by name: _ and the name of each field of Fields::sections(), as
 // WordPress does not load OIO here. A prefix would delete the options of another

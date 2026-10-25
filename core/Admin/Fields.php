@@ -17,6 +17,7 @@
 
 namespace OIO\Admin;
 
+use OIO\Package\Service;
 use OIO\Package\Status;
 use OIO\Services\AVIF;
 use OIO\Services\JPG;
@@ -188,8 +189,13 @@ class Fields
 		$sections = self::sections();
 		$display = $sections['display'];
 		unset($sections['display']);
+		// Saving the settings reads the versions of the libraries again, e.g. after an upgrade.
+		if (isset($_GET['settings-updated'])) {
+			Service::forget_versions();
+		}
 		foreach ($sections as $id => $section) {
 			$sections[$id]['installed'] = $section['service']::installed();
+			$sections[$id]['version'] = $section['service']::version_number();
 			$sections[$id]['enabled'] = self::get('oio_' . $id . '_enable');
 			$sections[$id]['library'] = $section['service']::cmd_name();
 		}
@@ -224,6 +230,9 @@ class Fields
 									<code><?php echo esc_html($section['library']); ?></code>
 									<span class="dashicons dashicons-<?php echo $section['installed'] ? 'yes' : 'no-alt'; ?>" aria-hidden="true"></span>
 									<?php echo $section['installed'] ? 'installed' : 'not installed'; ?>
+									<?php if ($section['version']) : ?>
+										<span class="oio-status__version"><?php echo esc_html($section['version']); ?></span>
+									<?php endif; ?>
 								</span>
 							</a>
 						<?php endforeach; ?>
