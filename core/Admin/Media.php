@@ -130,9 +130,10 @@ class Media
 	}
 
 	/**
-	 * Optimises an image with the current settings:
-	 * the missing formats only, or every format again
-	 * if it is already optimised.
+	 * Optimises an image with the current settings: the
+	 * missing formats, the formats or thumbnails with
+	 * older settings, or everything again from the
+	 * original if it is already optimised.
 	 *
 	 * @since 0.1.5
 	 * @date 25/10/2026
@@ -145,7 +146,11 @@ class Media
 			wp_die('You cannot optimise this image.', 403);
 		}
 		$status = Status::of($id);
-		Optimiser::attachment($id, null, Optimiser::settings(), in_array($status, [Status::OPTIMISED, Status::OUTDATED], true));
+		if (in_array($status, [Status::OPTIMISED, Status::OUTDATED], true)) {
+			Optimiser::update($id, $status === Status::OPTIMISED);
+		} else {
+			Optimiser::attachment($id, null, Optimiser::settings());
+		}
 
 		$redirect = wp_get_referer() ?: admin_url('upload.php?mode=list');
 		wp_safe_redirect(add_query_arg('squidge_optimised', $id, remove_query_arg('squidge_optimised', $redirect)));

@@ -34,15 +34,15 @@ class Tools
 	const NONCE = 'squidge_job';
 
 	/**
-	 * The jobs that can be started: the images, and if
-	 * they are processed again even when done.
+	 * The jobs that can be started: their action, their
+	 * mode and the statuses of their images.
 	 *
 	 * @var array
 	 */
 	const JOBS = [
-		'new' => ['action' => Job::OPTIMISE, 'statuses' => [Status::TO_OPTIMISE, Status::ERROR], 'force' => false],
-		'outdated' => ['action' => Job::OPTIMISE, 'statuses' => [Status::OUTDATED], 'force' => true],
-		'all' => ['action' => Job::OPTIMISE, 'statuses' => [null], 'force' => true],
+		'new' => ['action' => Job::OPTIMISE, 'mode' => Job::MODE_NEW, 'statuses' => [Status::TO_OPTIMISE, Status::ERROR]],
+		'outdated' => ['action' => Job::OPTIMISE, 'mode' => Job::MODE_OUTDATED, 'statuses' => [Status::OUTDATED]],
+		'all' => ['action' => Job::OPTIMISE, 'mode' => Job::MODE_ALL, 'statuses' => [null]],
 	];
 
 	/**
@@ -82,7 +82,7 @@ class Tools
 	{
 		$this->authorize();
 		$name = isset($_POST['job']) ? sanitize_key(wp_unslash($_POST['job'])) : '';
-		if (!isset(self::JOBS[$name])) {
+		if (!array_key_exists($name, self::JOBS)) {
 			wp_send_json_error(null, 400);
 		}
 		$job = self::JOBS[$name];
@@ -90,7 +90,7 @@ class Tools
 		foreach ($job['statuses'] as $status) {
 			$ids = array_merge($ids, Status::ids($status));
 		}
-		if (!Job::instance()->start($job['action'], $ids, $job['force'])) {
+		if (!Job::instance()->start($job['action'], $ids, $job['mode'])) {
 			wp_send_json_error(['message' => 'A job is already running, or there is no image to process.'], 409);
 		}
 		$this->status();

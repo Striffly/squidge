@@ -54,6 +54,9 @@ class Upload
 	 */
 	public function process($metadata, $attachment_id)
 	{
+		if (Optimiser::$regenerating) {
+			return $metadata;
+		}
 		Optimiser::attachment($attachment_id, $metadata, Optimiser::settings());
 		return $metadata;
 	}

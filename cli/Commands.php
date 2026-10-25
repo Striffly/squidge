@@ -76,6 +76,7 @@ class Squidge_CLI extends WP_CLI_Command
 	 *    - avif-quality=70       The quality of AVIF conversion.
 	 *    - avif-speed=6          The speed of the AVIF encoder (0 to 10): 6 is best, faster speeds make larger files.
 	 *    - force=false           Force reoptimization of already optimized images.
+	 *    - regenerate=false      Make the thumbnails again from the originals first (implies force).
 	 *    - thumbnails-only=false Only optimize thumbnails.
 	 *
 	 * @param $args
@@ -113,6 +114,7 @@ class Squidge_CLI extends WP_CLI_Command
 		}
 		$force = isset($assoc_args['force']) && filter_var($assoc_args['force'], FILTER_VALIDATE_BOOLEAN);
 		$thumbnails_only = isset($assoc_args['thumbnails-only']) && filter_var($assoc_args['thumbnails-only'], FILTER_VALIDATE_BOOLEAN);
+		$regenerate = isset($assoc_args['regenerate']) && filter_var($assoc_args['regenerate'], FILTER_VALIDATE_BOOLEAN);
 
 		WP_CLI::log('Formats: ' . (empty($settings) ? 'none' : implode(', ', array_keys($settings))));
 
@@ -131,7 +133,8 @@ class Squidge_CLI extends WP_CLI_Command
 			]);
 			foreach ($query->posts as $id) {
 				WP_CLI::log(WP_CLI::colorize("%BProcessing image: %n") . get_the_title($id));
-				Optimiser::attachment($id, null, $settings, $force, $thumbnails_only);
+				$metadata = $regenerate ? Optimiser::regenerate($id) : null;
+				Optimiser::attachment($id, $metadata, $settings, $force || $regenerate, $thumbnails_only);
 				$counter++;
 			}
 			$page++;

@@ -32,6 +32,16 @@ class Job extends Squidge_Vendor_WP_Background_Process
 	const OPTIMISE = 'optimise';
 
 	/**
+	 * Modes of the optimisation: the missing formats
+	 * only, the images with older settings brought up
+	 * to date, or everything again from the originals
+	 * (thumbnails included).
+	 */
+	const MODE_NEW = 'new';
+	const MODE_OUTDATED = 'outdated';
+	const MODE_ALL = 'all';
+
+	/**
 	 * Option keeping the progress of the last job.
 	 *
 	 * @var string
@@ -77,19 +87,19 @@ class Job extends Squidge_Vendor_WP_Background_Process
 	 *
 	 * @param string $action
 	 * @param int[] $ids
-	 * @param bool $force Process the images again, even if done.
+	 * @param string $mode
 	 * @return bool
 	 * @since 0.1.5
 	 * @date 25/10/2026
 	 */
-	public function start($action, $ids, $force = false)
+	public function start($action, $ids, $mode = self::MODE_NEW)
 	{
 		if ($this->is_active() || empty($ids)) {
 			return false;
 		}
 		update_option(self::PROGRESS, [
 			'action' => $action,
-			'force' => $force,
+			'mode' => $mode,
 			'total' => count($ids),
 			'done' => 0,
 			'failed' => 0,
@@ -151,7 +161,11 @@ class Job extends Squidge_Vendor_WP_Background_Process
 		}
 		if (get_post($id)) {
 			if ($progress['action'] === self::OPTIMISE) {
-				Optimiser::attachment($id, null, Optimiser::settings(), $progress['force']);
+				if ($progress['mode'] === self::MODE_NEW) {
+					Optimiser::attachment($id, null, Optimiser::settings());
+				} else {
+					Optimiser::update($id, $progress['mode'] === self::MODE_ALL);
+				}
 			}
 			if (Status::of($id) === Status::ERROR) {
 				$progress['failed']++;

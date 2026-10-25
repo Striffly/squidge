@@ -209,6 +209,7 @@ The formats and qualities default to the ones of the options page, the arguments
 | avif-quality    | options page  | `0` to `100`             | Quality of AVIF images.
 | avif-speed      | `6`           | `0` to `10`              | Speed of the AVIF encoder. 0 to 6 make files of about the same size (0 is much slower), faster speeds make larger files.
 | force           | `false`       | `true`/`false`           | Force reoptimization of already optimized images.
+| regenerate      | `false`       | `true`/`false`           | Make the thumbnails again from the original images first (implies force), e.g. after the theme changed its image sizes.
 | thumbnails-only | `false`       | `true`/`false`           | Optimize only thumbnails.
 
 ## Road Map
