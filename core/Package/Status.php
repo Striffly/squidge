@@ -50,6 +50,13 @@ class Status
 	const ERROR = 'error';
 
 	/**
+	 * Processed by every enabled library, without error,
+	 * whatever the settings: optimised or outdated. Only
+	 * used to query, see ids().
+	 */
+	const PROCESSED = 'processed';
+
+	/**
 	 * Image types Squidge optimises.
 	 */
 	const MIMES = ['image/jpeg', 'image/png'];
@@ -179,10 +186,10 @@ class Status
 	public static function counts()
 	{
 		$counts = ['total' => self::count(null)];
-		foreach ([self::TO_OPTIMISE, self::OUTDATED, self::ERROR] as $status) {
+		foreach ([self::TO_OPTIMISE, self::OPTIMISED, self::ERROR] as $status) {
 			$counts[$status] = self::count($status);
 		}
-		$counts[self::OPTIMISED] = $counts['total'] - $counts[self::TO_OPTIMISE] - $counts[self::OUTDATED] - $counts[self::ERROR];
+		$counts[self::OUTDATED] = $counts['total'] - $counts[self::TO_OPTIMISE] - $counts[self::OPTIMISED] - $counts[self::ERROR];
 		return $counts;
 	}
 
@@ -197,6 +204,10 @@ class Status
 	 */
 	public static function ids($status)
 	{
+		// Outdated: processed by every library, but not with the current settings.
+		if ($status === self::OUTDATED) {
+			return array_values(array_diff(self::ids(self::PROCESSED), self::ids(self::OPTIMISED)));
+		}
 		$query = new WP_Query(self::query_args($status, ['posts_per_page' => -1, 'no_found_rows' => true]));
 		return array_map('intval', $query->posts);
 	}
@@ -219,8 +230,11 @@ class Status
 	/**
 	 * Returns the WP_Query args of the images of a
 	 * status. The statuses do not overlap: an error
-	 * comes first, then a missing library, then an
-	 * outdated one.
+	 * comes first, then a missing library. There is no
+	 * query for the outdated images: an OR of "!="
+	 * meta queries joins postmeta so many times that it
+	 * takes seconds, they are the processed images that
+	 * are not optimised.
 	 *
 	 * @param string|null $status
 	 * @param array $args
@@ -256,29 +270,22 @@ class Status
 			'relation' => 'AND',
 			['key' => Errors::META_KEY, 'compare' => 'NOT EXISTS'],
 		];
-		$missing = ['relation' => 'OR'];
-		$changed = ['relation' => 'OR'];
-		foreach ($expected as $key => $signature) {
-			$missing[] = ['key' => $key, 'compare' => 'NOT EXISTS'];
-			$changed[] = ['key' => $key, 'value' => $signature, 'compare' => '!='];
-		}
-		// Thumbnail sizes changed since the image was optimised.
-		$changed[] = ['key' => self::SIZES_KEY, 'compare' => 'NOT EXISTS'];
-		$changed[] = ['key' => self::SIZES_KEY, 'value' => self::sizes_signature(), 'compare' => '!='];
 		if ($status === self::TO_OPTIMISE) {
+			$missing = ['relation' => 'OR'];
+			foreach (array_keys($expected) as $key) {
+				$missing[] = ['key' => $key, 'compare' => 'NOT EXISTS'];
+			}
 			$meta_query[] = $missing;
-		} else {
+		} elseif ($status === self::PROCESSED) {
 			foreach (array_keys($expected) as $key) {
 				$meta_query[] = ['key' => $key, 'compare' => 'EXISTS'];
 			}
-			if ($status === self::OUTDATED) {
-				$meta_query[] = $changed;
-			} else {
-				foreach ($expected as $key => $signature) {
-					$meta_query[] = ['key' => $key, 'value' => $signature];
-				}
-				$meta_query[] = ['key' => self::SIZES_KEY, 'value' => self::sizes_signature()];
+		} else {
+			// Optimised: done by every library with the current settings and sizes.
+			foreach ($expected as $key => $signature) {
+				$meta_query[] = ['key' => $key, 'value' => $signature];
 			}
+			$meta_query[] = ['key' => self::SIZES_KEY, 'value' => self::sizes_signature()];
 		}
 		$args['meta_query'] = $meta_query;
 		return $args;
