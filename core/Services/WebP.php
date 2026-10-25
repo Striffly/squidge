@@ -37,6 +37,13 @@ class WebP extends Service implements Convertor
 	const DEFAULT_QUALITY = 80;
 
 	/**
+	 * NEAR_LOSSLESS is the near-lossless level of the
+	 * PNG images (0 to 100, 100 is lossless): the
+	 * pixels change too little to be seen.
+	 */
+	const NEAR_LOSSLESS = 60;
+
+	/**
 	 * Compress all image sizes if they are jpg or png
 	 * to webp with the given file path.
 	 *
@@ -66,10 +73,44 @@ class WebP extends Service implements Convertor
 			$options[] = '-mt';
 		}
 		if (self::run(array_merge($options, [$source, '-o', $output]), $filepath, $args)) {
+			if ($mime == Mimes::PNG) {
+				self::near_lossless($options, $source, $output, $filepath, $args);
+			}
 			Logger::info("Successfully converted to WebP file: " . $output);
 			self::remember($args, $output);
 		}
 		self::release_source($source, $original);
+	}
+
+	/**
+	 * Encodes a PNG image again in near-lossless mode,
+	 * kept if lighter than the lossy WebP: graphics,
+	 * screenshots and text get much lighter, without
+	 * the blur of the lossy mode around sharp edges.
+	 * A lossy WebP under a quarter of the PNG is a
+	 * photo, much heavier in near-lossless: not tried.
+	 *
+	 * @param array $options
+	 * @param string $source
+	 * @param string $output
+	 * @param string $filepath
+	 * @param array $args
+	 * @since 1.0.0
+	 * @date 25/10/2026
+	 */
+	private static function near_lossless($options, $source, $output, $filepath, $args)
+	{
+		clearstatcache();
+		$lossy = filesize($output);
+		if ($lossy < filesize($source) / 4) {
+			return;
+		}
+		$temp = $output . '.tmp';
+		if (self::run(array_merge($options, ['-near_lossless', self::NEAR_LOSSLESS, $source, '-o', $temp]), $filepath, $args) && filesize($temp) < $lossy) {
+			rename($temp, $output);
+		} elseif (file_exists($temp)) {
+			unlink($temp);
+		}
 	}
 
 	/**

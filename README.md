@@ -105,7 +105,8 @@ avifenc -q {quality} --speed 6 --ignore-exif --ignore-xmp photo.jpg photo.jpg.av
 ```
 
 `avifenc` older than 1.0 gets the quality as `cq-level` instead of `-q`. In background jobs, `cwebp` runs without
-`-mt` and `avifenc` with `--jobs 2`.
+`-mt` and `avifenc` with `--jobs 2`. A PNG is also encoded with `cwebp -near_lossless 60`, kept if lighter: graphics
+and screenshots get much lighter and sharper, photos are left lossy.
 
 ## Privacy
 
