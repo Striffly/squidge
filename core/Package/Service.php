@@ -104,6 +104,11 @@ class Service
 			if ($complete && static::is_done($file)) {
 				continue;
 			}
+			// The library reads the original and writes the version of the file:
+			// never through a link out of the folders.
+			if (!self::contained($file . static::extension()) || !self::contained(self::backup_path($file))) {
+				continue;
+			}
 			static::convert($file, self::get_mime_type($file), $args);
 		}
 
@@ -488,8 +493,11 @@ class Service
 	 * Determines if a path is in the uploads folder or
 	 * in the folder of the originals: the paths come
 	 * from the metadata of the attachments, OIO never
-	 * writes or deletes a file elsewhere (as WordPress
-	 * with wp_delete_file_from_directory()).
+	 * reads, writes or deletes a file elsewhere (as
+	 * WordPress with wp_delete_file_from_directory()).
+	 * The links are followed: a link in the uploads
+	 * folder to a file out of it is out of it, an
+	 * uploads folder that is a link is not.
 	 *
 	 * @param string $path
 	 * @return bool
@@ -502,12 +510,47 @@ class Service
 		if (preg_match('#(^|/)\.\.(/|$)#', $path)) {
 			return false;
 		}
+		$real = self::real_path($path);
+		if ($real === false) {
+			return false;
+		}
 		foreach ([self::uploads_dir(), self::backup_dir()] as $dir) {
-			if (strpos($path, trailingslashit(wp_normalize_path($dir))) === 0) {
+			$dir = self::real_path(wp_normalize_path($dir));
+			if ($dir !== false && strpos($real, trailingslashit($dir)) === 0) {
 				return true;
 			}
 		}
 		return false;
+	}
+
+	/**
+	 * Returns the path of a file with its links
+	 * resolved. A file to create (e.g. a WebP version)
+	 * is resolved from its closest existing folder.
+	 * False for a link to nothing: writing it would
+	 * create its target, wherever it is. The streams
+	 * (e.g. s3://) have no links, as for WordPress.
+	 *
+	 * @param string $path
+	 * @return string|false
+	 * @since 1.0.0
+	 * @date 25/10/2026
+	 */
+	private static function real_path($path)
+	{
+		if (wp_is_stream($path)) {
+			return $path;
+		}
+		$missing = '';
+		while (($real = realpath($path)) === false) {
+			$parent = dirname($path);
+			if (is_link($path) || $parent === $path) {
+				return false;
+			}
+			$missing = '/' . basename($path) . $missing;
+			$path = $parent;
+		}
+		return untrailingslashit(wp_normalize_path($real)) . $missing;
 	}
 
 	/**

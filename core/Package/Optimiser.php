@@ -255,7 +255,7 @@ class Optimiser
 			if (!$source || $source === $file || !file_exists($source)) {
 				$source = $file;
 				$backup = Service::backup_path($file);
-				if (file_exists($backup) && Service::contained($file)) {
+				if (file_exists($backup) && Service::contained($file) && Service::contained($backup)) {
 					copy($backup, $file);
 				}
 			}
