@@ -64,7 +64,9 @@ class PNG extends Service implements Convertor
 		if (self::run(sprintf('%s -clobber -strip all -o %d -out %s %s', escapeshellarg(self::cmd_name()), self::optimization_level($args), escapeshellarg($filepath), escapeshellarg($original)), $filepath, $args)) {
 			Logger::info("Successfully compressed image PNG file: " . $filepath);
 		} else {
+			// Back to the original, without backup: it is retried next time.
 			copy($original, $filepath);
+			unlink($original);
 		}
 	}
 

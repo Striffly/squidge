@@ -81,34 +81,36 @@ class Service
 			return;
 		}
 
-		// Check if the attachment has already been compressed.
+		// An attachment already processed is only completed: the files not done
+		// yet (e.g. a new thumbnail size), unless forced.
 		$id = !empty($args['id']) ? (int)$args['id'] : attachment_url_to_postid($attachment['file']);
-		if (self::has_compressed($id) && !$args['force']) {
-			return;
-		}
+		$complete = self::has_compressed($id) && empty($args['force']);
 		$args['id'] = $id;
 		Errors::clear_attachment($id, static::cmd_name());
 
-		// Convert main image.
-		if (!$args['thumbnailsOnly']) static::convert($mainFile, self::get_mime_type($mainFile), $args);
-
-		// Loop over the sizes and convert them.
+		$files = [];
+		if (empty($args['thumbnailsOnly'])) {
+			$files[] = $mainFile;
+		}
 		$sizes = isset($attachment['sizes']) ? $attachment['sizes'] : [];
+		$basepath = str_replace(basename($attachment['file']), "", $attachment['file']);
 		foreach ($sizes as $size) {
-			if (!isset($size['file'])) {
+			$path = isset($size['file']) ? self::get_file_path($basepath . $size['file']) : false;
+			if ($path) {
+				$files[] = $path;
+			}
+		}
+		foreach ($files as $file) {
+			if ($complete && static::is_done($file)) {
 				continue;
 			}
-			$basepath = str_replace(basename($attachment['file']), "", $attachment['file']);
-			$path = self::get_file_path($basepath . $size['file']);
-			if (!$path) {
-				continue;
-			}
-			static::convert($path, self::get_mime_type($path), $args);
+			static::convert($file, self::get_mime_type($file), $args);
 		}
 
-		// Update post meta for attachment, unless a file failed
-		// so that it is processed again next time.
-		if (!Errors::has($id, static::cmd_name())) {
+		// Save the settings used, unless a file failed so that it is processed
+		// again next time. A completed attachment keeps the settings it was
+		// processed with.
+		if (!$complete && !Errors::has($id, static::cmd_name())) {
 			self::update_meta($id, $args);
 		}
 	}
@@ -207,6 +209,24 @@ class Service
 		$errors = array_values(preg_grep('/error|cannot|could not|unsupported|failed|invalid/i', $lines));
 		$message = $errors ? implode(' / ', array_slice($errors, 0, 2)) : end($lines);
 		return substr(str_replace(dirname($filepath) . DIRECTORY_SEPARATOR, '', $message), 0, 300);
+	}
+
+	/**
+	 * Determines if this service already processed a
+	 * file: its WebP or AVIF version exists, or for a
+	 * compression, its original is kept as a backup.
+	 *
+	 * @param string $filepath
+	 * @return bool
+	 * @since 0.1.5
+	 * @date 25/10/2026
+	 */
+	protected static function is_done($filepath)
+	{
+		if (static::extension() !== '') {
+			return file_exists($filepath . static::extension());
+		}
+		return file_exists(self::backup_path($filepath));
 	}
 
 	/**

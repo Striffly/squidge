@@ -99,5 +99,6 @@ class Optimiser
 				Logger::error($e->getMessage());
 			}
 		}
+		Status::stamp_sizes($id, $metadata ?: wp_get_attachment_metadata($id));
 	}
 }

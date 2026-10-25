@@ -33,7 +33,8 @@ class Status
 
 	/**
 	 * Processed by every enabled library, but some with
-	 * settings that changed since.
+	 * settings that changed since, or with thumbnails
+	 * that do not match the registered sizes.
 	 */
 	const OUTDATED = 'outdated';
 
@@ -52,6 +53,72 @@ class Status
 	 * Image types Squidge optimises.
 	 */
 	const MIMES = ['image/jpeg', 'image/png'];
+
+	/**
+	 * Meta key saving the thumbnail sizes an image was
+	 * optimised with, when its thumbnails match them.
+	 */
+	const SIZES_KEY = '_squidge_sizes';
+
+	/**
+	 * Returns a signature of the thumbnail sizes
+	 * registered by WordPress, the theme and plugins.
+	 *
+	 * @return string
+	 * @since 0.1.5
+	 * @date 25/10/2026
+	 */
+	public static function sizes_signature()
+	{
+		return md5(wp_json_encode(wp_get_registered_image_subsizes()));
+	}
+
+	/**
+	 * Determines if the thumbnails of an image match the
+	 * registered sizes: each size exists with the right
+	 * dimensions, unless the image is too small for it
+	 * (the same computation as WordPress).
+	 *
+	 * @param array $metadata
+	 * @return bool
+	 * @since 0.1.5
+	 * @date 25/10/2026
+	 */
+	public static function sizes_current($metadata)
+	{
+		if (empty($metadata['width']) || empty($metadata['height'])) {
+			return true;
+		}
+		$sizes = isset($metadata['sizes']) ? $metadata['sizes'] : [];
+		foreach (wp_get_registered_image_subsizes() as $name => $size) {
+			$expected = image_resize_dimensions($metadata['width'], $metadata['height'], $size['width'], $size['height'], $size['crop']);
+			if (!$expected) {
+				continue;
+			}
+			if (!isset($sizes[$name]) || (int)$sizes[$name]['width'] !== (int)$expected[4] || (int)$sizes[$name]['height'] !== (int)$expected[5]) {
+				return false;
+			}
+		}
+		return true;
+	}
+
+	/**
+	 * Saves the signature of the sizes on an image if
+	 * its thumbnails match them, removes it otherwise.
+	 *
+	 * @param int $id
+	 * @param array $metadata
+	 * @since 0.1.5
+	 * @date 25/10/2026
+	 */
+	public static function stamp_sizes($id, $metadata)
+	{
+		if (is_array($metadata) && self::sizes_current($metadata)) {
+			update_post_meta($id, self::SIZES_KEY, self::sizes_signature());
+		} else {
+			delete_post_meta($id, self::SIZES_KEY);
+		}
+	}
 
 	/**
 	 * Returns the meta key and current settings of each
@@ -87,8 +154,9 @@ class Status
 		if (Errors::for_attachment($id)) {
 			return self::ERROR;
 		}
-		$outdated = false;
-		foreach (self::expected() as $key => $signature) {
+		$expected = self::expected();
+		$outdated = $expected && get_post_meta($id, self::SIZES_KEY, true) !== self::sizes_signature();
+		foreach ($expected as $key => $signature) {
 			$value = get_post_meta($id, $key, true);
 			if ($value === '') {
 				return self::TO_OPTIMISE;
@@ -194,6 +262,9 @@ class Status
 			$missing[] = ['key' => $key, 'compare' => 'NOT EXISTS'];
 			$changed[] = ['key' => $key, 'value' => $signature, 'compare' => '!='];
 		}
+		// Thumbnail sizes changed since the image was optimised.
+		$changed[] = ['key' => self::SIZES_KEY, 'compare' => 'NOT EXISTS'];
+		$changed[] = ['key' => self::SIZES_KEY, 'value' => self::sizes_signature(), 'compare' => '!='];
 		if ($status === self::TO_OPTIMISE) {
 			$meta_query[] = $missing;
 		} else {
@@ -206,6 +277,7 @@ class Status
 				foreach ($expected as $key => $signature) {
 					$meta_query[] = ['key' => $key, 'value' => $signature];
 				}
+				$meta_query[] = ['key' => self::SIZES_KEY, 'value' => self::sizes_signature()];
 			}
 		}
 		$args['meta_query'] = $meta_query;
