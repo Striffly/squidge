@@ -50,20 +50,24 @@ run the commands listed dependent on your operating system.
 
 == Render Images ==
 
-To render images in templates, you can either set up nginx or apache rules to serve images dynamically or used the
-`squidge_image` helper function. This dynamically checks if an `.avif` or `.webp` file is available on the file system
-and returns the output.
+The compressed JPG and PNG files replace the originals, so your whole site uses them. There are two ways to also
+offer the AVIF and WebP versions.
 
-### Function
-`
+**Automatically**: on the `Overview` tab of the settings, tick `Use modern formats (WebP, AVIF)`. Images of the post
+content and images rendered by `wp_get_attachment_image()` (featured images, galleries, most themes) are then wrapped
+in a `<picture>` element with AVIF and WebP sources. This option is off by default.
+
+**In templates**: the `squidge_image` helper function always returns a `<picture>` element with the AVIF and WebP
+versions that exist on the file system, whatever this option.
+
+= Function =
+```php
 /**
- * Returns a <picture> element with source media for the standard file passed
- * (such as a JPG), the .avif file, the .webp file (if to exist on the file system).
+ * Returns a <picture> element for an image of the media library: AVIF
+ * and WebP <source> elements (when their files exist), then the <img>
+ * with the srcset and sizes computed by WordPress as the fallback.
  *
- * Appropriate <source> elements for image sizes with max widths.
- * Finally, the main be outputted with alt and title text.
- *
- * - If lazy is true, the data-src or data-srcset will be appended.
+ * - If lazy is true, the data-src or data-srcset will be used instead.
  * - If a class is set, the class will be outputted on the <picture> element.
  *
  * @param $image_id
@@ -72,32 +76,16 @@ and returns the output.
  * @return string
  */
 function squidge_image($image_id, $class = '', $lazy = false)
-`
+```
 
-### Output
-`
-<picture class="picture">
-	<!-- Loads if AVIF is supported and the window is smaller than 400px wide -->
-	<source media="(max-width: 400px)" srcset="/sample-image.jpg.avif" type="image/avif">
-	<source media="(max-width: 400px)" srcset="/sample-image.jpg.webp" type="image/webp">
-	<source media="(max-width: 400px)" srcset="/sample-image.jpg">
-	<!-- AVIF & Wep Initial Sizes -->
-	<source srcset="/sample-image.jpg.avif" type="image/avif">
-	<source srcset="/sample-image.jpg.webp" type="image/webp">
-	<!-- Default -->
-	<img src="/sample-image.jpg" alt="Alt text" title="Sample JPG">
+= Output =
+```html
+<picture class="squidge-picture hero">
+	<source type="image/avif" srcset="/sample-image.jpg.avif 2500w, /sample-image-300x200.jpg.avif 300w" sizes="(max-width: 2500px) 100vw, 2500px">
+	<source type="image/webp" srcset="/sample-image.jpg.webp 2500w, /sample-image-300x200.jpg.webp 300w" sizes="(max-width: 2500px) 100vw, 2500px">
+	<img data-squidge src="/sample-image.jpg" srcset="/sample-image.jpg 2500w, /sample-image-300x200.jpg 300w" sizes="(max-width: 2500px) 100vw, 2500px" width="2500" height="1667" alt="Alt text">
 </picture>
-`
-
-== Frequently Asked Questions ==
-
-= Does the plugin replace existing images? =
-
-Yes
-
-= What are the supported operating systems? =
-
-Windows, Linux, & Mac OSX.
+```
 
 == Screenshots ==
 

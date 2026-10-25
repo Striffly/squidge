@@ -179,7 +179,10 @@ class Fields
 		if (!current_user_can('manage_options')) {
 			return;
 		}
+		// Format sections have a library and a tab, the display section is shown in the overview.
 		$sections = self::sections();
+		$display = $sections['display'];
+		unset($sections['display']);
 		foreach ($sections as $id => $section) {
 			$sections[$id]['installed'] = $section['service']::installed();
 			$sections[$id]['enabled'] = self::get('squidge_' . $id . '_enable');
@@ -217,6 +220,15 @@ class Fields
 									<?php echo $section['installed'] ? 'installed' : 'not installed'; ?>
 								</span>
 							</a>
+						<?php endforeach; ?>
+					</div>
+					<div class="squidge-card squidge-display">
+						<header class="squidge-card__header squidge-card__header--text">
+							<h2><?php echo esc_html($display['title']); ?></h2>
+							<p class="description"><?php echo esc_html($display['description']); ?></p>
+						</header>
+						<?php foreach ($display['fields'] as $name => $field) : ?>
+							<?php $this->render_field($name, $field); ?>
 						<?php endforeach; ?>
 					</div>
 				</section>
@@ -447,6 +459,18 @@ class Fields
 						'max' => 10,
 						'default' => 6,
 						'help' => 'Enter the speed of the AVIF encoder, from 0 (slowest, smallest files) to 10 (fastest), with the default being 6.',
+					],
+				],
+			],
+			'display' => [
+				'title' => 'Display on the site',
+				'description' => 'Your site already displays the compressed JPG and PNG images. Choose if the AVIF and WebP versions are used too.',
+				'fields' => [
+					'squidge_display_formats' => [
+						'type' => 'checkbox',
+						'label' => 'Use modern formats (WebP, AVIF)',
+						'default' => false,
+						'help' => 'Images of the post content, featured images and galleries are offered in AVIF and WebP, lighter modern formats. Each browser picks the best one it supports, and older browsers get the JPG or PNG. Technically, images are wrapped in a <picture> tag: untick this if your theme layout breaks around images.',
 					],
 				],
 			],

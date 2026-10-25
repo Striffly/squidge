@@ -17,18 +17,17 @@ if (!defined('ABSPATH')) {
 	exit; // Exit if accessed directly
 }
 
-use Squidge\Package\File;
+use Squidge\Front\Display;
+use Squidge\Package\Picture;
 
 if (!function_exists('squidge_image')) {
 
 	/**
-	 * Returns a <picture> element with source media for the standard file passed
-	 * (such as a JPG), the .avif file, the .webp file (if to exist on the file system).
+	 * Returns a <picture> element for an image of the media library: AVIF
+	 * and WebP <source> elements (when their files exist), then the <img>
+	 * with the srcset and sizes computed by WordPress as the fallback.
 	 *
-	 * Appropriate <source> elements for image sizes with max widths.
-	 * Finally, the main be outputted with alt and title text.
-	 *
-	 * If lazy is true, the data-src or data-srcset will be appended.
+	 * If lazy is true, the data-src or data-srcset will be used instead.
 	 * If a class is set, the class will be outputted on the <picture> element.
 	 *
 	 * @param $image_id
@@ -40,28 +39,19 @@ if (!function_exists('squidge_image')) {
 	 */
 	function squidge_image($image_id, $class = '', $lazy = false)
 	{
-		$image = wp_get_attachment_metadata($image_id);
-		$image_alt = get_post_meta($image_id, '_wp_attachment_image_alt', TRUE);
-		$image_title = get_the_title($image_id);
-
-		$mainImageURL = $image['file'];
-
-		$str = '<picture class="' . $class . '">';
-
-		if (isset($image['sizes'])) {
-			foreach ($image['sizes'] as $size) {
-				$str .= File::avif(dirname($mainImageURL) . '/' . $size['file'], $mainImageURL, $lazy, $size['width']);
-				$str .= File::webp(dirname($mainImageURL) . '/' . $size['file'], $mainImageURL, $lazy, $size['width']);
-				$str .= File::source(dirname($mainImageURL) . '/' . $size['file'], $mainImageURL, $lazy, $size['width']);
-			}
+		// The Display filter would wrap the image depending on the Display tab:
+		// squidge_image() always offers the AVIF and WebP versions.
+		Display::$bypass = true;
+		$html = wp_get_attachment_image($image_id, 'full');
+		Display::$bypass = false;
+		if (!$html) {
+			return '';
 		}
 
-		$str .= File::avif($image['file'], $mainImageURL, $lazy);
-		$str .= File::webp($image['file'], $mainImageURL, $lazy);
-		$str .= File::image($mainImageURL, $image_alt, $image_title, $lazy);
-
-		$str .= '</picture>';
-
-		return $str;
+		$html = Picture::render($html, (string)$class);
+		if ($lazy) {
+			$html = preg_replace('/\s(src|srcset)=/', ' data-$1=', $html);
+		}
+		return $html;
 	}
 }

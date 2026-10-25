@@ -59,9 +59,9 @@
 	display: none;
 }
 
-/* Nothing to save on the overview. */
-.squidge-page[data-active-tab="overview"] .submit {
-	display: none;
+/* Display settings, below the status cards of the overview. */
+.squidge-display {
+	margin-top: 20px;
 }
 
 /* Overview
@@ -208,6 +208,14 @@
 	gap: 12px;
 	padding: 16px 20px;
 	border-bottom: 1px solid var(--squidge-border);
+}
+
+.squidge-card__header--text {
+	display: block;
+}
+
+.squidge-card__header--text .description {
+	margin: 6px 0 0;
 }
 
 .squidge-card__header h2 {
