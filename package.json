@@ -33,7 +33,8 @@
     "plugin-zip": "wp-scripts plugin-zip && zip -dq octopus-image-optimizer.zip octopus-image-optimizer/README.md octopus-image-optimizer/package.json"
   },
   "devDependencies": {
+    "@release-it/bumper": "^8.0.1",
     "@wordpress/scripts": "^37.0.0",
-    "release-it": "^14.11.8"
+    "release-it": "^21.1.1"
   }
 }
