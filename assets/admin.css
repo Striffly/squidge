@@ -65,11 +65,43 @@
 	border-top: 1px solid #f0f0f1;
 }
 
-.squidge-job__actions {
-	display: flex;
-	flex-wrap: wrap;
+.squidge-job__group {
+	margin: 0 0 4px;
+	font-size: 13px;
+	text-transform: uppercase;
+	letter-spacing: .04em;
+	color: var(--squidge-muted);
+}
+
+.squidge-job__group ~ .squidge-job__group {
+	margin-top: 16px;
+}
+
+.squidge-action {
+	display: grid;
+	grid-template-columns: 210px 1fr;
 	align-items: center;
-	gap: 8px 12px;
+	gap: 6px 16px;
+	padding: 8px 0;
+}
+
+.squidge-action .button {
+	justify-content: center;
+}
+
+.squidge-action .description {
+	margin: 0;
+}
+
+.squidge-button-danger.button {
+	color: var(--squidge-off);
+	border-color: var(--squidge-off);
+}
+
+@media (max-width: 782px) {
+	.squidge-action {
+		grid-template-columns: 1fr;
+	}
 }
 
 .squidge-job__progress,

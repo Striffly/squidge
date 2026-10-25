@@ -78,7 +78,12 @@
 	var timer = null;
 	// Set while a job runs on this page, to report its end.
 	var following = false;
-	var LABELS = {optimise: 'Optimising'};
+	var LABELS = {optimise: 'Optimising', remove_formats: 'Removing WebP and AVIF', restore: 'Restoring the originals'};
+	var CONFIRMS = {
+		all: 'Re-optimise all images from their originals, with their thumbnails? This can take a while.',
+		remove_formats: 'Delete the WebP and AVIF files of all images?',
+		restore: 'Restore the original images and delete every file made by Squidge? The images will no longer be optimised.'
+	};
 
 	function request(action, data) {
 		var body = new URLSearchParams(Object.assign({action: action, _ajax_nonce: settings.nonce}, data || {}));
@@ -102,7 +107,8 @@
 		});
 		box.querySelectorAll('[data-job]').forEach(function (button) {
 			var name = button.getAttribute('data-job');
-			button.disabled = (name === 'all' ? counts.total : counts[name]) === 0;
+			var count = {all: counts.total, remove_formats: counts.processed, restore: counts.processed}[name];
+			button.disabled = (count === undefined ? counts[name] : count) === 0;
 		});
 	}
 
@@ -125,7 +131,9 @@
 			following = false;
 			result.textContent = (job.state === 'cancelled' ? 'Cancelled after ' : 'Done: ')
 				+ number(job.done) + ' / ' + number(job.total) + ' images processed'
-				+ (job.failed ? ', ' + number(job.failed) + ' with errors (see the Media library).' : '.');
+				+ (job.failed ? ', ' + number(job.failed) + ' with errors (see the Media library)' : '')
+				+ (job.missing ? ', ' + number(job.missing) + ' had no original to restore (optimised by an older version of Squidge)' : '')
+				+ '.';
 			box.setAttribute('data-result', '');
 		}
 
@@ -146,7 +154,7 @@
 		var control = event.target.closest('[data-control]');
 		if (start) {
 			var job = start.getAttribute('data-job');
-			if (job === 'all' && !window.confirm('Force the re-optimisation of all images, from their originals? This can take a while.')) {
+			if (CONFIRMS[job] && !window.confirm(CONFIRMS[job])) {
 				return;
 			}
 			request('squidge_job_start', {job: job}).then(function (response) {

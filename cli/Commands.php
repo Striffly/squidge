@@ -21,6 +21,7 @@ if (!defined('ABSPATH')) {
 	exit; // Exit if accessed directly
 }
 
+use Squidge\Package\Cleaner;
 use Squidge\Package\Optimiser;
 use Squidge\Squidge;
 use Squidge\Services\JPG;
@@ -141,6 +142,44 @@ class Squidge_CLI extends WP_CLI_Command
 		} while ($page <= $query->max_num_pages);
 
 		WP_CLI::success('Successfully processed ' . $counter . ' images. ');
+	}
+
+	/**
+	 * Removes the WebP and AVIF files of all images. The
+	 * JPG and PNG files stay compressed.
+	 *
+	 * @since 0.1.5
+	 * @date 25/10/2026
+	 */
+	public function clean()
+	{
+		$this->print_welcome();
+		$ids = Cleaner::ids();
+		foreach ($ids as $id) {
+			Cleaner::remove_formats($id);
+		}
+		WP_CLI::success('Removed the WebP and AVIF files of ' . count($ids) . ' images.');
+	}
+
+	/**
+	 * Restores the original images and removes every
+	 * file made by Squidge (WebP, AVIF, backups).
+	 *
+	 * @since 0.1.5
+	 * @date 25/10/2026
+	 */
+	public function restore()
+	{
+		$this->print_welcome();
+		$ids = Cleaner::ids();
+		$missing = 0;
+		foreach ($ids as $id) {
+			if (!Cleaner::restore($id)) {
+				$missing++;
+				WP_CLI::warning(get_the_title($id) . ': no original to restore, optimised by an older version of Squidge.');
+			}
+		}
+		WP_CLI::success('Restored ' . (count($ids) - $missing) . ' images' . ($missing ? ', ' . $missing . ' had no original.' : '.'));
 	}
 
 	/**

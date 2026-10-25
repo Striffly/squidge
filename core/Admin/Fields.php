@@ -294,9 +294,28 @@ class Fields
 			<?php if (class_exists('Squidge_Vendor_WP_Background_Process')) : ?>
 				<div class="squidge-job" hidden>
 					<div class="squidge-job__actions">
-						<button type="button" class="button button-primary" data-job="new">Optimise <span data-count="new"></span> images</button>
-						<button type="button" class="button" data-job="outdated">Update <span data-count="outdated"></span> images with older settings</button>
-						<button type="button" class="button-link" data-job="all">Force re-optimisation of all images</button>
+						<h3 class="squidge-job__group">Optimise</h3>
+						<div class="squidge-action">
+							<button type="button" class="button button-primary" data-job="new">Optimise new images</button>
+							<p class="description"><strong data-count="new"></strong> images are not optimised yet, or their optimisation failed.</p>
+						</div>
+						<div class="squidge-action">
+							<button type="button" class="button" data-job="outdated">Re-optimise outdated images</button>
+							<p class="description"><strong data-count="outdated"></strong> images were optimised before a quality, a format or the thumbnail sizes changed. They are re-optimised from their originals, and their thumbnails are regenerated if the sizes changed.</p>
+						</div>
+						<div class="squidge-action">
+							<button type="button" class="button" data-job="all">Re-optimise all images</button>
+							<p class="description">Every image is optimised again from its original, with its thumbnails regenerated.</p>
+						</div>
+						<h3 class="squidge-job__group">Clean up</h3>
+						<div class="squidge-action">
+							<button type="button" class="button" data-job="remove_formats">Remove WebP and AVIF</button>
+							<p class="description">Deletes the WebP and AVIF files of the <strong data-count="processed"></strong> images optimised. The JPG and PNG files stay compressed.</p>
+						</div>
+						<div class="squidge-action">
+							<button type="button" class="button squidge-button-danger" data-job="restore">Restore original images</button>
+							<p class="description">Puts the original images back and deletes every file made by Squidge (WebP, AVIF, backups). Do it before deleting Squidge.</p>
+						</div>
 					</div>
 					<div class="squidge-job__progress">
 						<p class="squidge-job__label" aria-live="polite"></p>

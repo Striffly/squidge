@@ -17,6 +17,7 @@
 
 namespace Squidge\Admin;
 
+use Squidge\Package\Cleaner;
 use Squidge\Package\Job;
 use Squidge\Package\Status;
 
@@ -43,6 +44,8 @@ class Tools
 		'new' => ['action' => Job::OPTIMISE, 'mode' => Job::MODE_NEW, 'statuses' => [Status::TO_OPTIMISE, Status::ERROR]],
 		'outdated' => ['action' => Job::OPTIMISE, 'mode' => Job::MODE_OUTDATED, 'statuses' => [Status::OUTDATED]],
 		'all' => ['action' => Job::OPTIMISE, 'mode' => Job::MODE_ALL, 'statuses' => [null]],
+		'remove_formats' => ['action' => Job::REMOVE_FORMATS, 'mode' => null, 'statuses' => []],
+		'restore' => ['action' => Job::RESTORE, 'mode' => null, 'statuses' => []],
 	];
 
 	/**
@@ -86,7 +89,8 @@ class Tools
 			wp_send_json_error(null, 400);
 		}
 		$job = self::JOBS[$name];
-		$ids = [];
+		// The cleanup jobs process every image Squidge processed.
+		$ids = $job['statuses'] ? [] : Cleaner::ids();
 		foreach ($job['statuses'] as $status) {
 			$ids = array_merge($ids, Status::ids($status));
 		}
@@ -131,7 +135,7 @@ class Tools
 		$this->authorize();
 		wp_send_json_success([
 			'job' => Job::instance()->progress(),
-			'counts' => Status::counts(),
+			'counts' => array_merge(Status::counts(), ['processed' => count(Cleaner::ids())]),
 		]);
 	}
 }

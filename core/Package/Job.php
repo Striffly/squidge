@@ -32,6 +32,16 @@ class Job extends Squidge_Vendor_WP_Background_Process
 	const OPTIMISE = 'optimise';
 
 	/**
+	 * Removes the WebP and AVIF files of the images.
+	 */
+	const REMOVE_FORMATS = 'remove_formats';
+
+	/**
+	 * Restores the original images.
+	 */
+	const RESTORE = 'restore';
+
+	/**
 	 * Modes of the optimisation: the missing formats
 	 * only, the images with older settings brought up
 	 * to date, or everything again from the originals
@@ -103,6 +113,7 @@ class Job extends Squidge_Vendor_WP_Background_Process
 			'total' => count($ids),
 			'done' => 0,
 			'failed' => 0,
+			'missing' => 0,
 			'started' => time(),
 			'finished' => null,
 			'cancelled' => false,
@@ -166,9 +177,13 @@ class Job extends Squidge_Vendor_WP_Background_Process
 				} else {
 					Optimiser::update($id, $progress['mode'] === self::MODE_ALL);
 				}
-			}
-			if (Status::of($id) === Status::ERROR) {
-				$progress['failed']++;
+				if (Status::of($id) === Status::ERROR) {
+					$progress['failed']++;
+				}
+			} elseif ($progress['action'] === self::REMOVE_FORMATS) {
+				Cleaner::remove_formats($id);
+			} elseif ($progress['action'] === self::RESTORE && !Cleaner::restore($id)) {
+				$progress['missing']++;
 			}
 		}
 		$progress['done']++;

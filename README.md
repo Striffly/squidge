@@ -212,6 +212,24 @@ The formats and qualities default to the ones of the options page, the arguments
 | regenerate      | `false`       | `true`/`false`           | Make the thumbnails again from the original images first (implies force), e.g. after the theme changed its image sizes.
 | thumbnails-only | `false`       | `true`/`false`           | Optimize only thumbnails.
 
+### Clean
+
+Removes the WebP and AVIF files of all images. The JPG and PNG files stay compressed.
+
+```bash
+wp squidge clean
+```
+
+### Restore
+
+Restores the original images and removes every file made by Squidge (WebP, AVIF, backups). Do it before deleting
+Squidge to get your original images back. Images optimised by a version of Squidge older than 0.1.5 have no original
+kept, they stay compressed.
+
+```bash
+wp squidge restore
+```
+
 ## Road Map
 
 - Add `SVGO` to optimise SVG images.
