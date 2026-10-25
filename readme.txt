@@ -102,6 +102,18 @@ function oio_image($image_id, $class = '', $lazy = false)
 * CMYK JPG images, AVIF quality settings, CPU limits adjustable by filters.
 * Requires WordPress 6.0 and PHP 7.4.
 
+= 0.1.4 =
+* Squidge: updated how the compressed images are marked in the post meta.
+
+= 0.1.3 =
+* Squidge: marks the compressed images in the post meta, deployment to WordPress.org.
+
+= 0.1.2 =
+* Squidge: escaped shell arguments, only the supported libraries can be run.
+
+= 0.1.1 =
+* Squidge: settings link on the plugins page, readme fixes.
+
 = 0.1.0 =
 * Squidge, initial release.
 
