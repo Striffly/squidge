@@ -77,6 +77,7 @@ class AVIF extends Service implements Convertor
 		} else {
 			$options = sprintf('--min 0 --max 63 -a end-usage=q -a cq-level=%d -a tune=ssim', (int)(((100 - $quality) * 63 + 50) / 100));
 		}
+		$options .= self::metadata_options();
 
 		$original = self::original($filepath);
 		$source = self::readable_source($original, $mime);
@@ -124,6 +125,34 @@ class AVIF extends Service implements Convertor
 			$major = preg_match('/Version:\s*(\d+)\./', implode("\n", $output), $matches) ? (int)$matches[1] : 0;
 		}
 		return $major;
+	}
+
+	/**
+	 * Returns the options leaving out the Exif and XMP
+	 * metadata of the source: avifenc copies them by
+	 * default, with the GPS position of a photo, while
+	 * the JPG, PNG and WebP files are stripped. The
+	 * colour profile is kept. Versions without these
+	 * options do not copy the metadata.
+	 *
+	 * @return string
+	 * @since 1.0.0
+	 * @date 25/10/2026
+	 */
+	private static function metadata_options()
+	{
+		static $options = null;
+		if ($options === null) {
+			exec(escapeshellarg(self::cmd_name()) . ' --help 2>&1', $output);
+			$help = implode("\n", $output);
+			$options = '';
+			foreach (['--ignore-exif', '--ignore-xmp'] as $option) {
+				if (strpos($help, $option) !== false) {
+					$options .= ' ' . $option;
+				}
+			}
+		}
+		return $options;
 	}
 
 	/**
