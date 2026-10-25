@@ -91,7 +91,7 @@ class Plugins
 		if (!current_user_can('activate_plugins')) {
 			wp_send_json_error(null, 403);
 		}
-		$dir = wp_get_upload_dir()['basedir'] . DIRECTORY_SEPARATOR . Service::BACKUP_DIR;
+		$dir = Service::backup_dir();
 		wp_send_json_success([
 			'images' => count(Cleaner::ids()),
 			'size' => is_dir($dir) ? size_format($this->dir_size($dir)) : '',

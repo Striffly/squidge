@@ -38,7 +38,7 @@ class Service
 	 * BACKUP_DIR is the folder, in the uploads folder,
 	 * where the original images are kept before being
 	 * optimised in place, with the same tree as the
-	 * uploads folder.
+	 * uploads folder (see backup_dir()).
 	 */
 	const BACKUP_DIR = 'oio-originals';
 
@@ -255,9 +255,25 @@ class Service
 	}
 
 	/**
+	 * Returns the folder of the original images:
+	 * uploads/oio-originals by default. The
+	 * oio_backup_dir filter moves it, e.g. out of the
+	 * web root: the originals keep their metadata.
+	 *
+	 * @return string
+	 * @since 1.0.0
+	 * @date 25/10/2026
+	 */
+	public static function backup_dir()
+	{
+		$default = self::uploads_dir() . DIRECTORY_SEPARATOR . self::BACKUP_DIR;
+		return untrailingslashit((string)apply_filters('oio_backup_dir', $default));
+	}
+
+	/**
 	 * Returns the path of the backup of an image of
 	 * the uploads folder: the same path, in the
-	 * oio-originals folder.
+	 * folder of the original images.
 	 *
 	 * @param string $filepath
 	 * @return string
@@ -266,7 +282,37 @@ class Service
 	 */
 	public static function backup_path($filepath)
 	{
-		return self::uploads_dir() . DIRECTORY_SEPARATOR . self::BACKUP_DIR . DIRECTORY_SEPARATOR . self::relative_path($filepath);
+		return self::backup_dir() . DIRECTORY_SEPARATOR . self::relative_path($filepath);
+	}
+
+	/**
+	 * Denies the web access to the folder of the
+	 * original images: they keep the metadata stripped
+	 * from the optimised images (GPS position, camera),
+	 * and nothing serves them. The .htaccess works with
+	 * Apache and LiteSpeed, nginx needs a rule (see the
+	 * README). The index.php hides the files where the
+	 * folders are listed.
+	 *
+	 * @since 1.0.0
+	 * @date 25/10/2026
+	 */
+	private static function protect_backup_dir()
+	{
+		$dir = self::backup_dir();
+		if (!wp_mkdir_p($dir)) {
+			return;
+		}
+		$files = [
+			'.htaccess' => "# Written by OIO: the original images are not served.\n<IfModule mod_authz_core.c>\n\tRequire all denied\n</IfModule>\n<IfModule !mod_authz_core.c>\n\tOrder deny,allow\n\tDeny from all\n</IfModule>\n",
+			'index.php' => "<?php\n// Silence is golden.\n",
+		];
+		foreach ($files as $name => $content) {
+			$path = $dir . DIRECTORY_SEPARATOR . $name;
+			if (!file_exists($path)) {
+				file_put_contents($path, $content);
+			}
+		}
 	}
 
 	/**
@@ -298,6 +344,7 @@ class Service
 	protected static function backup($filepath, $args)
 	{
 		$backup = self::backup_path($filepath);
+		self::protect_backup_dir();
 		if (file_exists($backup)) {
 			return true;
 		}

@@ -104,7 +104,14 @@ class Cleaner
 			self::unlink($file . WebP::extension());
 			self::unlink($file . AVIF::extension());
 		}
+		// Without its original, e.g. the folder of the originals moved, the
+		// files kept elsewhere stay listed: they are restored once it is back.
+		$kept = [];
 		foreach (self::listed($id) as $path) {
+			if (!$restored && !preg_match('/\.(webp|avif)$/', $path)) {
+				$kept[] = $path;
+				continue;
+			}
 			self::unlink($path);
 		}
 		foreach (array_keys(get_post_meta($id)) as $key) {
@@ -112,6 +119,7 @@ class Cleaner
 				delete_post_meta($id, $key);
 			}
 		}
+		self::save_listed($id, $kept);
 		return $restored;
 	}
 

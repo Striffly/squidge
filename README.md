@@ -109,6 +109,28 @@ function oio_image($image_id, $class = '', $lazy = false)
 Yes, the JPG and PNG files of the uploads folder are replaced with their compressed version, so your whole site
 uses them. The originals are kept in `uploads/oio-originals/` and every new optimisation starts again from them.
 
+### Are the original images public?
+
+They should not be: the originals keep the metadata OIO strips from the optimised images, such as the GPS position
+of a photo. OIO writes a `.htaccess` in `uploads/oio-originals/` denying the web access, which works with Apache and
+LiteSpeed. With nginx, add this rule to the `server` block of the site:
+
+```nginx
+location ^~ /wp-content/uploads/oio-originals/ {
+	deny all;
+}
+```
+
+You can also keep the originals out of the web root with the `oio_backup_dir` filter, before optimising any image.
+OIO does not move the originals already kept: move the folder yourself when you change it.
+
+```php
+// e.g. next to the web root of a Bedrock site.
+add_filter('oio_backup_dir', function () {
+	return dirname(ABSPATH, 2) . '/oio-originals';
+});
+```
+
 ### What happens when I delete OIO?
 
 Deleting OIO removes its settings and data from the database, and keeps the files: the compressed images, their
