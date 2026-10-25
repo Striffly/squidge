@@ -168,7 +168,9 @@ class Optimiser
 	 * then WordPress makes the thumbnails of the
 	 * registered sizes from it. They are not compressed
 	 * yet, and the backups of their files are removed
-	 * as they may be thumbnails of an older crop.
+	 * as they may be thumbnails of an older crop. A
+	 * big image is scaled again from the image
+	 * uploaded, as WordPress does on upload.
 	 *
 	 * @param int $id
 	 * @return array|null The new metadata.
@@ -181,25 +183,41 @@ class Optimiser
 		if (!$file || !file_exists($file)) {
 			return null;
 		}
-		$backup = Service::backup_path($file);
-		if (file_exists($backup) && Service::contained($file)) {
-			copy($backup, $file);
+		// WordPress scaled a big image down: it is scaled again from the image
+		// uploaded, which OIO does not optimise, and its thumbnails keep their names.
+		$source = wp_get_original_image_path($id);
+		if (!$source || $source === $file || !file_exists($source)) {
+			$source = $file;
+			$backup = Service::backup_path($file);
+			if (file_exists($backup) && Service::contained($file)) {
+				copy($backup, $file);
+			}
 		}
 
+		$previous = wp_get_attachment_metadata($id);
 		require_once ABSPATH . 'wp-admin/includes/image.php';
 		self::$regenerating = true;
-		$metadata = wp_generate_attachment_metadata($id, $file);
+		$metadata = wp_generate_attachment_metadata($id, $source);
 		self::$regenerating = false;
 		if (empty($metadata) || is_wp_error($metadata)) {
 			return null;
 		}
+		if (!empty($previous['original_image']) && empty($metadata['original_image'])) {
+			$metadata['original_image'] = $previous['original_image'];
+		}
 		wp_update_attachment_metadata($id, $metadata);
 
+		// The files made again are the new originals of the next optimisation.
+		$file = get_attached_file($id);
+		$made = $source === $file ? [] : [$file];
 		$sizes = isset($metadata['sizes']) ? $metadata['sizes'] : [];
 		foreach ($sizes as $size) {
-			$size_backup = Service::backup_path(dirname($file) . DIRECTORY_SEPARATOR . $size['file']);
-			if (file_exists($size_backup) && Service::contained($size_backup)) {
-				unlink($size_backup);
+			$made[] = dirname($file) . DIRECTORY_SEPARATOR . $size['file'];
+		}
+		foreach ($made as $path) {
+			$backup = Service::backup_path($path);
+			if (file_exists($backup) && Service::contained($backup)) {
+				unlink($backup);
 			}
 		}
 		return $metadata;

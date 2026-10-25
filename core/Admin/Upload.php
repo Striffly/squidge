@@ -36,7 +36,6 @@ class Upload
 	 */
 	public function __construct()
 	{
-		add_filter('big_image_size_threshold', '__return_false');
 		add_filter('wp_generate_attachment_metadata', [$this, 'process'], 20, 2);
 		add_filter('delete_attachment', [$this, 'delete_files'], 20, 1);
 	}
