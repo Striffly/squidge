@@ -12,6 +12,7 @@
  * Requires PHP:    7.4
  * License:         GPLv3 or later
  * License URI:     https://www.gnu.org/licenses/gpl-3.0.html
+ * Update URI:      https://github.com/Striffly/squidge
  *
  * @package         OIO
  * @repo            https://github.com/Striffly/squidge
