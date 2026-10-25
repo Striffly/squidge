@@ -57,8 +57,9 @@ class WebP extends Service implements Convertor
 		if (!isset($args['quality'])) {
 			$args['quality'] = self::DEFAULT_QUALITY;
 		}
-		exec(sprintf('%s -q %d %s -o %s 2> /dev/null', escapeshellarg(self::cmd_name()), $args['quality'], escapeshellarg($filepath), escapeshellarg($filepath . self::extension())));
-		Logger::info("Successfully converted to WebP file: " . $filepath . self::extension());
+		if (self::run(sprintf('%s -q %d %s -o %s', escapeshellarg(self::cmd_name()), $args['quality'], escapeshellarg($filepath), escapeshellarg($filepath . self::extension())), $filepath, $args)) {
+			Logger::info("Successfully converted to WebP file: " . $filepath . self::extension());
+		}
 	}
 
 	/**

@@ -54,8 +54,9 @@ class PNG extends Service implements Convertor
 		if ($mime != Mimes::PNG) {
 			return;
 		}
-		exec(sprintf('%s -clobber -strip all -o %d %s 2> /dev/null', escapeshellarg(self::cmd_name()), self::optimization_level($args), escapeshellarg($filepath)));
-		Logger::info("Successfully compressed image PNG file: " . $filepath);
+		if (self::run(sprintf('%s -clobber -strip all -o %d %s', escapeshellarg(self::cmd_name()), self::optimization_level($args), escapeshellarg($filepath)), $filepath, $args)) {
+			Logger::info("Successfully compressed image PNG file: " . $filepath);
+		}
 	}
 
 	/**

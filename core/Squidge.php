@@ -76,6 +76,7 @@ final class Squidge
 		$this->define('SQUIDGE_UPLOAD_URL', $uploadData['baseurl']);
 		new Admin\Fields();
 		new Admin\Upload();
+		new Admin\Notices();
 	}
 
 	/**

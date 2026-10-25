@@ -17,6 +17,7 @@
 namespace Squidge\Package;
 
 use Exception;
+use Squidge\Log\Errors;
 use Squidge\Log\Logger;
 use Squidge\Types\Mimes;
 
@@ -70,6 +71,8 @@ class Service
 		if (self::has_compressed($id) && !$args['force']) {
 			return;
 		}
+		$args['id'] = $id;
+		Errors::clear_attachment($id, static::cmd_name());
 
 		// Convert main image.
 		if (!$args['thumbnailsOnly']) static::convert($mainFile, self::get_mime_type($mainFile), $args);
@@ -87,8 +90,56 @@ class Service
 			static::convert($path, self::get_mime_type($path), $args);
 		}
 
-		// Update post meta for attachment.
-		self::update_meta($id);
+		// Update post meta for attachment, unless a file failed
+		// so that it is processed again next time.
+		if (!Errors::has($id, static::cmd_name())) {
+			self::update_meta($id);
+		}
+	}
+
+	/**
+	 * Runs a library command on a file, and records
+	 * an error if it exits with a non zero code.
+	 *
+	 * @param string $command
+	 * @param string $filepath
+	 * @param array $args
+	 * @return bool
+	 * @since 0.1.5
+	 * @date 25/10/2026
+	 */
+	protected static function run($command, $filepath, $args)
+	{
+		$output = [];
+		exec($command . ' 2>&1', $output, $code);
+		if ($code === 0) {
+			return true;
+		}
+		Errors::add(isset($args['id']) ? $args['id'] : 0, static::cmd_name(), $filepath, self::error_message($output, $code, $filepath));
+		return false;
+	}
+
+	/**
+	 * Returns a short error message from the output
+	 * of a failed command: its error lines, or its
+	 * last line, without the directory of the file.
+	 *
+	 * @param array $output
+	 * @param int $code
+	 * @param string $filepath
+	 * @return string
+	 * @since 0.1.5
+	 * @date 25/10/2026
+	 */
+	private static function error_message($output, $code, $filepath)
+	{
+		$lines = array_values(array_filter(array_map('trim', $output), 'strlen'));
+		if (empty($lines)) {
+			return sprintf('exited with code %d', $code);
+		}
+		$errors = array_values(preg_grep('/error|cannot|could not|unsupported|failed|invalid/i', $lines));
+		$message = $errors ? implode(' / ', array_slice($errors, 0, 2)) : end($lines);
+		return substr(str_replace(dirname($filepath) . DIRECTORY_SEPARATOR, '', $message), 0, 300);
 	}
 
 	/**
