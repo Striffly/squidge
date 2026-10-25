@@ -1,14 +1,39 @@
 {
   "name": "octopus-image-optimizer",
   "version": "0.1.4",
-  "main": "index.js",
+  "private": true,
+  "description": "OIO – Octopus Image Optimizer: compresses JPG and PNG images and converts them to WebP and AVIF on your own server.",
   "author": "Clément Gayot",
+  "license": "GPL-3.0-or-later",
+  "files": [
+    "octopus-image-optimizer.php",
+    "uninstall.php",
+    "core",
+    "cli",
+    "functions",
+    "templates",
+    "assets/*.css",
+    "assets/*.js",
+    "assets/fonts",
+    "vendor-prefixed",
+    "!vendor-prefixed/**/tests",
+    "!vendor-prefixed/**/bin",
+    "!vendor-prefixed/**/.*",
+    "!vendor-prefixed/**/Makefile",
+    "!vendor-prefixed/**/phpunit.xml*",
+    "!vendor-prefixed/**/composer.*",
+    "readme.txt",
+    "LICENSE"
+  ],
   "scripts": {
     "release": "release-it",
     "release:dry": "release-it --dry-run",
-    "zip": "wp dist-archive . ./octopus-image-optimizer/dist/octopus-image-optimizer-${version}.zip --create-target-dir"
+    "release:zip": "composer install --no-interaction && npm run check-licenses && npm run plugin-zip",
+    "check-licenses": "wp-scripts check-licenses --prod",
+    "plugin-zip": "wp-scripts plugin-zip && zip -dq octopus-image-optimizer.zip octopus-image-optimizer/README.md octopus-image-optimizer/package.json"
   },
   "devDependencies": {
+    "@wordpress/scripts": "^37.0.0",
     "release-it": "^14.11.8"
   }
 }

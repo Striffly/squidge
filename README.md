@@ -55,7 +55,8 @@ Each format works on its own: a missing library only turns its format off.
 4. Click `Optimise new images` to optimise the images already in the library.
 
 To install it from this repository instead, run `composer install` in the plugin folder: it builds the dependencies
-in `vendor-prefixed/`.
+in `vendor-prefixed/`. To build the zip of a release, run `npm ci` then `npm run release:zip` (Composer, Node.js 22
+or later and `zip` needed): it makes `octopus-image-optimizer.zip`.
 
 ## FAQ
 
