@@ -52,6 +52,17 @@ class Fields
 	const CHECKBOX_ON = 'yes';
 
 	/**
+	 * Labels of the format states, see state().
+	 *
+	 * @var array
+	 */
+	const STATE_LABELS = [
+		'on' => 'Active',
+		'off' => 'Library missing',
+		'muted' => 'Disabled',
+	];
+
+	/**
 	 * Registers the options page.
 	 *
 	 * @since 0.1.0
@@ -105,7 +116,7 @@ class Fields
 	}
 
 	/**
-	 * Registers custom admin style.
+	 * Registers custom admin style and script.
 	 *
 	 * @param string $hook
 	 * @since 0.1.0
@@ -116,7 +127,8 @@ class Fields
 		if ($hook !== 'settings_page_' . self::PAGE) {
 			return;
 		}
-		wp_enqueue_style('squidge-admin', SQUIDGE_URL . 'assets/admin.css', [], SQUIDGE_VERSION);
+		wp_enqueue_style('squidge-admin', SQUIDGE_URL . 'assets/admin.css', [], filemtime(SQUIDGE_PATH . 'assets/admin.css'));
+		wp_enqueue_script('squidge-admin', SQUIDGE_URL . 'assets/admin.js', [], filemtime(SQUIDGE_PATH . 'assets/admin.js'), true);
 	}
 
 	/**
@@ -138,32 +150,22 @@ class Fields
 	 */
 	public function register_fields()
 	{
-		add_settings_section('squidge_health', '', [$this, 'render_info'], self::PAGE);
-		$this->add_health_field('jpg', 'jpg.php', 'JPG', JPG::installed());
-		$this->add_health_field('png', 'png.php', 'PNG', PNG::installed());
-		$this->add_health_field('webp', 'webp.php', 'WebP', WebP::installed());
-		$this->add_health_field('avif', 'avif.php', 'AVIF', AVIF::installed());
-
-		foreach (self::sections() as $id => $section) {
-			add_settings_section('squidge_' . $id, $section['title'], '__return_false', self::PAGE);
+		foreach (self::sections() as $section) {
 			foreach ($section['fields'] as $name => $field) {
-				$option = self::OPTION_PREFIX . $name;
-				register_setting(self::PAGE, $option, [
+				register_setting(self::PAGE, self::OPTION_PREFIX . $name, [
 					'sanitize_callback' => function ($value) use ($field) {
 						return $this->sanitize($value, $field);
 					},
-				]);
-				$field['name'] = $name;
-				add_settings_field($option, $field['label'], [$this, 'render_field'], self::PAGE, 'squidge_' . $id, [
-					'label_for' => $option,
-					'field' => $field,
 				]);
 			}
 		}
 	}
 
 	/**
-	 * Renders the options page.
+	 * Renders the options page: an overview tab with
+	 * the health status of each library, then one
+	 * tab per format. All tabs share one form so
+	 * saving never resets the hidden tabs.
 	 *
 	 * @since 0.1.5
 	 * @date 25/10/2026
@@ -173,61 +175,140 @@ class Fields
 		if (!current_user_can('manage_options')) {
 			return;
 		}
+		$sections = self::sections();
+		foreach ($sections as $id => $section) {
+			$sections[$id]['installed'] = $section['service']::installed();
+			$sections[$id]['enabled'] = self::get('squidge_' . $id . '_enable');
+			$sections[$id]['library'] = $section['service']::cmd_name();
+		}
 		?>
-		<div class="wrap">
+		<div class="wrap squidge-page">
+			<h1>Squidge</h1>
+
+			<nav class="nav-tab-wrapper squidge-tabs" role="tablist">
+				<a href="#overview" class="nav-tab nav-tab-active" role="tab" data-tab="overview">Overview</a>
+				<?php foreach ($sections as $id => $section) : ?>
+					<a href="#<?php echo esc_attr($id); ?>" class="nav-tab" role="tab" data-tab="<?php echo esc_attr($id); ?>">
+						<span class="squidge-dot squidge-dot--<?php echo esc_attr(self::state($section)); ?>" aria-hidden="true"></span>
+						<?php echo esc_html($section['title']); ?>
+					</a>
+				<?php endforeach; ?>
+			</nav>
+
 			<form action="options.php" method="post">
-				<?php
-				settings_fields(self::PAGE);
-				do_settings_sections(self::PAGE);
-				submit_button();
-				?>
+				<?php settings_fields(self::PAGE); ?>
+
+				<section class="squidge-panel" id="squidge-panel-overview" role="tabpanel" data-panel="overview">
+					<?php echo $this->render_template('info.php'); ?>
+					<div class="squidge-status-grid">
+						<?php foreach ($sections as $id => $section) : ?>
+							<a class="squidge-status" href="#<?php echo esc_attr($id); ?>" data-tab="<?php echo esc_attr($id); ?>">
+								<span class="squidge-status__head">
+									<span class="squidge-status__format"><?php echo esc_html($section['title']); ?></span>
+									<?php $this->render_badge(self::state($section), self::STATE_LABELS[self::state($section)]); ?>
+								</span>
+								<span class="squidge-status__library squidge-status__library--<?php echo $section['installed'] ? 'on' : 'off'; ?>">
+									<code><?php echo esc_html($section['library']); ?></code>
+									<span class="dashicons dashicons-<?php echo $section['installed'] ? 'yes' : 'no-alt'; ?>" aria-hidden="true"></span>
+									<?php echo $section['installed'] ? 'installed' : 'not installed'; ?>
+								</span>
+							</a>
+						<?php endforeach; ?>
+					</div>
+				</section>
+
+				<?php foreach ($sections as $id => $section) : ?>
+					<section class="squidge-panel" id="squidge-panel-<?php echo esc_attr($id); ?>" role="tabpanel" data-panel="<?php echo esc_attr($id); ?>">
+						<div class="squidge-card">
+							<header class="squidge-card__header">
+								<h2><?php echo esc_html($section['title']); ?> <code><?php echo esc_html($section['library']); ?></code></h2>
+								<?php $this->render_badge($section['installed'] ? 'on' : 'off', $section['installed'] ? 'Installed' : 'Not installed'); ?>
+							</header>
+							<?php if (!$section['installed']) : ?>
+								<details class="squidge-install" open>
+									<summary>How to install <?php echo esc_html($section['library']); ?></summary>
+									<?php echo $this->render_template('health' . DIRECTORY_SEPARATOR . $section['template']); ?>
+								</details>
+							<?php endif; ?>
+							<?php foreach ($section['fields'] as $name => $field) : ?>
+								<?php $this->render_field($name, $field); ?>
+							<?php endforeach; ?>
+						</div>
+					</section>
+				<?php endforeach; ?>
+
+				<?php submit_button(); ?>
 			</form>
 		</div>
 		<?php
 	}
 
 	/**
-	 * Renders the information block above the
-	 * health statuses.
+	 * Returns the state of a format, used for the
+	 * tab dots and overview badges: on (enabled and
+	 * installed), off (enabled but not installed)
+	 * or muted (disabled).
 	 *
+	 * @param array $section
+	 * @return string
 	 * @since 0.1.5
 	 * @date 25/10/2026
 	 */
-	public function render_info()
+	private static function state($section)
 	{
-		echo $this->render_template('info.php');
+		if (!$section['enabled']) {
+			return 'muted';
+		}
+		return $section['installed'] ? 'on' : 'off';
+	}
+
+	/**
+	 * Renders a status badge.
+	 *
+	 * @param string $variant on, off or muted.
+	 * @param string $label
+	 * @since 0.1.5
+	 * @date 25/10/2026
+	 */
+	private function render_badge($variant, $label)
+	{
+		printf('<span class="squidge-badge squidge-badge--%s">%s</span>', esc_attr($variant), esc_html($label));
 	}
 
 	/**
 	 * Renders an option field.
 	 *
-	 * @param array $args
+	 * @param string $name
+	 * @param array $field
 	 * @since 0.1.5
 	 * @date 25/10/2026
 	 */
-	public function render_field($args)
+	private function render_field($name, $field)
 	{
-		$field = $args['field'];
-		$id = esc_attr($args['label_for']);
-		$value = self::get($field['name']);
+		$id = esc_attr(self::OPTION_PREFIX . $name);
+		$value = self::get($name);
 
-		switch ($field['type']) {
-			case 'checkbox':
-				printf('<input type="checkbox" id="%s" name="%s" value="%s" %s>', $id, $id, self::CHECKBOX_ON, checked($value, true, false));
-				break;
-			case 'number':
+		if ($field['type'] === 'checkbox') {
+			echo '<div class="squidge-field squidge-field--toggle">';
+			printf(
+				'<label class="squidge-toggle"><input type="checkbox" id="%s" name="%s" value="%s" %s><span class="squidge-toggle__track" aria-hidden="true"></span><span class="squidge-field__label">%s</span></label>',
+				$id, $id, self::CHECKBOX_ON, checked($value, true, false), esc_html($field['label'])
+			);
+		} else {
+			echo '<div class="squidge-field squidge-field--option">';
+			printf('<label class="squidge-field__label" for="%s">%s</label>', $id, esc_html($field['label']));
+			if ($field['type'] === 'number') {
 				printf('<input type="number" class="small-text" id="%s" name="%s" value="%s" min="%d" max="%d" step="1">', $id, $id, esc_attr($value), $field['min'], $field['max']);
-				break;
-			case 'select':
+			} elseif ($field['type'] === 'select') {
 				printf('<select id="%s" name="%s">', $id, $id);
 				foreach ($field['options'] as $optionValue => $optionLabel) {
 					printf('<option value="%s" %s>%s</option>', esc_attr($optionValue), selected((string)$value, (string)$optionValue, false), esc_html($optionLabel));
 				}
 				echo '</select>';
-				break;
+			}
 		}
 
-		printf('<p class="description">%s</p>', esc_html($field['help']));
+		printf('<p class="description">%s</p></div>', esc_html($field['help']));
 	}
 
 	/**
@@ -264,6 +345,8 @@ class Fields
 		return [
 			'jpg' => [
 				'title' => 'JPG',
+				'service' => JPG::class,
+				'template' => 'jpg.php',
 				'fields' => [
 					'squidge_jpg_enable' => [
 						'type' => 'checkbox',
@@ -283,6 +366,8 @@ class Fields
 			],
 			'png' => [
 				'title' => 'PNG',
+				'service' => PNG::class,
+				'template' => 'png.php',
 				'fields' => [
 					'squidge_png_enable' => [
 						'type' => 'checkbox',
@@ -310,6 +395,8 @@ class Fields
 			],
 			'webp' => [
 				'title' => 'WebP',
+				'service' => WebP::class,
+				'template' => 'webp.php',
 				'fields' => [
 					'squidge_webp_enable' => [
 						'type' => 'checkbox',
@@ -329,6 +416,8 @@ class Fields
 			],
 			'avif' => [
 				'title' => 'AVIF',
+				'service' => AVIF::class,
+				'template' => 'avif.php',
 				'fields' => [
 					'squidge_avif_enable' => [
 						'type' => 'checkbox',
@@ -339,46 +428,6 @@ class Fields
 				],
 			],
 		];
-	}
-
-	/**
-	 * Adds a health status field dependent on if
-	 * it is valid or installed. Classes and
-	 * attributes will be set accordingly.
-	 *
-	 * @param $name
-	 * @param $templateName
-	 * @param $niceName
-	 * @param $valid
-	 * @since 0.1.0
-	 * @date 24/11/2021
-	 */
-	private function add_health_field($name, $templateName, $niceName, $valid)
-	{
-		add_settings_field('squidge_' . $name . '_status', $niceName . ' Status', function () use ($templateName, $valid) {
-			printf(
-				'<div class="squidge squidge-disabled squidge-health squidge-health-%s"><input type="text" readonly tabindex="-1" placeholder="%s"><div class="squidge-help">%s</div></div>',
-				$valid ? 'active' : 'inactive',
-				$valid ? 'Active' : 'Inactive',
-				$this->get_health_text('health' . DIRECTORY_SEPARATOR . $templateName, $valid)
-			);
-		}, self::PAGE, 'squidge_health');
-	}
-
-	/**
-	 * Renders the health template.
-	 *
-	 * @param $templateName
-	 * @param $valid
-	 * @return false|string
-	 * @since 0.1.0
-	 * @date 24/11/2021
-	 */
-	private function get_health_text($templateName, $valid)
-	{
-		global $health_valid;
-		$health_valid = $valid;
-		return $this->render_template($templateName);
 	}
 
 	/**

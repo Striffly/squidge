@@ -3,7 +3,8 @@
 /**
  * jpg
  *
- * JPG health status template.
+ * JPG installation instructions, shown
+ * when jpegoptim is not installed.
  *
  * @package     Squidge
  * @version     0.1.4
@@ -12,8 +13,6 @@
  * @repo        https://github.com/ainsleyclark/squidge
  *
  */
-
-global $health_valid;
 
 if (!defined('ABSPATH')) {
 	exit; // Exit if accessed directly
@@ -24,28 +23,19 @@ if (!defined('ABSPATH')) {
 <!-- =====================
 	JPG
 	===================== -->
-<?php if ($health_valid) : ?>
-	<h4>jpegoptim library installed.</h4>
-<?php else : ?>
-	<h4>jpegoptim <strong>not</strong> installed.</h4>
-	<p>Use the following commands to install jpegoptim dependant on your operating system.</p>
-	<!-- Linux -->
-	<div>
-		<h3>Linux:</h3>
+<ul class="squidge-install__list">
+	<li>
+		<span class="squidge-install__os">Linux</span>
 		<code>sudo apt-get install jpegoptim</code>
-		<p>For more information visit <a href="https://vitux.com/optimize-jpeg-jpg-images-in-ubuntu-with-jpegoptim/" target="_blank">here</a>.</p>
-	</div>
-	<!-- Mac -->
-	<div>
-		<h3>Mac:</h3>
+		<a href="https://vitux.com/optimize-jpeg-jpg-images-in-ubuntu-with-jpegoptim/" target="_blank" rel="noopener">More information</a>
+	</li>
+	<li>
+		<span class="squidge-install__os">Mac</span>
 		<code>brew install jpegoptim</code>
-		<p>For more information visit <a href="https://formulae.brew.sh/formula/jpegoptim" target="_blank">here</a>.</p>
-	</div>
-	<!-- Windows -->
-	<div>
-		<h3>Windows:</h3>
-		<p>To install for Windows, visit <a href="https://github.com/XhmikosR/jpegoptim-windows" target="_blank">here</a>.</p>
-	</div>
-<?php endif;
-
-
+		<a href="https://formulae.brew.sh/formula/jpegoptim" target="_blank" rel="noopener">More information</a>
+	</li>
+	<li>
+		<span class="squidge-install__os">Windows</span>
+		<a href="https://github.com/XhmikosR/jpegoptim-windows" target="_blank" rel="noopener">Download for Windows</a>
+	</li>
+</ul>

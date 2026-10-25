@@ -23,9 +23,8 @@ if (!defined('ABSPATH')) {
 <!-- =====================
     Info
     ===================== -->
-<h1>Welcome to Squidge</h1>
-<p>Welcome to the simpliest, <b>free</b> image optimisation platform for Wordpress.</p>
-<p>
-	Below is the health status for each library that Squidge depends on. If a library is not installed, installation instructions
-	will appear to install on your operating system.
+<p class="squidge-intro">
+	Welcome to the simpliest, <b>free</b> image optimisation platform for Wordpress.
+	Below is the health status for each library that Squidge depends on. If a library is not installed,
+	installation instructions will appear to install on your operating system.
 </p>

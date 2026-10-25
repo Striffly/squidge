@@ -1,43 +1,349 @@
 /**
  * admin.css
  *
- * Admin style changes for Squidge. These styles are
- * exclusively for the health status.
+ * Admin style for the Squidge options page.
  *
  * @author Ainsley Clark
  * @author URL:   https://www.ainsleyclark.com
  * @author email: info@ainsleyclark.com
  */
 
-.squidge .squidge-help {
+.squidge-page {
+	--squidge-accent: var(--wp-admin-theme-color, #2271b1);
+	--squidge-border: #dcdcde;
+	--squidge-muted: #646970;
+	--squidge-on: #00a32a;
+	--squidge-on-bg: #edfaef;
+	--squidge-off: #d63638;
+	--squidge-off-bg: #fcf0f1;
+	max-width: 880px;
+}
+
+/* Tabs
+   ========================================================================== */
+
+.squidge-page:not(.squidge-js) .squidge-tabs {
+	display: none;
+}
+
+.squidge-tabs {
+	margin-bottom: 20px;
+}
+
+.squidge-tabs .nav-tab {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+}
+
+.squidge-dot {
+	width: 8px;
+	height: 8px;
+	border-radius: 50%;
+	background: var(--squidge-off);
+}
+
+.squidge-dot--on {
+	background: var(--squidge-on);
+}
+
+.squidge-dot--muted {
+	background: #a7aaad;
+}
+
+.squidge-panel {
+	margin-bottom: 20px;
+}
+
+.squidge-panel[hidden] {
+	display: none;
+}
+
+/* Nothing to save on the overview. */
+.squidge-page[data-active-tab="overview"] .submit {
+	display: none;
+}
+
+/* Overview
+   ========================================================================== */
+
+.squidge-intro {
+	max-width: 640px;
+	margin: 0 0 20px;
+	font-size: 14px;
+	color: var(--squidge-muted);
+}
+
+.squidge-status-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+	gap: 12px;
+}
+
+.squidge-status {
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+	padding: 16px;
+	background: #fff;
+	border: 1px solid var(--squidge-border);
+	border-radius: 8px;
+	color: inherit;
+	text-decoration: none;
+	transition: border-color .15s, box-shadow .15s;
+}
+
+.squidge-status:hover,
+.squidge-status:focus {
+	color: inherit;
+	border-color: var(--squidge-accent);
+	box-shadow: 0 0 0 1px var(--squidge-accent);
+}
+
+.squidge-status__format {
+	font-size: 18px;
+	font-weight: 600;
+}
+
+.squidge-status__head {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 8px;
+}
+
+.squidge-status__library {
+	display: inline-flex;
+	align-items: baseline;
+	gap: 2px;
+	font-size: 12px;
+	line-height: 18px;
+	white-space: nowrap;
+	color: var(--squidge-muted);
+	padding-top: 10px;
+	border-top: 1px solid #f0f0f1;
+}
+
+/* Plain text here, so the library name lines up with the format title. */
+.squidge-status__library code {
+	margin: 0 6px 0 0;
+	padding: 0;
+	background: none;
+	font-size: 12px;
+	line-height: 18px;
+	color: #1d2327;
+}
+
+.squidge-status__library .dashicons {
+	align-self: center;
+	width: 16px;
+	height: 16px;
+	font-size: 16px;
+}
+
+.squidge-status__library--on .dashicons {
+	color: var(--squidge-on);
+}
+
+.squidge-status__library--off .dashicons {
+	color: var(--squidge-off);
+}
+
+.squidge-page code {
+	padding: 2px 6px;
+	border-radius: 4px;
+	font-size: 12px;
+}
+
+/* Badge
+   ========================================================================== */
+
+.squidge-badge {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	padding: 2px 10px;
+	border-radius: 999px;
+	font-size: 12px;
+	font-weight: 500;
+	line-height: 20px;
+	white-space: nowrap;
+	flex-shrink: 0;
+	color: var(--squidge-off);
+	background: var(--squidge-off-bg);
+}
+
+.squidge-badge::before {
+	content: "";
+	width: 6px;
+	height: 6px;
+	border-radius: 50%;
+	background: currentColor;
+}
+
+.squidge-badge--on {
+	color: #007017;
+	background: var(--squidge-on-bg);
+}
+
+.squidge-badge--muted {
+	color: var(--squidge-muted);
+	background: #f0f0f1;
+}
+
+/* Card
+   ========================================================================== */
+
+.squidge-card {
+	background: #fff;
+	border: 1px solid var(--squidge-border);
+	border-radius: 8px;
+	overflow: hidden;
+}
+
+.squidge-card__header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+	padding: 16px 20px;
+	border-bottom: 1px solid var(--squidge-border);
+}
+
+.squidge-card__header h2 {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	margin: 0;
+	font-size: 18px;
+}
+
+.squidge-field {
+	padding: 16px 20px;
+	border-bottom: 1px solid #f0f0f1;
+}
+
+.squidge-field:last-child {
+	border-bottom: 0;
+}
+
+.squidge-field__label {
 	display: block;
-	margin-top: 0;
-	font-style: normal;
-	width: 100%;
+	margin-bottom: 6px;
+	font-weight: 600;
 }
 
-.squidge code {
-	display: inline-block;
-	margin-bottom: 10px;
+.squidge-field .description {
+	margin: 6px 0 0;
 }
 
-.squidge-disabled input {
-	pointer-events:none;
-	user-select: none;
+.squidge-field--toggle .description {
+	margin-left: 46px;
 }
 
-.squidge-health-inactive input {
-	content: "Inactive";
-	color: #721c24;
-	background-color: #f8d7da;
-	border-color: #f5c6cb;
+/* Fade the options of a disabled format. */
+.squidge-card:has(.squidge-toggle input:not(:checked)) .squidge-field--option {
+	opacity: .5;
 }
 
-.squidge-health-active input {
-	content: "Active";
-	color: #155724;
-	background-color: #d4edda;
-	border-color: #c3e6cb;
+/* Toggle
+   ========================================================================== */
+
+.squidge-toggle {
+	display: inline-flex;
+	align-items: center;
+	gap: 10px;
+	cursor: pointer;
 }
 
+.squidge-toggle .squidge-field__label {
+	margin: 0;
+}
 
+.squidge-toggle input {
+	position: absolute;
+	opacity: 0;
+	width: 1px;
+	height: 1px;
+}
+
+.squidge-toggle__track {
+	position: relative;
+	flex: none;
+	width: 36px;
+	height: 20px;
+	border-radius: 999px;
+	background: #c3c4c7;
+	transition: background .15s;
+}
+
+.squidge-toggle__track::after {
+	content: "";
+	position: absolute;
+	top: 3px;
+	left: 3px;
+	width: 14px;
+	height: 14px;
+	border-radius: 50%;
+	background: #fff;
+	transition: transform .15s;
+}
+
+.squidge-toggle input:checked + .squidge-toggle__track {
+	background: var(--squidge-accent);
+}
+
+.squidge-toggle input:checked + .squidge-toggle__track::after {
+	transform: translateX(16px);
+}
+
+.squidge-toggle input:focus-visible + .squidge-toggle__track {
+	box-shadow: 0 0 0 2px #fff, 0 0 0 4px var(--squidge-accent);
+}
+
+/* Install instructions
+   ========================================================================== */
+
+.squidge-install {
+	padding: 14px 20px;
+	background: var(--squidge-off-bg);
+	border-bottom: 1px solid var(--squidge-border);
+}
+
+.squidge-install summary {
+	font-weight: 600;
+	cursor: pointer;
+}
+
+.squidge-install__list {
+	margin: 12px 0 0;
+}
+
+.squidge-install__list li {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 8px 12px;
+	margin: 0;
+	padding: 8px 0;
+	border-top: 1px solid rgba(0, 0, 0, .06);
+}
+
+.squidge-install__os {
+	width: 70px;
+	font-weight: 600;
+}
+
+.squidge-install__list code {
+	background: #fff;
+}
+
+@media (max-width: 600px) {
+	.squidge-card__header {
+		flex-wrap: wrap;
+	}
+
+	.squidge-install__os {
+		width: 100%;
+	}
+}
