@@ -110,6 +110,10 @@ class Fields
 			if ($field['type'] === 'checkbox') {
 				return $value === self::CHECKBOX_ON;
 			}
+			// An emptied number field falls back to its default, not to 0.
+			if ($field['type'] === 'number' && !is_numeric($value)) {
+				return $field['default'];
+			}
 			return $value;
 		}
 		return null;
@@ -326,6 +330,9 @@ class Fields
 			case 'checkbox':
 				return $value === self::CHECKBOX_ON ? self::CHECKBOX_ON : '';
 			case 'number':
+				if (!is_numeric($value)) {
+					return (string)$field['default'];
+				}
 				return (string)max($field['min'], min($field['max'], (int)$value));
 			case 'select':
 				return array_key_exists((string)$value, $field['options']) ? (string)$value : (string)$field['default'];
