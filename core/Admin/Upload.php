@@ -43,7 +43,8 @@ class Upload
 	/**
 	 * Optimises an uploaded image with the enabled
 	 * formats. Its metadata is not saved yet, so it
-	 * is passed along.
+	 * is passed along, and returned with the sizes of
+	 * the compressed files.
 	 *
 	 * @param array $metadata
 	 * @param int $attachment_id
@@ -57,7 +58,7 @@ class Upload
 			return $metadata;
 		}
 		Optimiser::attachment($attachment_id, $metadata, Optimiser::settings());
-		return $metadata;
+		return Optimiser::file_sizes($metadata);
 	}
 
 	/**

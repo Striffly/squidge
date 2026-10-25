@@ -85,6 +85,7 @@ class Cleaner
 	 * Restores the original images of an image: the
 	 * backups are put back in place, then every OIO
 	 * file (WebP, AVIF, backups) and meta is removed.
+	 * The metadata gets the sizes of the originals.
 	 *
 	 * @param int $id
 	 * @return bool|null False if the original of a compressed
@@ -127,6 +128,7 @@ class Cleaner
 				}
 			}
 			self::save_listed($id, $kept);
+			Optimiser::save_file_sizes($id);
 			return $restored;
 		});
 	}

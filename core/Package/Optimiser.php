@@ -121,8 +121,64 @@ class Optimiser
 				}
 			}
 			Status::stamp_sizes($id, $metadata ?: wp_get_attachment_metadata($id));
+			// On upload, the metadata is saved once the filter returns it, see
+			// Upload::process(): saving it now would be overwritten.
+			if (!doing_filter('wp_generate_attachment_metadata')) {
+				self::save_file_sizes($id);
+			}
 			return true;
 		});
+	}
+
+	/**
+	 * Returns the metadata of an image with the sizes
+	 * of its files on the disk: WordPress saves them
+	 * when it makes the files, OIO compresses or
+	 * restores the files after. Only the sizes saved
+	 * are updated, WordPress reads the file otherwise.
+	 *
+	 * @param array $metadata
+	 * @return array
+	 * @since 1.0.0
+	 * @date 25/10/2026
+	 */
+	public static function file_sizes($metadata)
+	{
+		if (!is_array($metadata) || empty($metadata['file'])) {
+			return $metadata;
+		}
+		// PHP keeps the size read before a library changed the file.
+		clearstatcache();
+		$file = wp_get_upload_dir()['basedir'] . DIRECTORY_SEPARATOR . $metadata['file'];
+		if (isset($metadata['filesize']) && file_exists($file)) {
+			$metadata['filesize'] = wp_filesize($file);
+		}
+		$sizes = isset($metadata['sizes']) && is_array($metadata['sizes']) ? $metadata['sizes'] : [];
+		foreach ($sizes as $name => $size) {
+			$path = isset($size['file']) ? dirname($file) . DIRECTORY_SEPARATOR . $size['file'] : '';
+			if (isset($size['filesize']) && $path && file_exists($path)) {
+				$metadata['sizes'][$name]['filesize'] = wp_filesize($path);
+			}
+		}
+		return $metadata;
+	}
+
+	/**
+	 * Saves the sizes of the files of an image in its
+	 * metadata, if they changed. OIO does not hook the
+	 * saving of the metadata: it cannot loop.
+	 *
+	 * @param int $id
+	 * @since 1.0.0
+	 * @date 25/10/2026
+	 */
+	public static function save_file_sizes($id)
+	{
+		$metadata = wp_get_attachment_metadata($id, true);
+		$updated = self::file_sizes($metadata);
+		if ($updated !== $metadata) {
+			wp_update_attachment_metadata($id, $updated);
+		}
 	}
 
 	/**
