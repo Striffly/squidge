@@ -35,8 +35,10 @@ unlimited, no API key, no quota: your images never leave your server.
 
 **On the site**
 
-- Serves AVIF and WebP in a `<picture>` element, with the JPG or PNG as fallback (optional).
-- `oio_image()` returns the same `<picture>` in your own templates.
+- Serves AVIF and WebP, with the JPG or PNG as fallback (optional): in a `<picture>` element, or from the server
+  with rewrite rules (written for Apache, given for nginx), which leaves the HTML as it is.
+- Tests the delivery: types sent by the server, rewrite, originals kept private.
+- `oio_image()` returns a `<picture>` in your own templates.
 
 ## Requirements
 
@@ -80,9 +82,32 @@ their originals are kept in `uploads/oio-originals/`. `Restore original images` 
 
 ### Does it serve WebP and AVIF automatically?
 
-Once `Use modern formats (WebP, AVIF)` is turned on, on the Overview tab. The images of the content and the ones
-output by `wp_get_attachment_image()` (featured images, galleries, most themes) are then wrapped in a `<picture>`
-element, with the JPG or PNG as fallback. In a custom theme, use [`oio_image()`](#theme-development).
+Once turned on, on the Delivery tab, in one of two ways:
+
+- **In the HTML**: the images of the content and the ones output by `wp_get_attachment_image()` (featured images,
+  galleries, most themes) are wrapped in a `<picture>` element, with the JPG or PNG as fallback. Works everywhere,
+  but may break a layout styling `img` directly. In a custom theme, use [`oio_image()`](#theme-development).
+- **From the server**: the server answers `photo.jpg` with `photo.jpg.avif` or `photo.jpg.webp` when the browser
+  reads them. The HTML does not change and every image is served, CSS backgrounds included. OIO writes the rules in
+  `uploads/.htaccess` on Apache and LiteSpeed; on nginx, add these ones to the configuration of the site:
+
+```nginx
+# In the http block:
+map $http_accept $oio_suffix {
+	default "";
+	"~image/avif" ".avif";
+	"~image/webp" ".webp";
+}
+
+# In the server block:
+location ~* ^/wp-content/uploads/.+\.(jpe?g|png)$ {
+	add_header Vary Accept;
+	try_files $uri$oio_suffix $uri =404;
+}
+```
+
+A CDN must vary its cache on the `Accept` header, or serve the JPG to everyone. `Test the delivery`, on the same
+tab, checks what the server sends.
 
 ### What happens when the theme changes its image sizes?
 
@@ -130,7 +155,8 @@ tried in near-lossless.
 
 ## Privacy
 
-OIO sends nothing out of your server: no API, no tracking, no external request.
+OIO sends nothing out of your server: no API, no tracking, no external request. The delivery test only requests the
+site itself.
 
 The optimised images lose their metadata, but the originals keep them, GPS position included. OIO writes a
 `.htaccess` denying the web access to `uploads/oio-originals/`, which works with Apache and LiteSpeed. With nginx, add
@@ -156,9 +182,10 @@ add_filter('oio_backup_dir', function () {
 
 ### Theme development
 
-The `Use modern formats (WebP, AVIF)` option serves the WebP and AVIF versions for the images of the content and the
+The `<picture>` option of the Delivery tab serves the WebP and AVIF versions for the images of the content and the
 ones output by `wp_get_attachment_image()`. The images a theme outputs with its own markup, e.g. from an ACF field,
-are left as they are: `oio_image()` returns their `<picture>` element, whatever the option.
+are left as they are: serve them from the server, or use `oio_image()`, which returns their `<picture>` element
+whatever the options.
 
 ```php
 if (function_exists('oio_image')) {

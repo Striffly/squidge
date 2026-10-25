@@ -20,8 +20,9 @@
  * 10. Background job and its result
  * 11. Fields and toggles
  * 12. Install instructions, code
- * 13. WordPress components
- * 14. Small screens
+ * 13. Delivery: rules and test
+ * 14. WordPress components
+ * 15. Small screens
  *
  * @author Clément Gayot
  * @author Ainsley Clark (Squidge, original author)
@@ -991,7 +992,103 @@
 	color: inherit;
 }
 
-/* 13. WordPress components
+/* 13. Delivery: rules and test
+   ========================================================================== */
+
+.oio-rules {
+	margin-top: var(--oio-space-2);
+	padding-top: var(--oio-space-4);
+	border-top: 1px solid var(--oio-border);
+}
+
+.oio-rules__summary {
+	color: var(--oio-violet-dark);
+	font-weight: 600;
+	cursor: pointer;
+}
+
+.oio-rules__title {
+	margin: var(--oio-space-4) 0 var(--oio-space-2);
+	color: var(--oio-text-soft);
+	font-weight: 600;
+}
+
+.oio-page .oio-test__button {
+	flex: none;
+	align-self: center;
+}
+
+.oio-test__result {
+	padding: var(--oio-space-4) var(--oio-space-5) var(--oio-space-5);
+}
+
+.oio-test__sample {
+	margin: 0 0 var(--oio-space-3);
+	color: var(--oio-muted);
+}
+
+.oio-checks {
+	margin: 0;
+	border: 1px solid var(--oio-border);
+	border-radius: var(--oio-radius-small);
+}
+
+.oio-checks__item {
+	display: grid;
+	grid-template-columns: 24px 1fr;
+	gap: 2px var(--oio-space-3);
+	margin: 0;
+	padding: var(--oio-space-3) var(--oio-space-4);
+}
+
+.oio-checks__item + .oio-checks__item {
+	border-top: 1px solid var(--oio-border);
+}
+
+.oio-checks__icon {
+	grid-row: span 3;
+	font-size: 20px;
+	color: var(--oio-on);
+}
+
+.oio-checks__icon::before {
+	content: "\f12a"; /* Dashicon yes-alt. */
+}
+
+.oio-checks__item--fail .oio-checks__icon {
+	color: var(--oio-off);
+}
+
+.oio-checks__item--fail .oio-checks__icon::before {
+	content: "\f153"; /* Dashicon dismiss. */
+}
+
+.oio-checks__item--info .oio-checks__icon {
+	color: var(--oio-neutral);
+}
+
+.oio-checks__item--info .oio-checks__icon::before {
+	content: "\f14c"; /* Dashicon info-outline. */
+}
+
+.oio-checks__label {
+	font-weight: 600;
+}
+
+.oio-checks__detail {
+	color: var(--oio-muted);
+	font-size: var(--oio-size-small);
+}
+
+.oio-checks__advice {
+	color: var(--oio-text-soft);
+}
+
+.oio-checks__advice:empty {
+	display: none;
+}
+
+/* 14. WordPress components
    ========================================================================== */
 
 /* The buttons keep their WordPress classes, in the colours of the logo. */
@@ -1039,7 +1136,7 @@
 	opacity: .55;
 }
 
-/* 14. Small screens
+/* 15. Small screens
    ========================================================================== */
 
 @media (max-width: 782px) {

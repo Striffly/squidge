@@ -264,3 +264,52 @@
 
 	refresh();
 })();
+
+/**
+ * Test of the delivery: asks the server to request an
+ * optimised image as a browser, and lists the checks.
+ * Their advice comes from the server, as HTML.
+ */
+(function () {
+	var button = document.querySelector('[data-delivery-test]');
+	var settings = window.oioJob;
+	if (!button || !settings) {
+		return;
+	}
+	var result = document.querySelector('.oio-test__result');
+	var sample = result.querySelector('.oio-test__sample');
+	var list = result.querySelector('.oio-checks');
+
+	button.addEventListener('click', function () {
+		button.disabled = true;
+		button.textContent = 'Testing…';
+		var body = new URLSearchParams({action: 'oio_delivery_test', _ajax_nonce: settings.nonce});
+		fetch(settings.ajaxurl, {method: 'POST', credentials: 'same-origin', body: body})
+			.then(function (response) {
+				return response.json();
+			})
+			.then(function (response) {
+				list.textContent = '';
+				result.hidden = false;
+				if (!response.success) {
+					sample.textContent = response.data && response.data.message ? response.data.message : 'The test failed.';
+					return;
+				}
+				sample.textContent = 'Tested on ' + response.data.sample + '.';
+				response.data.checks.forEach(function (check) {
+					var item = document.createElement('li');
+					item.className = 'oio-checks__item oio-checks__item--' + check.state;
+					item.innerHTML = '<span class="oio-checks__icon dashicons" aria-hidden="true"></span>'
+						+ '<span class="oio-checks__label"></span><span class="oio-checks__detail"></span><span class="oio-checks__advice"></span>';
+					item.querySelector('.oio-checks__label').textContent = check.label;
+					item.querySelector('.oio-checks__detail').textContent = check.detail;
+					item.querySelector('.oio-checks__advice').innerHTML = check.advice;
+					list.appendChild(item);
+				});
+			})
+			.finally(function () {
+				button.disabled = false;
+				button.textContent = 'Run the test again';
+			});
+	});
+})();

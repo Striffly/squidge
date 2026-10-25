@@ -16,6 +16,7 @@
 
 namespace OIO\Package;
 
+use OIO\Admin\Delivery;
 use OIO\Admin\Fields;
 use OIO\Services\AVIF;
 use OIO\Services\WebP;
@@ -211,8 +212,9 @@ class Stats
 
 	/**
 	 * Returns the size the site serves: modern when it
-	 * serves the WebP and AVIF (see Display), compressed
-	 * otherwise.
+	 * serves the WebP and AVIF, in <picture> (see
+	 * Display) or from the server (see Delivery),
+	 * compressed otherwise.
 	 *
 	 * @return string
 	 * @since 1.0.0
@@ -220,7 +222,7 @@ class Stats
 	 */
 	public static function served()
 	{
-		return Fields::get('oio_display_formats') ? 'modern' : 'compressed';
+		return Fields::get('oio_display_formats') || Fields::get(Delivery::OPTION) ? 'modern' : 'compressed';
 	}
 
 	/**
