@@ -96,14 +96,17 @@ class Notices
 	}
 
 	/**
-	 * Renders the recent errors as an admin notice.
+	 * Renders the recent errors as an admin notice, to
+	 * the administrators: they list the images of
+	 * every user. The others see the errors of their
+	 * uploads right after uploading them.
 	 *
 	 * @since 1.0.0
 	 * @date 25/10/2026
 	 */
 	public function render()
 	{
-		if (!$this->is_notice_screen()) {
+		if (!$this->is_notice_screen() || !current_user_can('manage_options')) {
 			return;
 		}
 		$errors = Errors::recent();
@@ -220,7 +223,7 @@ class Notices
 
 	/**
 	 * Clears the recent errors when the notice is
-	 * dismissed.
+	 * dismissed, by an administrator.
 	 *
 	 * @since 1.0.0
 	 * @date 25/10/2026
@@ -228,7 +231,7 @@ class Notices
 	public function dismiss()
 	{
 		check_ajax_referer(self::NONCE);
-		if (!current_user_can('upload_files')) {
+		if (!current_user_can('manage_options')) {
 			wp_send_json_error(null, 403);
 		}
 		Errors::clear_recent();
@@ -248,7 +251,7 @@ class Notices
 	 */
 	public function attachment_for_js($response, $attachment)
 	{
-		if (!current_user_can('upload_files')) {
+		if (!current_user_can('edit_post', $attachment->ID)) {
 			return $response;
 		}
 		$errors = Errors::for_attachment($attachment->ID);

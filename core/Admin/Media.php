@@ -222,6 +222,9 @@ class Media
 		}
 		if (!empty($_GET['oio_restored'])) {
 			$id = (int)$_GET['oio_restored'];
+			if (!current_user_can('edit_post', abs($id))) {
+				return;
+			}
 			if ($id > 0) {
 				printf('<div class="notice notice-success is-dismissible"><p><strong>OIO</strong> restored the original of %s.</p></div>', esc_html(get_the_title($id)));
 			} else {
@@ -233,7 +236,7 @@ class Media
 			return;
 		}
 		$id = (int)$_GET['oio_optimised'];
-		if (Status::of($id) === Status::ERROR) {
+		if (!current_user_can('edit_post', $id) || Status::of($id) === Status::ERROR) {
 			return;
 		}
 		printf('<div class="notice notice-success is-dismissible"><p><strong>OIO</strong> optimised %s.</p></div>', esc_html(get_the_title($id)));
