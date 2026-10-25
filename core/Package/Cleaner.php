@@ -9,7 +9,6 @@
  * and meta.
  *
  * @package     OIO
- * @version     0.1.4
  * @author      Clément Gayot
  * @category    Class
  * @repo        https://github.com/Striffly/squidge
@@ -36,7 +35,7 @@ class Cleaner
 	 * meta queries joining postmeta for each key are slow.
 	 *
 	 * @return int[]
-	 * @since 0.1.5
+	 * @since 1.0.0
 	 * @date 25/10/2026
 	 */
 	public static function ids()
@@ -55,7 +54,7 @@ class Cleaner
 	 * The compressed JPG and PNG files stay.
 	 *
 	 * @param int $id
-	 * @since 0.1.5
+	 * @since 1.0.0
 	 * @date 25/10/2026
 	 */
 	public static function remove_formats($id)
@@ -86,7 +85,7 @@ class Cleaner
 	 * @param int $id
 	 * @return bool False if the original of a compressed image
 	 *              is missing: it stays compressed.
-	 * @since 0.1.5
+	 * @since 1.0.0
 	 * @date 25/10/2026
 	 */
 	public static function restore($id)
@@ -122,7 +121,7 @@ class Cleaner
 	 *
 	 * @param int $id
 	 * @return string[]
-	 * @since 0.1.5
+	 * @since 1.0.0
 	 * @date 25/10/2026
 	 */
 	private static function files($id)
@@ -150,7 +149,7 @@ class Cleaner
 	 *
 	 * @param int $id
 	 * @return string[]
-	 * @since 0.1.5
+	 * @since 1.0.0
 	 * @date 25/10/2026
 	 */
 	private static function listed($id)
@@ -171,7 +170,7 @@ class Cleaner
 	 *
 	 * @param int $id
 	 * @param string[] $paths
-	 * @since 0.1.5
+	 * @since 1.0.0
 	 * @date 25/10/2026
 	 */
 	private static function save_listed($id, $paths)
@@ -191,7 +190,7 @@ class Cleaner
 	 * Deletes a file if it exists.
 	 *
 	 * @param string $path
-	 * @since 0.1.5
+	 * @since 1.0.0
 	 * @date 25/10/2026
 	 */
 	private static function unlink($path)

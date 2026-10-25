@@ -9,7 +9,6 @@
  * keeps its progress for the options page.
  *
  * @package     OIO
- * @version     0.1.4
  * @author      Clément Gayot
  * @category    Class
  * @repo        https://github.com/Striffly/squidge
@@ -80,7 +79,7 @@ class Job extends OIO_Vendor_WP_Background_Process
 	 * Returns the instance.
 	 *
 	 * @return Job
-	 * @since 0.1.5
+	 * @since 1.0.0
 	 * @date 25/10/2026
 	 */
 	public static function instance()
@@ -99,7 +98,7 @@ class Job extends OIO_Vendor_WP_Background_Process
 	 * @param int[] $ids
 	 * @param string $mode
 	 * @return bool
-	 * @since 0.1.5
+	 * @since 1.0.0
 	 * @date 25/10/2026
 	 */
 	public function start($action, $ids, $mode = self::MODE_NEW)
@@ -135,7 +134,7 @@ class Job extends OIO_Vendor_WP_Background_Process
 	 * Null if no job ever ran.
 	 *
 	 * @return array|null
-	 * @since 0.1.5
+	 * @since 1.0.0
 	 * @date 25/10/2026
 	 */
 	public function progress()
@@ -161,7 +160,7 @@ class Job extends OIO_Vendor_WP_Background_Process
 	 *
 	 * @param int $id
 	 * @return false Removes the item from the queue.
-	 * @since 0.1.5
+	 * @since 1.0.0
 	 * @date 25/10/2026
 	 */
 	protected function task($id)
@@ -195,7 +194,7 @@ class Job extends OIO_Vendor_WP_Background_Process
 	/**
 	 * Marks the job as finished.
 	 *
-	 * @since 0.1.5
+	 * @since 1.0.0
 	 * @date 25/10/2026
 	 */
 	protected function complete()
@@ -212,7 +211,7 @@ class Job extends OIO_Vendor_WP_Background_Process
 	 * Marks the job as cancelled, once the library has
 	 * emptied its queue.
 	 *
-	 * @since 0.1.5
+	 * @since 1.0.0
 	 * @date 25/10/2026
 	 */
 	public function cancelled_progress()

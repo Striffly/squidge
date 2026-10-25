@@ -8,7 +8,6 @@
  * background tasks.
  *
  * @package     OIO
- * @version     0.1.4
  * @author      Clément Gayot
  * @category    Class
  * @repo        https://github.com/Striffly/squidge
@@ -71,7 +70,7 @@ class Optimiser
 	 *
 	 * @param bool $enabled_only
 	 * @return array
-	 * @since 0.1.5
+	 * @since 1.0.0
 	 * @date 25/10/2026
 	 */
 	public static function settings($enabled_only = true)
@@ -99,7 +98,7 @@ class Optimiser
 	 * @param array $settings Args by format, see settings().
 	 * @param bool $force Optimise again the formats already done.
 	 * @param bool $thumbnails_only
-	 * @since 0.1.5
+	 * @since 1.0.0
 	 * @date 25/10/2026
 	 */
 	public static function attachment($id, $metadata, $settings, $force = false, $thumbnails_only = false)
@@ -134,7 +133,7 @@ class Optimiser
 	 *
 	 * @param int $id
 	 * @param bool $regenerate
-	 * @since 0.1.5
+	 * @since 1.0.0
 	 * @date 25/10/2026
 	 */
 	public static function update($id, $regenerate = false)
@@ -173,7 +172,7 @@ class Optimiser
 	 *
 	 * @param int $id
 	 * @return array|null The new metadata.
-	 * @since 0.1.5
+	 * @since 1.0.0
 	 * @date 25/10/2026
 	 */
 	public static function regenerate($id)

@@ -10,7 +10,6 @@
  * the JPG or PNG is the fallback.
  *
  * @package     OIO
- * @version     0.1.4
  * @author      Clément Gayot
  * @category    Class
  * @repo        https://github.com/Striffly/squidge
@@ -51,7 +50,7 @@ class Picture
 	 * @param string $html
 	 * @param string|null $picture_class Class of the <picture> element, which is then always added.
 	 * @return string
-	 * @since 0.1.5
+	 * @since 1.0.0
 	 * @date 25/10/2026
 	 */
 	public static function render($html, $picture_class = null)
@@ -93,7 +92,7 @@ class Picture
 	 * @param string $url
 	 * @param string $extension
 	 * @return string|null
-	 * @since 0.1.5
+	 * @since 1.0.0
 	 * @date 25/10/2026
 	 */
 	private static function variant($url, $extension)
@@ -111,7 +110,7 @@ class Picture
 	 * @param array $candidates
 	 * @param string $extension
 	 * @return string
-	 * @since 0.1.5
+	 * @since 1.0.0
 	 * @date 25/10/2026
 	 */
 	private static function build_srcset($candidates, $extension)
@@ -131,7 +130,7 @@ class Picture
 	 *
 	 * @param string $srcset
 	 * @return array
-	 * @since 0.1.5
+	 * @since 1.0.0
 	 * @date 25/10/2026
 	 */
 	private static function parse_srcset($srcset)
@@ -152,7 +151,7 @@ class Picture
 	 *
 	 * @param string $url
 	 * @return string|null
-	 * @since 0.1.5
+	 * @since 1.0.0
 	 * @date 25/10/2026
 	 */
 	private static function path($url)
@@ -172,7 +171,7 @@ class Picture
 	 * @param string $tag
 	 * @param string $name
 	 * @return string
-	 * @since 0.1.5
+	 * @since 1.0.0
 	 * @date 25/10/2026
 	 */
 	private static function attr($tag, $name)

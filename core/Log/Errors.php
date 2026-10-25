@@ -9,7 +9,6 @@
  * notice until dismissed).
  *
  * @package     OIO
- * @version     0.1.4
  * @author      Clément Gayot
  * @category    Log
  * @repo        https://github.com/Striffly/squidge
@@ -53,7 +52,7 @@ class Errors
 	 * @param string $tool
 	 * @param string $filepath
 	 * @param string $message
-	 * @since 0.1.5
+	 * @since 1.0.0
 	 * @date 25/10/2026
 	 */
 	public static function add($id, $tool, $filepath, $message)
@@ -90,7 +89,7 @@ class Errors
 	 *
 	 * @param int $id
 	 * @return array
-	 * @since 0.1.5
+	 * @since 1.0.0
 	 * @date 25/10/2026
 	 */
 	public static function for_attachment($id)
@@ -114,7 +113,7 @@ class Errors
 	 * @param int $id
 	 * @param string $tool
 	 * @return bool
-	 * @since 0.1.5
+	 * @since 1.0.0
 	 * @date 25/10/2026
 	 */
 	public static function has($id, $tool)
@@ -129,7 +128,7 @@ class Errors
 	 *
 	 * @param int $id
 	 * @param string $tool
-	 * @since 0.1.5
+	 * @since 1.0.0
 	 * @date 25/10/2026
 	 */
 	public static function clear_attachment($id, $tool)
@@ -150,7 +149,7 @@ class Errors
 	 * Returns the recent errors, newest first.
 	 *
 	 * @return array
-	 * @since 0.1.5
+	 * @since 1.0.0
 	 * @date 25/10/2026
 	 */
 	public static function recent()
@@ -162,7 +161,7 @@ class Errors
 	/**
 	 * Clears the recent errors, once dismissed.
 	 *
-	 * @since 0.1.5
+	 * @since 1.0.0
 	 * @date 25/10/2026
 	 */
 	public static function clear_recent()

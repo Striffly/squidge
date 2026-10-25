@@ -7,7 +7,6 @@
  * and executing commands.
  *
  * @package     OIO
- * @version     0.1.4
  * @author      Clément Gayot
  * @author      Ainsley Clark (Squidge, original author)
  * @category    Class
@@ -124,7 +123,7 @@ class Service
 	 * @param string $filepath
 	 * @param array $args
 	 * @return bool
-	 * @since 0.1.5
+	 * @since 1.0.0
 	 * @date 25/10/2026
 	 */
 	protected static function run($command, $filepath, $args)
@@ -146,7 +145,7 @@ class Service
 	 * (lowest), by context (see Optimiser::$context).
 	 *
 	 * @return string
-	 * @since 0.1.5
+	 * @since 1.0.0
 	 * @date 25/10/2026
 	 */
 	private static function nice()
@@ -174,7 +173,7 @@ class Service
 	 * @param string $filepath
 	 * @param string $mime
 	 * @return string
-	 * @since 0.1.5
+	 * @since 1.0.0
 	 * @date 25/10/2026
 	 */
 	protected static function readable_source($filepath, $mime)
@@ -204,7 +203,7 @@ class Service
 	 *
 	 * @param string $source
 	 * @param string $filepath
-	 * @since 0.1.5
+	 * @since 1.0.0
 	 * @date 25/10/2026
 	 */
 	protected static function release_source($source, $filepath)
@@ -223,7 +222,7 @@ class Service
 	 * @param int $code
 	 * @param string $filepath
 	 * @return string
-	 * @since 0.1.5
+	 * @since 1.0.0
 	 * @date 25/10/2026
 	 */
 	private static function error_message($output, $code, $filepath)
@@ -244,7 +243,7 @@ class Service
 	 *
 	 * @param string $filepath
 	 * @return bool
-	 * @since 0.1.5
+	 * @since 1.0.0
 	 * @date 25/10/2026
 	 */
 	protected static function is_done($filepath)
@@ -262,7 +261,7 @@ class Service
 	 *
 	 * @param string $filepath
 	 * @return string
-	 * @since 0.1.5
+	 * @since 1.0.0
 	 * @date 25/10/2026
 	 */
 	public static function backup_path($filepath)
@@ -277,7 +276,7 @@ class Service
 	 *
 	 * @param string $filepath
 	 * @return string
-	 * @since 0.1.5
+	 * @since 1.0.0
 	 * @date 25/10/2026
 	 */
 	protected static function original($filepath)
@@ -293,7 +292,7 @@ class Service
 	 * @param string $filepath
 	 * @param array $args
 	 * @return bool
-	 * @since 0.1.5
+	 * @since 1.0.0
 	 * @date 25/10/2026
 	 */
 	protected static function backup($filepath, $args)
@@ -316,7 +315,7 @@ class Service
 	 *
 	 * @param array $args
 	 * @param string $path
-	 * @since 0.1.5
+	 * @since 1.0.0
 	 * @date 25/10/2026
 	 */
 	protected static function remember($args, $path)
@@ -386,7 +385,7 @@ class Service
 	 * Returns the uploads folder.
 	 *
 	 * @return string
-	 * @since 0.1.5
+	 * @since 1.0.0
 	 * @date 25/10/2026
 	 */
 	private static function uploads_dir()
@@ -400,7 +399,7 @@ class Service
 	 *
 	 * @param string $path
 	 * @return string
-	 * @since 0.1.5
+	 * @since 1.0.0
 	 * @date 25/10/2026
 	 */
 	private static function relative_path($path)
@@ -496,7 +495,7 @@ class Service
 	 * processed by this service.
 	 *
 	 * @return string
-	 * @since 0.1.5
+	 * @since 1.0.0
 	 * @date 25/10/2026
 	 */
 	public static function meta_key()
@@ -511,7 +510,7 @@ class Service
 	 *
 	 * @param array $args
 	 * @return string
-	 * @since 0.1.5
+	 * @since 1.0.0
 	 * @date 25/10/2026
 	 */
 	public static function signature($args)

@@ -6,7 +6,6 @@
  * Main OIO class.
  *
  * @package     OIO
- * @version     0.1.4
  * @author      Clément Gayot
  * @author      Ainsley Clark (Squidge, original author)
  * @category    Class
@@ -29,7 +28,7 @@ final class OIO
 	 *
 	 * @var string
 	 */
-	var $version = '0.1.1';
+	var $version = '0.1.4';
 
 	/**
 	 * The instance of OIO.

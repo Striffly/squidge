@@ -8,7 +8,6 @@
  * their progress.
  *
  * @package     OIO
- * @version     0.1.4
  * @author      Clément Gayot
  * @category    Admin
  * @repo        https://github.com/Striffly/squidge
@@ -51,7 +50,7 @@ class Tools
 	/**
 	 * Adds the AJAX requests.
 	 *
-	 * @since 0.1.5
+	 * @since 1.0.0
 	 * @date 25/10/2026
 	 */
 	public function __construct()
@@ -64,7 +63,7 @@ class Tools
 	/**
 	 * Checks the nonce and the capability of a request.
 	 *
-	 * @since 0.1.5
+	 * @since 1.0.0
 	 * @date 25/10/2026
 	 */
 	private function authorize()
@@ -78,7 +77,7 @@ class Tools
 	/**
 	 * Starts a job on the images of its statuses.
 	 *
-	 * @since 0.1.5
+	 * @since 1.0.0
 	 * @date 25/10/2026
 	 */
 	public function start()
@@ -103,7 +102,7 @@ class Tools
 	/**
 	 * Pauses, resumes or cancels the job.
 	 *
-	 * @since 0.1.5
+	 * @since 1.0.0
 	 * @date 25/10/2026
 	 */
 	public function control()
@@ -127,7 +126,7 @@ class Tools
 	 * Sends the progress of the job and the number of
 	 * images by status.
 	 *
-	 * @since 0.1.5
+	 * @since 1.0.0
 	 * @date 25/10/2026
 	 */
 	public function status()

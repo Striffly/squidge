@@ -8,7 +8,6 @@
  * library.
  *
  * @package     OIO
- * @version     0.1.4
  * @author      Clément Gayot
  * @author      Ainsley Clark (Squidge, original author)
  * @category    Class
@@ -76,7 +75,7 @@ class PNG extends Service implements Convertor
 	 *
 	 * @param array $args
 	 * @return string
-	 * @since 0.1.5
+	 * @since 1.0.0
 	 * @date 25/10/2026
 	 */
 	public static function signature($args)
@@ -91,7 +90,7 @@ class PNG extends Service implements Convertor
 	 *
 	 * @param $args
 	 * @return int
-	 * @since 0.1.5
+	 * @since 1.0.0
 	 * @date 25/10/2026
 	 */
 	private static function optimization_level($args)

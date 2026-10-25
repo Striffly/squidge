@@ -8,7 +8,6 @@
  * library.
  *
  * @package     OIO
- * @version     0.1.4
  * @author      Clément Gayot
  * @author      Ainsley Clark (Squidge, original author)
  * @category    Admin
@@ -50,7 +49,7 @@ class Upload
 	 * @param array $metadata
 	 * @param int $attachment_id
 	 * @return array
-	 * @since 0.1.5
+	 * @since 1.0.0
 	 * @date 25/10/2026
 	 */
 	public function process($metadata, $attachment_id)

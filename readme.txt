@@ -92,8 +92,18 @@ function oio_image($image_id, $class = '', $lazy = false)
 
 == Changelog ==
 
+= 1.0.0 =
+* Renamed to OIO – Octopus Image Optimizer, starting again from Squidge 0.1.4: no migration of its data.
+* The original images are kept in `uploads/oio-originals/`, and every optimisation starts again from them.
+* WebP and AVIF files keep the extension of their source (`image.jpg.webp`), and can be served on the site with `<picture>`.
+* Background optimisation of the media library, with pause and cancel, and re-optimisation when the settings or the thumbnail sizes change.
+* Clean up: remove the WebP and AVIF files, or restore the original images.
+* Status column in the media library and readable error notices.
+* CMYK JPG images, AVIF quality settings, CPU limits adjustable by filters.
+* Requires WordPress 6.0 and PHP 7.4.
+
 = 0.1.0 =
-* Initial Release
+* Squidge, initial release.
 
 == Credits ==
 

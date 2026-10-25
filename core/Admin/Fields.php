@@ -8,7 +8,6 @@
  * Settings API.
  *
  * @package     OIO
- * @version     0.1.4
  * @author      Clément Gayot
  * @author      Ainsley Clark (Squidge, original author)
  * @category    Class
@@ -81,7 +80,7 @@ class Fields
 	 * Returns the URL of the options page.
 	 *
 	 * @return string
-	 * @since 0.1.5
+	 * @since 1.0.0
 	 * @date 25/10/2026
 	 */
 	public static function page_url()
@@ -95,7 +94,7 @@ class Fields
 	 *
 	 * @param string $name
 	 * @return mixed
-	 * @since 0.1.5
+	 * @since 1.0.0
 	 * @date 25/10/2026
 	 */
 	public static function get($name)
@@ -144,7 +143,7 @@ class Fields
 	/**
 	 * Adds the options page under Settings.
 	 *
-	 * @since 0.1.5
+	 * @since 1.0.0
 	 * @date 25/10/2026
 	 */
 	public function add_page()
@@ -177,7 +176,7 @@ class Fields
 	 * tab per format. All tabs share one form so
 	 * saving never resets the hidden tabs.
 	 *
-	 * @since 0.1.5
+	 * @since 1.0.0
 	 * @date 25/10/2026
 	 */
 	public function render_page()
@@ -272,7 +271,7 @@ class Fields
 	 * Renders how to use oio_image() in a custom
 	 * theme, whose images this option does not change.
 	 *
-	 * @since 0.1.5
+	 * @since 1.0.0
 	 * @date 25/10/2026
 	 */
 	private function render_theme_help()
@@ -296,7 +295,7 @@ class Fields
 	 * Renders the number of JPG and PNG images of the
 	 * media library by status.
 	 *
-	 * @since 0.1.5
+	 * @since 1.0.0
 	 * @date 25/10/2026
 	 */
 	private function render_library()
@@ -368,7 +367,7 @@ class Fields
 	 *
 	 * @param array $section
 	 * @return string
-	 * @since 0.1.5
+	 * @since 1.0.0
 	 * @date 25/10/2026
 	 */
 	private static function state($section)
@@ -384,7 +383,7 @@ class Fields
 	 *
 	 * @param string $variant on, off or muted.
 	 * @param string $label
-	 * @since 0.1.5
+	 * @since 1.0.0
 	 * @date 25/10/2026
 	 */
 	private function render_badge($variant, $label)
@@ -397,7 +396,7 @@ class Fields
 	 *
 	 * @param string $name
 	 * @param array $field
-	 * @since 0.1.5
+	 * @since 1.0.0
 	 * @date 25/10/2026
 	 */
 	private function render_field($name, $field)
@@ -434,7 +433,7 @@ class Fields
 	 * @param mixed $value
 	 * @param array $field
 	 * @return string
-	 * @since 0.1.5
+	 * @since 1.0.0
 	 * @date 25/10/2026
 	 */
 	private function sanitize($value, $field)
@@ -457,7 +456,7 @@ class Fields
 	 * Returns the option fields, grouped by section.
 	 *
 	 * @return array
-	 * @since 0.1.5
+	 * @since 1.0.0
 	 * @date 25/10/2026
 	 */
 	private static function sections()

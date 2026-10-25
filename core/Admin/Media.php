@@ -8,7 +8,6 @@
  * optimise it.
  *
  * @package     OIO
- * @version     0.1.4
  * @author      Clément Gayot
  * @category    Admin
  * @repo        https://github.com/Striffly/squidge
@@ -56,7 +55,7 @@ class Media
 	/**
 	 * Adds the column, the action and its notice.
 	 *
-	 * @since 0.1.5
+	 * @since 1.0.0
 	 * @date 25/10/2026
 	 */
 	public function __construct()
@@ -75,7 +74,7 @@ class Media
 	 *
 	 * @param int $id
 	 * @return bool
-	 * @since 0.1.5
+	 * @since 1.0.0
 	 * @date 25/10/2026
 	 */
 	private function is_image($id)
@@ -88,7 +87,7 @@ class Media
 	 *
 	 * @param array $columns
 	 * @return array
-	 * @since 0.1.5
+	 * @since 1.0.0
 	 * @date 25/10/2026
 	 */
 	public function columns($columns)
@@ -102,7 +101,7 @@ class Media
 	 *
 	 * @param string $name
 	 * @param int $id
-	 * @since 0.1.5
+	 * @since 1.0.0
 	 * @date 25/10/2026
 	 */
 	public function column($name, $id)
@@ -124,7 +123,7 @@ class Media
 	 * @param array $actions
 	 * @param \WP_Post $post
 	 * @return array
-	 * @since 0.1.5
+	 * @since 1.0.0
 	 * @date 25/10/2026
 	 */
 	public function row_actions($actions, $post)
@@ -148,7 +147,7 @@ class Media
 	 * older settings, or everything again from the
 	 * original if it is already optimised.
 	 *
-	 * @since 0.1.5
+	 * @since 1.0.0
 	 * @date 25/10/2026
 	 */
 	public function optimise()
@@ -175,7 +174,7 @@ class Media
 	 *
 	 * @param int $id
 	 * @return bool
-	 * @since 0.1.5
+	 * @since 1.0.0
 	 * @date 25/10/2026
 	 */
 	private function is_processed($id)
@@ -192,7 +191,7 @@ class Media
 	 * Restores the original of an image and removes its
 	 * OIO files.
 	 *
-	 * @since 0.1.5
+	 * @since 1.0.0
 	 * @date 25/10/2026
 	 */
 	public function restore()
@@ -213,7 +212,7 @@ class Media
 	 * Confirms the optimisation of an image. Its errors,
 	 * if any, are shown by the errors notice.
 	 *
-	 * @since 0.1.5
+	 * @since 1.0.0
 	 * @date 25/10/2026
 	 */
 	public function notice()
@@ -245,7 +244,7 @@ class Media
 	 * library.
 	 *
 	 * @param string $hook
-	 * @since 0.1.5
+	 * @since 1.0.0
 	 * @date 25/10/2026
 	 */
 	public function styles($hook)

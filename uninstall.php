@@ -14,7 +14,6 @@
  * "Restore original images" before deleting OIO.
  *
  * @package     OIO
- * @version     0.1.4
  * @author      Clément Gayot
  * @category    Uninstall
  * @repo        https://github.com/Striffly/squidge

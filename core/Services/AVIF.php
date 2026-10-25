@@ -8,7 +8,6 @@
  * the avifenc library.
  *
  * @package     OIO
- * @version     0.1.4
  * @author      Clément Gayot
  * @author      Ainsley Clark (Squidge, original author)
  * @category    Class
@@ -97,7 +96,7 @@ class AVIF extends Service implements Convertor
 	 * sets it by context (see Optimiser::$context).
 	 *
 	 * @return string A number, or "all".
-	 * @since 0.1.5
+	 * @since 1.0.0
 	 * @date 25/10/2026
 	 */
 	private static function jobs()
@@ -114,7 +113,7 @@ class AVIF extends Service implements Convertor
 	 * with every version).
 	 *
 	 * @return int
-	 * @since 0.1.5
+	 * @since 1.0.0
 	 * @date 25/10/2026
 	 */
 	private static function version()
@@ -138,7 +137,7 @@ class AVIF extends Service implements Convertor
 	 * @param int $max
 	 * @param int $default
 	 * @return int
-	 * @since 0.1.5
+	 * @since 1.0.0
 	 * @date 25/10/2026
 	 */
 	private static function int_arg($args, $key, $min, $max, $default)

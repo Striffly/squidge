@@ -10,7 +10,6 @@
  * inactive plugins, when OIO no longer runs.
  *
  * @package     OIO
- * @version     0.1.4
  * @author      Clément Gayot
  * @category    Admin
  * @repo        https://github.com/Striffly/squidge
@@ -45,7 +44,7 @@ class Plugins
 	/**
 	 * Adds the script of the plugins page and its request.
 	 *
-	 * @since 0.1.5
+	 * @since 1.0.0
 	 * @date 25/10/2026
 	 */
 	public function __construct()
@@ -59,7 +58,7 @@ class Plugins
 	 * Enqueues the warnings on the plugins page.
 	 *
 	 * @param string $hook
-	 * @since 0.1.5
+	 * @since 1.0.0
 	 * @date 25/10/2026
 	 */
 	public function scripts($hook)
@@ -83,7 +82,7 @@ class Plugins
 	 * the size of the kept originals, shown before
 	 * deactivating OIO.
 	 *
-	 * @since 0.1.5
+	 * @since 1.0.0
 	 * @date 25/10/2026
 	 */
 	public function info()
@@ -104,7 +103,7 @@ class Plugins
 	 *
 	 * @param string $dir
 	 * @return int
-	 * @since 0.1.5
+	 * @since 1.0.0
 	 * @date 25/10/2026
 	 */
 	private function dir_size($dir)
@@ -123,7 +122,7 @@ class Plugins
 	 * while OIO is deactivated. Cached for 12 hours.
 	 *
 	 * @return bool
-	 * @since 0.1.5
+	 * @since 1.0.0
 	 * @date 25/10/2026
 	 */
 	private function theme_calls()
@@ -149,7 +148,7 @@ class Plugins
 	 *
 	 * @param string $dir
 	 * @return bool
-	 * @since 0.1.5
+	 * @since 1.0.0
 	 * @date 25/10/2026
 	 */
 	private function dir_calls($dir)
@@ -174,7 +173,7 @@ class Plugins
 	/**
 	 * Scans the new theme next time.
 	 *
-	 * @since 0.1.5
+	 * @since 1.0.0
 	 * @date 25/10/2026
 	 */
 	public function forget_theme()

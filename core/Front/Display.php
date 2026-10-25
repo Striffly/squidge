@@ -9,7 +9,6 @@
  * by wp_get_attachment_image().
  *
  * @package     OIO
- * @version     0.1.4
  * @author      Clément Gayot
  * @category    Front
  * @repo        https://github.com/Striffly/squidge
@@ -38,7 +37,7 @@ class Display
 	/**
 	 * Adds the image filters.
 	 *
-	 * @since 0.1.5
+	 * @since 1.0.0
 	 * @date 25/10/2026
 	 */
 	public function __construct()
@@ -55,7 +54,7 @@ class Display
 	 *
 	 * @param string $html
 	 * @return string
-	 * @since 0.1.5
+	 * @since 1.0.0
 	 * @date 25/10/2026
 	 */
 	public function filter($html)

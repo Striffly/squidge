@@ -7,7 +7,6 @@
  * functions via the WP CLI.
  *
  * @package     OIO
- * @version     0.1.4
  * @author      Clément Gayot
  * @author      Ainsley Clark (Squidge, original author)
  * @category    CLI
@@ -151,7 +150,7 @@ class OIO_CLI extends WP_CLI_Command
 	 * Removes the WebP and AVIF files of all images. The
 	 * JPG and PNG files stay compressed.
 	 *
-	 * @since 0.1.5
+	 * @since 1.0.0
 	 * @date 25/10/2026
 	 */
 	public function clean()
@@ -169,7 +168,7 @@ class OIO_CLI extends WP_CLI_Command
 	 * Restores the original images and removes every
 	 * file made by OIO (WebP, AVIF, backups).
 	 *
-	 * @since 0.1.5
+	 * @since 1.0.0
 	 * @date 25/10/2026
 	 */
 	public function restore()
