@@ -19,6 +19,7 @@ namespace OIO\Services;
 
 use OIO\Log\Logger;
 use OIO\Package\Convertor;
+use OIO\Package\Optimiser;
 use OIO\Package\Service;
 use OIO\Types\Mimes;
 
@@ -60,11 +61,31 @@ class WebP extends Service implements Convertor
 		$original = self::original($filepath);
 		$source = self::readable_source($original, $mime);
 		$output = $filepath . self::extension();
-		if (self::run(['-q', (int)$args['quality'], $source, '-o', $output], $filepath, $args)) {
+		$options = ['-q', (int)$args['quality']];
+		if (self::multithreading()) {
+			$options[] = '-mt';
+		}
+		if (self::run(array_merge($options, [$source, '-o', $output]), $filepath, $args)) {
 			Logger::info("Successfully converted to WebP file: " . $output);
 			self::remember($args, $output);
 		}
 		self::release_source($source, $original);
+	}
+
+	/**
+	 * Determines if cwebp uses a second thread: on
+	 * upload and in the CLI, not in background jobs,
+	 * where the requests of the site go first. The
+	 * oio_webp_mt filter sets it by context (see
+	 * Optimiser::$context).
+	 *
+	 * @return bool
+	 * @since 1.0.0
+	 * @date 25/10/2026
+	 */
+	private static function multithreading()
+	{
+		return (bool)apply_filters('oio_webp_mt', Optimiser::$context !== 'background', Optimiser::$context);
 	}
 
 	/**

@@ -90,11 +90,11 @@ class AVIF extends Service implements Convertor
 	}
 
 	/**
-	 * Returns the number of threads of avifenc, the only
-	 * library using several cores: 4 on upload (about
-	 * as fast as all cores on a photo), 2 in background
-	 * jobs, all in the CLI. The oio_avif_jobs filter
-	 * sets it by context (see Optimiser::$context).
+	 * Returns the number of threads of avifenc: 4 on
+	 * upload (about as fast as all cores on a photo), 2
+	 * in background jobs, all in the CLI. The
+	 * oio_avif_jobs filter sets it by context (see
+	 * Optimiser::$context).
 	 *
 	 * @return string A number, or "all".
 	 * @since 1.0.0

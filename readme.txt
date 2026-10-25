@@ -36,7 +36,7 @@ OIO optimises the images of your media library with the libraries of your own se
 = For developers =
 
 * WP-CLI: `wp oio run`, `clean`, `restore` and `health`. `wp oio run --regenerate` makes the thumbnails again from the originals first.
-* Filters: `oio_backup_dir` (folder of the originals), `oio_nice` and `oio_avif_jobs` (priority and threads of the libraries), `oio_job_seconds_between_batches` and `oio_job_default_time_limit` (pace of the background jobs), `oio_binary_path` (path of a library installed out of the usual folders).
+* Filters: `oio_backup_dir` (folder of the originals), `oio_nice`, `oio_avif_jobs` and `oio_webp_mt` (priority and threads of the libraries), `oio_job_seconds_between_batches` and `oio_job_default_time_limit` (pace of the background jobs), `oio_binary_path` (path of a library installed out of the usual folders).
 
 See the [README on GitHub](https://github.com/Striffly/octopus-image-optimizer) for the details.
 

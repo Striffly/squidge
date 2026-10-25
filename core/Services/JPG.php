@@ -68,7 +68,8 @@ class JPG extends Service implements Convertor
 			Errors::add(isset($args['id']) ? $args['id'] : 0, self::cmd_name(), $filepath, 'cannot write ' . basename($filepath));
 			return;
 		}
-		if (self::run(['--strip-all', '--overwrite', '--max=' . (int)$args['quality'], $filepath], $filepath, $args)) {
+		// Progressive: the browser shows the whole image blurred first, then sharpens it.
+		if (self::run(['--strip-all', '--all-progressive', '--overwrite', '--max=' . (int)$args['quality'], $filepath], $filepath, $args)) {
 			Logger::info("Successfully compressed image JPG file: " . $filepath);
 		} else {
 			// Back to the original, without backup: it is retried next time.

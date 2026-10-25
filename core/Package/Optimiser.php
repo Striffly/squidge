@@ -66,8 +66,8 @@ class Optimiser
 	 * Where the images are optimised: "upload" during a
 	 * request of the admin (upload, media library
 	 * action), "background" in a background job, "cli"
-	 * in WP-CLI. Passed to the oio_nice and
-	 * oio_avif_jobs filters.
+	 * in WP-CLI. Passed to the oio_nice, oio_avif_jobs
+	 * and oio_webp_mt filters.
 	 *
 	 * @var string
 	 */

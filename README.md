@@ -98,13 +98,14 @@ which reminds it when it is deactivated.
 Every optimisation starts from the original image:
 
 ```bash
-jpegoptim --strip-all --overwrite --max={quality} photo.jpg
+jpegoptim --strip-all --all-progressive --overwrite --max={quality} photo.jpg
 optipng -clobber -strip all -o {level} -out photo.png oio-originals/photo.png
-cwebp -q {quality} photo.jpg -o photo.jpg.webp
+cwebp -q {quality} -mt photo.jpg -o photo.jpg.webp
 avifenc -q {quality} --speed 6 --ignore-exif --ignore-xmp photo.jpg photo.jpg.avif
 ```
 
-`avifenc` older than 1.0 gets the quality as `cq-level` instead of `-q`.
+`avifenc` older than 1.0 gets the quality as `cq-level` instead of `-q`. In background jobs, `cwebp` runs without
+`-mt` and `avifenc` with `--jobs 2`.
 
 ## Privacy
 
@@ -180,12 +181,13 @@ Keep the `function_exists()` check: without it, the pages break while OIO is dea
 | `oio_backup_dir`                  | `uploads/oio-originals`                       | The folder of the original images.                       |
 | `oio_nice`                        | `19` in background jobs, `0` otherwise        | The priority of the libraries, `0` (normal) to `19`.     |
 | `oio_avif_jobs`                   | `4` on upload, `2` in background, `all` in CLI | The threads of `avifenc`.                                |
+| `oio_webp_mt`                     | `false` in background jobs, `true` otherwise  | A second thread for `cwebp` (`-mt`).                     |
 | `oio_job_seconds_between_batches` | `0`                                           | A pause after each image of a background job, seconds.   |
 | `oio_job_default_time_limit`      | `20`                                          | The duration of a batch of a background job, seconds.    |
 | `oio_binary_path`                 | Found in the `PATH`, then `/usr/bin`...       | The path of a library, or `false` to turn it off.        |
 
-`oio_nice` and `oio_avif_jobs` receive the context as second argument: `upload`, `background` or `cli`. On
-multisite, the two job filters carry the ID of the site: `oio_2_job_default_time_limit` on the site 2.
+`oio_nice`, `oio_avif_jobs` and `oio_webp_mt` receive the context as second argument: `upload`, `background` or
+`cli`. On multisite, the two job filters carry the ID of the site: `oio_2_job_default_time_limit` on the site 2.
 
 `oio_binary_path` receives the name of the library as second argument (`jpegoptim`, `optipng`, `cwebp`, `avifenc`,
 or `nice`). OIO looks the libraries up in the folders of the `PATH`, then in `/usr/bin`, `/usr/local/bin`, `/bin`,
