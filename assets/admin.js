@@ -63,7 +63,8 @@
 /**
  * Background job of the media library card: starts it,
  * shows its progress until it ends, pauses, resumes and
- * cancels it, and keeps the counts up to date.
+ * cancels it, and keeps the counts and the bytes saved
+ * up to date.
  */
 (function () {
 	var box = document.querySelector('.oio-job');
@@ -120,6 +121,19 @@
 		});
 	}
 
+	// The bytes saved, formatted by the server.
+	function showSavings(savings) {
+		var savingsBox = document.querySelector('.oio-savings');
+		if (!savingsBox || !savings) {
+			return;
+		}
+		savingsBox.hidden = !savings.images;
+		savingsBox.querySelectorAll('[data-savings]').forEach(function (element) {
+			element.textContent = savings[element.getAttribute('data-savings')];
+		});
+		savingsBox.querySelector('.oio-savings__hint').hidden = !savings.hint;
+	}
+
 	function duration(seconds) {
 		var minutes = Math.floor(seconds / 60);
 		if (minutes >= 60) {
@@ -158,6 +172,7 @@
 		box.hidden = false;
 		box.setAttribute('data-state', state);
 		showCounts(data.counts);
+		showSavings(data.savings);
 
 		if (state !== 'idle') {
 			following = true;

@@ -25,6 +25,8 @@ if (!defined('ABSPATH')) {
 use OIO\Package\Cleaner;
 use OIO\Package\Lock;
 use OIO\Package\Optimiser;
+use OIO\Package\Stats;
+use OIO\Package\Status;
 use OIO\OIO;
 use OIO\Services\JPG;
 use OIO\Services\PNG;
@@ -197,6 +199,72 @@ class OIO_CLI extends WP_CLI_Command
 			}
 		}
 		WP_CLI::success('Restored ' . (count($ids) - $missing - $skipped) . ' images' . ($missing ? ', ' . $missing . ' had no original' : '') . ($skipped ? ', ' . $skipped . ' skipped' : '') . '.');
+	}
+
+	/**
+	 * Measures the bytes saved on the images optimised
+	 * before OIO measured them, from the sizes of their
+	 * files (nothing is encoded), then prints the
+	 * totals of the media library.
+	 *
+	 * Args:
+	 *    - rebuild=false  Measure every image again.
+	 *
+	 * @param $args
+	 * @param $assoc_args
+	 * @since 1.0.0
+	 * @date 25/10/2026
+	 */
+	public function stats($args, $assoc_args)
+	{
+		$this->print_welcome();
+		$rebuild = isset($assoc_args['rebuild']) && filter_var($assoc_args['rebuild'], FILTER_VALIDATE_BOOLEAN);
+		$measured = 0;
+		foreach (array_chunk(Cleaner::ids(), 500) as $ids) {
+			_prime_post_caches($ids, false, true);
+			foreach ($ids as $id) {
+				if (!in_array(get_post_mime_type($id), Status::MIMES, true) || (!$rebuild && Stats::of($id) !== null)) {
+					continue;
+				}
+				$done = Lock::run($id, function () use ($id) {
+					Stats::save($id);
+					return true;
+				});
+				if ($done === null) {
+					WP_CLI::warning(get_the_title($id) . ': skipped, another request is processing it.');
+					continue;
+				}
+				$measured++;
+			}
+		}
+		WP_CLI::log('Measured ' . $measured . ' images.');
+
+		$totals = Stats::totals(true);
+		$labels = [
+			'original' => 'Originals',
+			'compressed' => 'Compressed JPG and PNG',
+			'modern' => 'With WebP and AVIF served',
+			'extra' => 'WebP and AVIF files',
+		];
+		$items = [];
+		foreach ($labels as $name => $label) {
+			$items[] = [
+				'Files' => $label,
+				'Bytes' => $totals[$name],
+				'Size' => Stats::size($totals[$name]),
+				'Reduction' => in_array($name, ['compressed', 'modern'], true) ? (string)Stats::reduction($totals, $name) : '',
+			];
+		}
+		WP_CLI\Utils\format_items('table', $items, ['Files', 'Bytes', 'Size', 'Reduction']);
+
+		$served = Stats::served();
+		WP_CLI::success(sprintf(
+			'%s saved on %d images, %s: the site serves %s.',
+			Stats::size(max(0, $totals['original'] - $totals[$served])),
+			$totals['images'],
+			(string)Stats::reduction($totals, $served),
+			$served === 'modern' ? 'the WebP and AVIF' : 'the JPG and PNG, not the WebP and AVIF'
+		));
 	}
 
 	/**

@@ -123,8 +123,8 @@ class Tools
 	}
 
 	/**
-	 * Sends the progress of the job and the number of
-	 * images by status.
+	 * Sends the progress of the job, the number of
+	 * images by status and the bytes saved.
 	 *
 	 * @since 1.0.0
 	 * @date 25/10/2026
@@ -135,6 +135,7 @@ class Tools
 		wp_send_json_success([
 			'job' => Job::instance()->progress(),
 			'counts' => array_merge(Status::counts(), ['processed' => count(Cleaner::ids())]),
+			'savings' => Fields::savings(),
 		]);
 	}
 }

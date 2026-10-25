@@ -78,6 +78,7 @@ class Cleaner
 				delete_post_meta($id, $service::meta_key());
 				Errors::clear_attachment($id, $service::cmd_name());
 			}
+			Stats::save($id);
 			return true;
 		});
 	}
@@ -85,8 +86,9 @@ class Cleaner
 	/**
 	 * Restores the original images of an image: the
 	 * backups are put back in place, then every OIO
-	 * file (WebP, AVIF, backups) and meta is removed.
-	 * The metadata gets the sizes of the originals.
+	 * file (WebP, AVIF, backups) and meta is removed,
+	 * the bytes saved too (see Stats). The metadata
+	 * gets the sizes of the originals.
 	 *
 	 * @param int $id
 	 * @return bool|null False if the original of a compressed

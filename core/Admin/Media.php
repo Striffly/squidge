@@ -18,6 +18,7 @@ namespace OIO\Admin;
 
 use OIO\Package\Cleaner;
 use OIO\Package\Optimiser;
+use OIO\Package\Stats;
 use OIO\Package\Status;
 
 if (!defined('ABSPATH')) {
@@ -104,7 +105,9 @@ class Media
 	}
 
 	/**
-	 * Renders the status of an image.
+	 * Renders the status of an image, and how much
+	 * lighter the files the site serves are than its
+	 * originals.
 	 *
 	 * @param string $name
 	 * @param int $id
@@ -122,6 +125,34 @@ class Media
 		}
 		$status = Status::of($id);
 		printf('<span class="oio-status-label oio-status-label--%s">%s</span>', esc_attr($status), esc_html(self::LABELS[$status]));
+		$bytes = Stats::of($id);
+		$reduction = $bytes ? Stats::reduction($bytes, Stats::served()) : null;
+		if ($reduction !== null) {
+			printf(' <span class="oio-saved" title="%s">&middot; %s</span>', esc_attr($this->details($bytes)), esc_html($reduction));
+		}
+	}
+
+	/**
+	 * Returns the sizes of the files of an image, one
+	 * per line, for the title of its reduction.
+	 *
+	 * @param array $bytes See Stats::KEYS.
+	 * @return string
+	 * @since 1.0.0
+	 * @date 25/10/2026
+	 */
+	private function details($bytes)
+	{
+		$lines = [
+			'Original: ' . Stats::size($bytes['original']),
+			'Compressed: ' . Stats::size($bytes['compressed']) . ' (' . Stats::reduction($bytes, 'compressed') . ')',
+		];
+		if ($bytes['extra']) {
+			$lines[] = 'With WebP and AVIF: ' . Stats::size($bytes['modern']) . ' (' . Stats::reduction($bytes, 'modern') . ')';
+			$lines[] = 'WebP and AVIF files: ' . Stats::size($bytes['extra']);
+		}
+		$lines[] = Stats::served() === 'modern' ? 'The site serves the WebP and AVIF.' : 'The site serves the JPG or PNG.';
+		return implode("\n", $lines);
 	}
 
 	/**
@@ -274,6 +305,6 @@ class Media
 		if ($hook !== 'upload.php') {
 			return;
 		}
-		wp_add_inline_style('wp-admin', '.column-oio{width:120px}.oio-status-label::before{content:"";display:inline-block;width:8px;height:8px;margin-right:6px;border-radius:50%;background:#a7aaad}.oio-status-label--optimised::before{background:#00a32a}.oio-status-label--outdated::before{background:#dba617}.oio-status-label--error::before{background:#d63638}');
+		wp_add_inline_style('wp-admin', '.column-oio{width:170px}.oio-saved{white-space:nowrap}.oio-status-label::before{content:"";display:inline-block;width:8px;height:8px;margin-right:6px;border-radius:50%;background:#a7aaad}.oio-status-label--optimised::before{background:#00a32a}.oio-status-label--outdated::before{background:#dba617}.oio-status-label--error::before{background:#d63638}');
 	}
 }

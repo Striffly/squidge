@@ -288,6 +288,22 @@
 	color: #1d2327;
 }
 
+.oio-savings {
+	padding: 16px 20px 0;
+}
+
+.oio-savings p {
+	margin: 0;
+}
+
+.oio-savings__saved {
+	font-size: 15px;
+}
+
+.oio-savings .description {
+	margin-top: 4px;
+}
+
 .oio-status-label::before {
 	content: "";
 	display: inline-block;

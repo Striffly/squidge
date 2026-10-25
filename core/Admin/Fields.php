@@ -18,6 +18,7 @@
 namespace OIO\Admin;
 
 use OIO\Package\Service;
+use OIO\Package\Stats;
 use OIO\Package\Status;
 use OIO\Services\AVIF;
 use OIO\Services\JPG;
@@ -333,8 +334,35 @@ class Fields
 	}
 
 	/**
-	 * Renders the number of JPG and PNG images of the
-	 * media library by status.
+	 * Returns the bytes saved on the media library, as
+	 * shown on the overview: the reduction of what the
+	 * site serves, the one it would get with the WebP
+	 * and AVIF served, and the disk used by OIO. Sent
+	 * again with the progress of a job (Tools::status()).
+	 *
+	 * @return array
+	 * @since 1.0.0
+	 * @date 25/10/2026
+	 */
+	public static function savings()
+	{
+		$totals = Stats::totals();
+		$served = Stats::served();
+		return [
+			'images' => $totals['images'],
+			'saved' => Stats::size(max(0, $totals['original'] - $totals[$served])),
+			'reduction' => (string)Stats::reduction($totals, $served),
+			'modern' => (string)Stats::reduction($totals, 'modern'),
+			// Serving the WebP and AVIF would save more.
+			'hint' => $served === 'compressed' && $totals['modern'] < $totals['compressed'],
+			'originals' => Stats::size($totals['original']),
+			'formats' => Stats::size($totals['extra']),
+		];
+	}
+
+	/**
+	 * Renders the bytes saved on the media library, and
+	 * the number of its JPG and PNG images by status.
 	 *
 	 * @since 1.0.0
 	 * @date 25/10/2026
@@ -342,6 +370,7 @@ class Fields
 	private function render_library()
 	{
 		$counts = Status::counts();
+		$savings = self::savings();
 		?>
 		<div class="oio-card oio-library">
 			<header class="oio-card__header oio-card__header--text">
@@ -350,6 +379,19 @@ class Fields
 					<?php echo esc_html(sprintf(_n('%s JPG or PNG image', '%s JPG and PNG images', $counts['total']), number_format_i18n($counts['total']))); ?>
 				</p>
 			</header>
+			<div class="oio-savings"<?php echo $savings['images'] ? '' : ' hidden'; ?>>
+				<p class="oio-savings__saved">
+					<strong data-savings="saved"><?php echo esc_html($savings['saved']); ?></strong> saved,
+					<strong data-savings="reduction"><?php echo esc_html($savings['reduction']); ?></strong>
+					<span class="oio-savings__hint"<?php echo $savings['hint'] ? '' : ' hidden'; ?>>
+						&middot; <a href="#_oio_display_formats"><span data-savings="modern"><?php echo esc_html($savings['modern']); ?></span> with WebP and AVIF served</a>
+					</span>
+				</p>
+				<p class="description">
+					Disk used by OIO: originals <span data-savings="originals"><?php echo esc_html($savings['originals']); ?></span>,
+					WebP and AVIF <span data-savings="formats"><?php echo esc_html($savings['formats']); ?></span>
+				</p>
+			</div>
 			<ul class="oio-counts">
 				<?php foreach (Media::LABELS as $status => $label) : ?>
 					<li class="oio-counts__item">

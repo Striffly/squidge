@@ -27,6 +27,7 @@ OIO optimises the images of your media library with the libraries of your own se
 * Optimises, re-optimises or cleans up the whole library in the background, with a progress bar, pause and cancel. The job goes on when the page is closed.
 * Spots the images optimised with older settings, or before the theme changed its image sizes, and makes their thumbnails again from the originals, scaled to the current maximum size.
 * Shows the status of each image in the media library, and its errors in plain words.
+* Shows the bytes saved, on each image of the media library and on the whole library, with what serving WebP and AVIF would save, and the disk used by the originals and the WebP and AVIF files.
 
 = On the site =
 
@@ -35,7 +36,7 @@ OIO optimises the images of your media library with the libraries of your own se
 
 = For developers =
 
-* WP-CLI: `wp oio run`, `clean`, `restore` and `health`. `wp oio run --regenerate` makes the thumbnails again from the originals first.
+* WP-CLI: `wp oio run`, `clean`, `restore`, `stats` and `health`. `wp oio run --regenerate` makes the thumbnails again from the originals first.
 * Filters: `oio_backup_dir` (folder of the originals), `oio_nice`, `oio_avif_jobs`, `oio_webp_mt` and `oio_oxipng_threads` (priority and threads of the libraries), `oio_job_seconds_between_batches` and `oio_job_default_time_limit` (pace of the background jobs), `oio_binary_path` (path of a library installed out of the usual folders).
 
 See the [README on GitHub](https://github.com/Striffly/octopus-image-optimizer) for the details.

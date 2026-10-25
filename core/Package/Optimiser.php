@@ -112,7 +112,7 @@ class Optimiser
 
 	/**
 	 * Optimises an attachment with each format of the
-	 * settings.
+	 * settings, then measures the bytes saved.
 	 *
 	 * @param int $id
 	 * @param array|null $metadata The attachment metadata, when it is not saved yet (on upload).
@@ -152,6 +152,7 @@ class Optimiser
 			if (!doing_filter('wp_generate_attachment_metadata')) {
 				self::save_file_sizes($id);
 			}
+			Stats::save($id, $metadata);
 			return true;
 		});
 	}
@@ -347,6 +348,9 @@ class Optimiser
 				self::attachment($id, $metadata, $outdated, true);
 			} else {
 				Status::stamp_sizes($id, $metadata);
+				// Nothing to encode: the sizes of the files, e.g. of an image optimised
+				// before OIO measured them.
+				Stats::save($id, $metadata);
 			}
 			return true;
 		});
