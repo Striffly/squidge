@@ -24,7 +24,9 @@ class Logger
 {
 
 	/**
-	 * Info logs an information message.
+	 * Info logs an information message, with
+	 * WP_DEBUG only: one per file optimised, with
+	 * the paths of the server.
 	 *
 	 * @param $message
 	 * @since 0.1.0
@@ -32,7 +34,9 @@ class Logger
 	 */
 	static function info($message)
 	{
-		self::log($message, false);
+		if (defined('WP_DEBUG') && WP_DEBUG) {
+			self::log($message, false);
+		}
 	}
 
 	/**
