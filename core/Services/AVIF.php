@@ -72,11 +72,14 @@ class AVIF extends Service implements Convertor
 			$options = sprintf('--min 0 --max 63 -a end-usage=q -a cq-level=%d', (int)(((100 - $quality) * 63 + 50) / 100));
 		}
 
-		$source = self::readable_source($filepath, $mime);
-		if (self::run(sprintf('%s %s --speed %d -a tune=ssim %s %s', escapeshellarg(self::cmd_name()), $options, $speed, escapeshellarg($source), escapeshellarg($filepath . self::extension())), $filepath, $args)) {
-			Logger::info("Successfully converted to AVIF file: " . $filepath . self::extension());
+		$original = self::original($filepath);
+		$source = self::readable_source($original, $mime);
+		$output = $filepath . self::extension();
+		if (self::run(sprintf('%s %s --speed %d -a tune=ssim %s %s', escapeshellarg(self::cmd_name()), $options, $speed, escapeshellarg($source), escapeshellarg($output)), $filepath, $args)) {
+			Logger::info("Successfully converted to AVIF file: " . $output);
+			self::remember($args, $output);
 		}
-		self::release_source($source, $filepath);
+		self::release_source($source, $original);
 	}
 
 	/**

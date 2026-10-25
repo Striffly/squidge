@@ -30,9 +30,11 @@ hard work for you.
 ## What does Squidge do?
 
 Squidge compresses and converts image files when the user has uploaded a file to WordPress.
+The original images are kept in `uploads/squidge-originals/` (same tree as the uploads folder), and every
+optimisation starts again from them.
 
-- Compresses JPG images using `jpegoptim`.
-- Compresses PNG images using `optipng`.
+- Compresses JPG images in place using `jpegoptim`.
+- Compresses PNG images in place using `optipng`.
 - Converts JPG and PNG images to `.webp` files using `cwebp` with the appended extension  e.g. `image.jpg.webp`.
 - Converts JPG and PNG images to `.avif` files using `libavif` with the appended extension  e.g. `image.jpg.avif`.
 

@@ -54,8 +54,17 @@ class PNG extends Service implements Convertor
 		if ($mime != Mimes::PNG) {
 			return;
 		}
-		if (self::run(sprintf('%s -clobber -strip all -o %d %s', escapeshellarg(self::cmd_name()), self::optimization_level($args), escapeshellarg($filepath)), $filepath, $args)) {
+		// The file is optimised in place from its original, kept as a backup.
+		if (!self::backup($filepath, $args)) {
+			return;
+		}
+		$original = self::backup_path($filepath);
+		// optipng keeps a .bak of an output file it overwrites: remove it first.
+		unlink($filepath);
+		if (self::run(sprintf('%s -clobber -strip all -o %d -out %s %s', escapeshellarg(self::cmd_name()), self::optimization_level($args), escapeshellarg($filepath), escapeshellarg($original)), $filepath, $args)) {
 			Logger::info("Successfully compressed image PNG file: " . $filepath);
+		} else {
+			copy($original, $filepath);
 		}
 	}
 

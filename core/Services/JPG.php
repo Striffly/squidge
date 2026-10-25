@@ -17,6 +17,7 @@
 
 namespace Squidge\Services;
 
+use Squidge\Log\Errors;
 use Squidge\Log\Logger;
 use Squidge\Package\Convertor;
 use Squidge\Package\Service;
@@ -56,8 +57,20 @@ class JPG extends Service implements Convertor
 		if (!isset($args['quality'])) {
 			$args['quality'] = self::DEFAULT_QUALITY;
 		}
+		// The file is optimised in place, its original is kept as a backup.
+		// Start again from the original, so a JPG is never compressed twice.
+		if (!self::backup($filepath, $args)) {
+			return;
+		}
+		$original = self::backup_path($filepath);
+		if (!copy($original, $filepath)) {
+			Errors::add(isset($args['id']) ? $args['id'] : 0, self::cmd_name(), $filepath, 'cannot write ' . basename($filepath));
+			return;
+		}
 		if (self::run(sprintf('%s --strip-all --overwrite --max=%d %s', escapeshellarg(self::cmd_name()), $args['quality'], escapeshellarg($filepath)), $filepath, $args)) {
 			Logger::info("Successfully compressed image JPG file: " . $filepath);
+		} else {
+			copy($original, $filepath);
 		}
 	}
 

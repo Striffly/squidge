@@ -29,10 +29,12 @@ hard work for you.
 ## What does Squidge do?
 
 Squidge compresses and converts image files when the user has uploaded a file to WordPress.
+The original images are kept in `uploads/squidge-originals/` (same tree as the uploads folder), and every
+optimisation starts again from them.
 
-Compresses JPG images using `jpegoptim`.
+Compresses JPG images in place using `jpegoptim`.
 
-Compresses PNG images using `optipng`.
+Compresses PNG images in place using `optipng`.
 
 Converts JPG and PNG images to `.webp` files using `cwebp` with the appended extension  e.g. `image.jpg.webp`.
 
@@ -103,7 +105,8 @@ function squidge_image($image_id, $class = '', $lazy = false)
 
 ### Does the plugin replace existing images?
 
-Yes
+Yes, the JPG and PNG files of the uploads folder are replaced with their compressed version, so your whole site
+uses them. The originals are kept in `uploads/squidge-originals/` and every new optimisation starts again from them.
 
 ### What are the supported operating systems?
 
@@ -112,13 +115,14 @@ Windows, Linux, & Mac OSX.
 ### How are JPGs optimized?
 
 ```bash
+# input-file.jpg is first restored from its original in uploads/squidge-originals/
 jpegoptim --strip-all --overwrite --max={{ quality }} input-file.jpg
 ```
 
 ### How are PNGs optimized?
 
 ```bash
-optipng -clobber -strip all -o {{ optimization }} input-file.jpg
+optipng -clobber -strip all -o {{ optimization }} -out input-file.png squidge-originals/input-file.png
 ````
 
 ### How are images converted to webp files?

@@ -35,6 +35,21 @@ class Service
 	const META_KEY = "_squidge_compressed";
 
 	/**
+	 * BACKUP_DIR is the folder, in the uploads folder,
+	 * where the original images are kept before being
+	 * optimised in place, with the same tree as the
+	 * uploads folder.
+	 */
+	const BACKUP_DIR = 'squidge-originals';
+
+	/**
+	 * FILES_KEY is the meta key listing the files made
+	 * by Squidge for an attachment (WebP, AVIF and
+	 * backups), relative to the uploads folder.
+	 */
+	const FILES_KEY = '_squidge_files';
+
+	/**
 	 * Processes the file attachment.
 	 *
 	 * @param $attachment
@@ -194,43 +209,160 @@ class Service
 	}
 
 	/**
-	 * Deletes all images  with file extensions associated
-	 * with the image (if the file exists).
+	 * Returns the path of the backup of an image of
+	 * the uploads folder: the same path, in the
+	 * squidge-originals folder.
+	 *
+	 * @param string $filepath
+	 * @return string
+	 * @since 0.1.5
+	 * @date 25/10/2026
+	 */
+	public static function backup_path($filepath)
+	{
+		return self::uploads_dir() . DIRECTORY_SEPARATOR . self::BACKUP_DIR . DIRECTORY_SEPARATOR . self::relative_path($filepath);
+	}
+
+	/**
+	 * Returns the original image: its backup if the
+	 * file has been optimised in place, otherwise the
+	 * file itself. Every optimisation starts from it.
+	 *
+	 * @param string $filepath
+	 * @return string
+	 * @since 0.1.5
+	 * @date 25/10/2026
+	 */
+	protected static function original($filepath)
+	{
+		$backup = self::backup_path($filepath);
+		return file_exists($backup) ? $backup : $filepath;
+	}
+
+	/**
+	 * Keeps a copy of the original image before it is
+	 * optimised in place, once.
+	 *
+	 * @param string $filepath
+	 * @param array $args
+	 * @return bool
+	 * @since 0.1.5
+	 * @date 25/10/2026
+	 */
+	protected static function backup($filepath, $args)
+	{
+		$backup = self::backup_path($filepath);
+		if (file_exists($backup)) {
+			return true;
+		}
+		if (!wp_mkdir_p(dirname($backup)) || !copy($filepath, $backup)) {
+			Errors::add(isset($args['id']) ? $args['id'] : 0, static::cmd_name(), $filepath, 'cannot write the backup of the original image');
+			return false;
+		}
+		self::remember($args, $backup);
+		return true;
+	}
+
+	/**
+	 * Adds a file made by Squidge to the list of files
+	 * of the attachment, used to delete them.
+	 *
+	 * @param array $args
+	 * @param string $path
+	 * @since 0.1.5
+	 * @date 25/10/2026
+	 */
+	protected static function remember($args, $path)
+	{
+		if (empty($args['id'])) {
+			return;
+		}
+		$files = get_post_meta($args['id'], self::FILES_KEY, true);
+		$files = is_array($files) ? $files : [];
+		$relative = self::relative_path($path);
+		if (!in_array($relative, $files, true)) {
+			$files[] = $relative;
+			update_post_meta($args['id'], self::FILES_KEY, $files);
+		}
+	}
+
+	/**
+	 * Deletes the files Squidge made for an attachment:
+	 * the WebP and AVIF files and the backups of the
+	 * original and of every size, plus any other file
+	 * listed for the attachment (e.g. of sizes that no
+	 * longer exist).
 	 *
 	 * @param $id
 	 * @return void
 	 * @since 0.1.0
 	 * @date 24/11/2021
 	 */
-	public static function delete($id, $useFileExtension = false)
+	public static function delete($id)
 	{
-		// Delete the original file.
 		$original = get_attached_file($id);
-		if (!$original) return;
-
-		$mime_type = self::get_mime_type($original);
-		if ($mime_type != Mimes::PNG && $mime_type != Mimes::JPG) {
+		if (!$original || !in_array(get_post_mime_type($id), [Mimes::PNG, Mimes::JPG], true)) {
 			return;
 		}
 
-		$originalPath = $original . static::extension();
-		if (file_exists($originalPath)) {
-			unlink($originalPath);
+		$files = [$original];
+		$meta = wp_get_attachment_metadata($id);
+		if (!empty($meta['sizes'])) {
+			foreach ($meta['sizes'] as $size) {
+				if (!empty($size['file'])) {
+					$files[] = dirname($original) . DIRECTORY_SEPARATOR . $size['file'];
+				}
+			}
 		}
 
-		// Delete the image sizes.
-		$sizes = get_intermediate_image_sizes();
-		foreach ($sizes as $size) {
-			$fileInfos = image_get_intermediate_size($id, $size);
-			if (empty($fileInfos)) {
-				continue;
-			}
-			$path = self::get_file_path($fileInfos['path'] . static::extension());
-			if (!$path) {
-				continue;
-			}
-			unlink($path);
+		$paths = [];
+		foreach (array_unique($files) as $file) {
+			$paths[] = $file . '.webp';
+			$paths[] = $file . '.avif';
+			$paths[] = self::backup_path($file);
 		}
+		$listed = get_post_meta($id, self::FILES_KEY, true);
+		if (is_array($listed)) {
+			foreach ($listed as $relative) {
+				$paths[] = self::uploads_dir() . DIRECTORY_SEPARATOR . $relative;
+			}
+		}
+
+		foreach (array_unique($paths) as $path) {
+			if (file_exists($path)) {
+				unlink($path);
+			}
+		}
+	}
+
+	/**
+	 * Returns the uploads folder.
+	 *
+	 * @return string
+	 * @since 0.1.5
+	 * @date 25/10/2026
+	 */
+	private static function uploads_dir()
+	{
+		return wp_get_upload_dir()['basedir'];
+	}
+
+	/**
+	 * Returns the path of a file relative to the
+	 * uploads folder.
+	 *
+	 * @param string $path
+	 * @return string
+	 * @since 0.1.5
+	 * @date 25/10/2026
+	 */
+	private static function relative_path($path)
+	{
+		$base = self::uploads_dir();
+		if (strpos($path, $base) === 0) {
+			$path = substr($path, strlen($base));
+		}
+		return ltrim($path, '/\\');
 	}
 
 	/**

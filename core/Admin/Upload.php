@@ -19,6 +19,7 @@ namespace Squidge\Admin;
 
 use Exception;
 use Squidge\Log\Logger;
+use Squidge\Package\Service;
 use Squidge\Services\AVIF;
 use Squidge\Services\JPG;
 use Squidge\Services\PNG;
@@ -45,8 +46,7 @@ class Upload
 		add_filter("wp_generate_attachment_metadata", [$this, 'process_avif'], 30, 1);
 		add_filter("wp_generate_attachment_metadata", [$this, 'process_jpg'], 40, 1);
 		add_filter("wp_generate_attachment_metadata", [$this, 'process_png'], 50, 1);
-		add_filter("delete_attachment", [$this, 'delete_webp'], 20, 1);
-		add_filter("delete_attachment", [$this, 'delete_avif'], 20, 1);
+		add_filter("delete_attachment", [$this, 'delete_files'], 20, 1);
 	}
 
 	/**
@@ -165,32 +165,18 @@ class Upload
 	}
 
 	/**
-	 * Deletes .webp files when the attachment is
-	 * deleted from the media library.
+	 * Deletes the compressed, .webp and .avif files
+	 * when the attachment is deleted from the media
+	 * library.
 	 *
 	 * @param $attachment
 	 * @return mixed
 	 * @since 0.1.0
 	 * @date 24/11/2021
 	 */
-	public function delete_webp($attachment)
+	public function delete_files($attachment)
 	{
-		WebP::delete($attachment);
-		return $attachment;
-	}
-
-	/**
-	 * Deletes .avif files when the attachment is
-	 * deleted from the media library.
-	 *
-	 * @param $attachment
-	 * @return mixed
-	 * @since 0.1.0
-	 * @date 24/11/2021
-	 */
-	public function delete_avif($attachment)
-	{
-		AVIF::delete($attachment);
+		Service::delete($attachment);
 		return $attachment;
 	}
 }
