@@ -144,6 +144,38 @@
 	gap: 12px;
 }
 
+/* How to use squidge_image(), in the display settings. */
+.squidge-theme-help {
+	margin: 0 20px 16px;
+	padding: 12px 16px;
+	background: #f6f7f7;
+	border-left: 4px solid var(--squidge-accent);
+}
+
+.squidge-theme-help p {
+	margin: 0 0 8px;
+}
+
+.squidge-theme-help p:last-child {
+	margin-bottom: 0;
+}
+
+.squidge-theme-help pre {
+	margin: 0 0 8px;
+	padding: 10px 12px;
+	overflow-x: auto;
+	background: #fff;
+	border: 1px solid var(--squidge-border);
+	border-radius: 4px;
+}
+
+.squidge-theme-help pre code {
+	tab-size: 4;
+	padding: 0;
+	background: none;
+	font-size: 12px;
+}
+
 /* Media library and display settings, below the status cards of the overview. */
 .squidge-library,
 .squidge-display {

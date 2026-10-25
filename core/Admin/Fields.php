@@ -236,6 +236,7 @@ class Fields
 						<?php foreach ($display['fields'] as $name => $field) : ?>
 							<?php $this->render_field($name, $field); ?>
 						<?php endforeach; ?>
+						<?php $this->render_theme_help(); ?>
 					</div>
 				</section>
 
@@ -261,6 +262,30 @@ class Fields
 
 				<?php submit_button(); ?>
 			</form>
+		</div>
+		<?php
+	}
+
+	/**
+	 * Renders how to use squidge_image() in a custom
+	 * theme, whose images this option does not change.
+	 *
+	 * @since 0.1.5
+	 * @date 25/10/2026
+	 */
+	private function render_theme_help()
+	{
+		$code = "<?php\nif (function_exists('squidge_image')) {\n\techo squidge_image(\$image_id, 'my-class');\n} else {\n\techo wp_get_attachment_image(\$image_id, 'full');\n}";
+		?>
+		<div class="squidge-theme-help">
+			<p><strong>Custom themes</strong>: images output with your own markup (e.g. from an ACF field) are not changed by
+				this option. Use the <code>squidge_image()</code> helper: it returns a <code>&lt;picture&gt;</code> with the
+				AVIF and WebP versions, whatever this option.</p>
+			<pre><code><?php echo esc_html($code); ?></code></pre>
+			<p class="description">The second argument is the class of the <code>&lt;picture&gt;</code> element. Pass
+				<code>true</code> as third argument to output <code>data-src</code> and <code>data-srcset</code> for a
+				JavaScript lazy loader. Keep the <code>function_exists()</code> check: without it, the pages break while
+				Squidge is deactivated.</p>
 		</div>
 		<?php
 	}
