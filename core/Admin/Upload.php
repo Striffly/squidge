@@ -28,8 +28,9 @@ class Upload
 {
 
 	/**
-	 * Optimises the images on upload, and deletes their
-	 * files with the attachment.
+	 * Optimises the images on upload, deletes their
+	 * files with the attachment, and sets the size
+	 * WordPress scales the big images down to.
 	 *
 	 * @since 0.1.0
 	 * @date 24/11/2021
@@ -38,6 +39,23 @@ class Upload
 	{
 		add_filter('wp_generate_attachment_metadata', [$this, 'process'], 20, 2);
 		add_filter('delete_attachment', [$this, 'delete_files'], 20, 1);
+		add_filter('big_image_size_threshold', [$this, 'threshold']);
+	}
+
+	/**
+	 * Returns the maximum image size of the settings
+	 * (longest side), false for no limit: WordPress
+	 * scales a bigger image down to it and keeps the
+	 * image uploaded as its original.
+	 *
+	 * @return int|false
+	 * @since 1.0.0
+	 * @date 25/10/2026
+	 */
+	public function threshold()
+	{
+		$size = (int)Fields::get('oio_max_size');
+		return $size > 0 ? $size : false;
 	}
 
 	/**

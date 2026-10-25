@@ -185,10 +185,11 @@ class Fields
 		if (!current_user_can('manage_options')) {
 			return;
 		}
-		// Format sections have a library and a tab, the display section is shown in the overview.
+		// Format sections have a library and a tab, the general and display sections are shown in the overview.
 		$sections = self::sections();
+		$general = $sections['general'];
 		$display = $sections['display'];
-		unset($sections['display']);
+		unset($sections['general'], $sections['display']);
 		// Saving the settings reads the versions of the libraries again, e.g. after an upgrade.
 		if (isset($_GET['settings-updated'])) {
 			Service::forget_versions();
@@ -238,6 +239,15 @@ class Fields
 						<?php endforeach; ?>
 					</div>
 					<?php $this->render_library(); ?>
+					<div class="oio-card oio-general">
+						<header class="oio-card__header oio-card__header--text">
+							<h2><?php echo esc_html($general['title']); ?></h2>
+							<p class="description"><?php echo esc_html($general['description']); ?></p>
+						</header>
+						<?php foreach ($general['fields'] as $name => $field) : ?>
+							<?php $this->render_field($name, $field); ?>
+						<?php endforeach; ?>
+					</div>
 					<div class="oio-card oio-display">
 						<header class="oio-card__header oio-card__header--text">
 							<h2><?php echo esc_html($display['title']); ?></h2>
@@ -347,7 +357,7 @@ class Fields
 						</div>
 						<div class="oio-action">
 							<button type="button" class="button" data-job="outdated">Re-optimise outdated images</button>
-							<p class="description"><strong data-count="outdated"></strong> images were optimised before a quality, a format or the thumbnail sizes changed. They are re-optimised from their originals, and their thumbnails are regenerated if the sizes changed.</p>
+							<p class="description"><strong data-count="outdated"></strong> images were optimised before a quality, a format, the maximum size or the thumbnail sizes changed. They are re-optimised from their originals, and their thumbnails are regenerated if the sizes changed.</p>
 						</div>
 						<div class="oio-action">
 							<button type="button" class="button" data-job="all">Re-optimise all images</button>
@@ -570,6 +580,20 @@ class Fields
 						'max' => 100,
 						'default' => 70,
 						'help' => 'Enter the quality of the AVIF image conversion, this can be a number from 0 to 100 (lossless), with the default being 70.',
+					],
+				],
+			],
+			'general' => [
+				'title' => 'General',
+				'description' => 'WordPress scales the big images down on upload, and keeps the image uploaded as their original.',
+				'fields' => [
+					'oio_max_size' => [
+						'type' => 'number',
+						'label' => 'Maximum image size',
+						'min' => 0,
+						'max' => 20000,
+						'default' => 2560,
+						'help' => 'Longest side, in pixels. Bigger images are scaled down on upload, 2560 by default as in WordPress. <strong>0 means no limit: huge images then reach the libraries as uploaded, and can exhaust the memory or the CPU of the server.</strong>',
 					],
 				],
 			],

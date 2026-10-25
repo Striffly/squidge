@@ -23,11 +23,11 @@ OIO optimises the images of your WordPress media library with the libraries of y
 
 **Media library**
 
-- Optimises the images on upload.
+- Optimises the images on upload, scaled down to a maximum size (2560 pixels by default, as WordPress does).
 - Optimises, re-optimises or cleans up the whole library in the background, with a progress bar, pause and cancel.
   The job goes on when the page is closed.
 - Spots the images optimised with older settings, or before the theme changed its image sizes, and makes their
-  thumbnails again from the originals.
+  thumbnails again from the originals, scaled to the current maximum size.
 - Shows the status of each image in the media library, and its errors in plain words.
 
 **On the site**

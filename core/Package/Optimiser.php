@@ -272,7 +272,10 @@ class Optimiser
 	 * yet, and the backups of their files are removed
 	 * as they may be thumbnails of an older crop. A
 	 * big image is scaled again from the image
-	 * uploaded, as WordPress does on upload.
+	 * uploaded, as WordPress does on upload, with the
+	 * maximum size of the settings: an image scaled
+	 * before may not be any more, and the other way
+	 * round.
 	 *
 	 * @param int $id
 	 * @return array|null The new metadata, null if it failed or
@@ -306,7 +309,13 @@ class Optimiser
 			if (empty($metadata) || is_wp_error($metadata)) {
 				return null;
 			}
-			if (!empty($previous['original_image']) && empty($metadata['original_image'])) {
+			$main = !empty($metadata['file']) ? wp_get_upload_dir()['basedir'] . DIRECTORY_SEPARATOR . $metadata['file'] : $file;
+			if ($main !== $file) {
+				// The maximum size changed: the image is scaled now (WordPress made it
+				// the main file), or the image uploaded is the main file again.
+				update_attached_file($id, $main);
+				self::release_main($file, $source);
+			} elseif (!empty($previous['original_image']) && empty($metadata['original_image'])) {
 				$metadata['original_image'] = $previous['original_image'];
 			}
 			wp_update_attachment_metadata($id, $metadata);
@@ -326,5 +335,29 @@ class Optimiser
 			}
 			return $metadata;
 		});
+	}
+
+	/**
+	 * Deletes the files of a former main file of an
+	 * image: its WebP and AVIF versions and its backup,
+	 * and the file itself if it was a scaled copy. The
+	 * image uploaded stays, as its original.
+	 *
+	 * @param string $file The former main file.
+	 * @param string $uploaded The image uploaded.
+	 * @since 1.0.0
+	 * @date 25/10/2026
+	 */
+	private static function release_main($file, $uploaded)
+	{
+		$paths = [$file . WebP::extension(), $file . AVIF::extension(), Service::backup_path($file)];
+		if ($file !== $uploaded) {
+			$paths[] = $file;
+		}
+		foreach ($paths as $path) {
+			if (file_exists($path) && Service::contained($path)) {
+				unlink($path);
+			}
+		}
 	}
 }

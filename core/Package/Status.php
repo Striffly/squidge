@@ -16,6 +16,7 @@
 
 namespace OIO\Package;
 
+use OIO\Admin\Fields;
 use OIO\Log\Errors;
 use WP_Query;
 
@@ -68,7 +69,8 @@ class Status
 
 	/**
 	 * Returns a signature of the thumbnail sizes
-	 * registered by WordPress, the theme and plugins.
+	 * registered by WordPress, the theme and plugins,
+	 * and of the maximum image size.
 	 *
 	 * @return string
 	 * @since 1.0.0
@@ -76,14 +78,16 @@ class Status
 	 */
 	public static function sizes_signature()
 	{
-		return md5(wp_json_encode(wp_get_registered_image_subsizes()));
+		return md5(wp_json_encode([wp_get_registered_image_subsizes(), (int)Fields::get('oio_max_size')]));
 	}
 
 	/**
 	 * Determines if the thumbnails of an image match the
 	 * registered sizes: each size exists with the right
 	 * dimensions, unless the image is too small for it
-	 * (the same computation as WordPress).
+	 * (the same computation as WordPress). The
+	 * thumbnails of a scaled image are made from the
+	 * image uploaded, rounded differently: 1 pixel off.
 	 *
 	 * @param array $metadata
 	 * @return bool
@@ -101,7 +105,7 @@ class Status
 			if (!$expected) {
 				continue;
 			}
-			if (!isset($sizes[$name]) || (int)$sizes[$name]['width'] !== (int)$expected[4] || (int)$sizes[$name]['height'] !== (int)$expected[5]) {
+			if (!isset($sizes[$name]) || abs((int)$sizes[$name]['width'] - (int)$expected[4]) > 1 || abs((int)$sizes[$name]['height'] - (int)$expected[5]) > 1) {
 				return false;
 			}
 		}

@@ -261,8 +261,9 @@
 	font-size: 12px;
 }
 
-/* Media library and display settings, below the status cards of the overview. */
+/* Media library, upload and display settings, below the status cards of the overview. */
 .oio-library,
+.oio-general,
 .oio-display {
 	margin-top: 20px;
 }
