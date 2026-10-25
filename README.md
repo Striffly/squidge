@@ -50,6 +50,10 @@ Converts JPG and PNG images to `.avif` files using `libavif` with the appended e
 5. Check the individual optimisation tabs and adjust settings accordingly.
 6. Done!
 
+To install the plugin from this repository instead of a release, run `composer install` in its folder: it installs
+the dependencies in `vendor-prefixed/`, with their classes prefixed by [Strauss](https://github.com/BrianHenryIE/strauss)
+so that they cannot collide with the copies other plugins load.
+
 ## Render Images
 
 The compressed JPG and PNG files replace the originals, so your whole site uses them. There are two ways to also

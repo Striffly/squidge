@@ -1,0 +1,42 @@
+{
+    "name": "ainsley-clark/squidge",
+    "description": "A WordPress plugin to compress and convert images using cwebp, jpegoptim, optipng and libavif.",
+    "type": "wordpress-plugin",
+    "license": "GPL-3.0-or-later",
+    "authors": [
+        {
+            "name": "Ainsley Clark",
+            "email": "info@ainsleyclark.com"
+        }
+    ],
+    "require": {
+        "php": ">=7.4",
+        "deliciousbrains/wp-background-processing": "^1.4"
+    },
+    "extra": {
+        "strauss": {
+            "target_directory": "vendor-prefixed",
+            "namespace_prefix": "Squidge\\Vendor\\",
+            "classmap_prefix": "Squidge_Vendor_",
+            "packages": [
+                "deliciousbrains/wp-background-processing"
+            ],
+            "delete_vendor_packages": true
+        }
+    },
+    "scripts": {
+        "prefix-namespaces": [
+            "strauss",
+            "@composer dump-autoload"
+        ],
+        "post-install-cmd": [
+            "@prefix-namespaces"
+        ],
+        "post-update-cmd": [
+            "@prefix-namespaces"
+        ]
+    },
+    "require-dev": {
+        "brianhenryie/strauss": "^0.31.1"
+    }
+}

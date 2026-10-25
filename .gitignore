@@ -34,3 +34,7 @@ CREDENTIALS.md
 
 # Build
 build
+
+# Composer: made by composer install, vendor-prefixed/ is shipped in the release
+vendor/
+vendor-prefixed/

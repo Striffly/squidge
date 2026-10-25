@@ -33,6 +33,15 @@ spl_autoload_register(function ($class) {
 	}
 });
 
+// Autoload the dependencies, prefixed by Strauss (composer install).
+if (file_exists(__DIR__ . '/vendor-prefixed/autoload.php')) {
+	require __DIR__ . '/vendor-prefixed/autoload.php';
+} else {
+	add_action('admin_notices', function () {
+		echo '<div class="notice notice-error"><p><strong>Squidge</strong>: its dependencies are missing, run <code>composer install</code> in the plugin folder.</p></div>';
+	});
+}
+
 // Boot Squidge (Once).
 Squidge\Squidge::boot();
 
