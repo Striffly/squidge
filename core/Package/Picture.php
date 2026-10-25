@@ -73,7 +73,7 @@ class Picture
 		foreach (self::FORMATS as $extension => $type) {
 			$format_srcset = self::build_srcset($candidates, $extension);
 			if ($format_srcset !== '') {
-				$sources .= sprintf('<source type="%s" srcset="%s"%s>', $type, $format_srcset, $sizes ? sprintf(' sizes="%s"', $sizes) : '');
+				$sources .= sprintf('<source type="%s" srcset="%s"%s>', $type, esc_attr($format_srcset), $sizes ? sprintf(' sizes="%s"', esc_attr($sizes)) : '');
 			}
 		}
 
