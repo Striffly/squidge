@@ -130,7 +130,13 @@ cwebp -q {{ quality }} input-file.jpg -o input-file.jpg.webp
 ### How are images converted to avif files?
 
 ```bash
-avifenc --min 0 --max 63 --speed 6 -a end-usage=q -a cq-level=18 -a tune=ssim input-file.jpg input-file.jpg.avif
+avifenc -q {{ quality }} --speed {{ speed }} -a tune=ssim input-file.jpg input-file.jpg.avif
+```
+
+With libavif older than 1.0, `-q` does not exist and the quality is passed as the equivalent `cq-level`:
+
+```bash
+avifenc --min 0 --max 63 -a end-usage=q -a cq-level={{ (100 - quality) * 63 / 100 }} --speed {{ speed }} -a tune=ssim input-file.jpg input-file.jpg.avif
 ```
 
 ## CLI
@@ -192,6 +198,8 @@ wp squidge run --jpeg=false --quality=80 --optimization=o3
 | avif            | `true`        | `true`/`false`           | If AVIF conversion should run.
 | quality         | `80`          | `0` to `100`             | Compression quality of the images.
 | optimization    | `o2`          | `o0` to `o7`             | Optimisation of PNG images.
+| avif-quality    | `70`          | `0` to `100`             | Quality of AVIF images.
+| avif-speed      | `6`           | `0` to `10`              | Speed of the AVIF encoder, 0 is the slowest.
 | force           | `false`       | `true`/`false`           | Force reoptimization of already optimized images.
 | thumbnails-only | `false`       | `true`/`false`           | Optimize only thumbnails.
 

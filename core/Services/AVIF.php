@@ -4,8 +4,8 @@
  * AVIF
  *
  * Avif is responsible for converting JPG and PNG
- * images to webp with the .webp extension using
- * the cwebp library.
+ * images to avif with the .avif extension using
+ * the avifenc library.
  *
  * @package     Squidge
  * @version     0.1.4
@@ -30,6 +30,18 @@ class AVIF extends Service implements Convertor
 {
 
 	/**
+	 * DEFAULT_QUALITY is the default image quality
+	 * when converting to an AVIF image (0 to 100).
+	 */
+	const DEFAULT_QUALITY = 70;
+
+	/**
+	 * DEFAULT_SPEED is the default encoder speed
+	 * (0 slowest to 10 fastest).
+	 */
+	const DEFAULT_SPEED = 6;
+
+	/**
 	 * Compresses all image sizes have a png mime type
 	 * with the given file path.
 	 *
@@ -48,8 +60,61 @@ class AVIF extends Service implements Convertor
 		if ($mime != Mimes::PNG && $mime != Mimes::JPG) {
 			return;
 		}
-		exec(sprintf('%s --min 0 --max 63 --speed 6 -a end-usage=q -a cq-level=18 -a tune=ssim %s %s 2> /dev/null', escapeshellarg(self::cmd_name()), escapeshellarg($filepath), escapeshellarg($filepath . self::extension())));
+		$quality = self::int_arg($args, 'quality', 0, 100, self::DEFAULT_QUALITY);
+		$speed = self::int_arg($args, 'speed', 0, 10, self::DEFAULT_SPEED);
+
+		// libavif 1.0 replaced --min/--max with -q, older
+		// versions only take the aom cq-level (0 best, 63 worst),
+		// mapped the same way libavif maps -q.
+		if (self::version() >= 1) {
+			$options = sprintf('-q %d', $quality);
+		} else {
+			$options = sprintf('--min 0 --max 63 -a end-usage=q -a cq-level=%d', (int)(((100 - $quality) * 63 + 50) / 100));
+		}
+
+		exec(sprintf('%s %s --speed %d -a tune=ssim %s %s 2> /dev/null', escapeshellarg(self::cmd_name()), $options, $speed, escapeshellarg($filepath), escapeshellarg($filepath . self::extension())));
 		Logger::info("Successfully converted to AVIF file: " . $filepath . self::extension());
+	}
+
+	/**
+	 * Returns the major version of avifenc, or 0 if
+	 * it cannot be read (the legacy options work
+	 * with every version).
+	 *
+	 * @return int
+	 * @since 0.1.5
+	 * @date 25/10/2026
+	 */
+	private static function version()
+	{
+		static $major = null;
+		if ($major === null) {
+			exec(escapeshellarg(self::cmd_name()) . ' --version 2>&1', $output);
+			$major = preg_match('/Version:\s*(\d+)\./', implode("\n", $output), $matches) ? (int)$matches[1] : 0;
+		}
+		return $major;
+	}
+
+	/**
+	 * Returns an integer arg clamped between min and
+	 * max, or the default if it is missing or not
+	 * numeric.
+	 *
+	 * @param $args
+	 * @param string $key
+	 * @param int $min
+	 * @param int $max
+	 * @param int $default
+	 * @return int
+	 * @since 0.1.5
+	 * @date 25/10/2026
+	 */
+	private static function int_arg($args, $key, $min, $max, $default)
+	{
+		if (!isset($args[$key]) || !is_numeric($args[$key])) {
+			return $default;
+		}
+		return max($min, min($max, (int)$args[$key]));
 	}
 
 	/**

@@ -432,6 +432,22 @@ class Fields
 						'default' => true,
 						'help' => 'Select this box to enable AVIF conversion.',
 					],
+					'squidge_avif_quality' => [
+						'type' => 'number',
+						'label' => 'AVIF Quality',
+						'min' => 0,
+						'max' => 100,
+						'default' => 70,
+						'help' => 'Enter the quality of the AVIF image conversion, this can be a number from 0 to 100 (lossless), with the default being 70.',
+					],
+					'squidge_avif_speed' => [
+						'type' => 'number',
+						'label' => 'AVIF Encoder Speed',
+						'min' => 0,
+						'max' => 10,
+						'default' => 6,
+						'help' => 'Enter the speed of the AVIF encoder, from 0 (slowest, smallest files) to 10 (fastest), with the default being 6.',
+					],
 				],
 			],
 		];

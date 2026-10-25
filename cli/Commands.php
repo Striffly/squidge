@@ -71,6 +71,8 @@ class Squidge_CLI extends WP_CLI_Command
 	 *    - avif=true       To enable AVIF conversion.
 	 *    - quality=80     The quality of compression
 	 *    - optimization=o2  Optimization of PNG images (o0 to o7)
+	 *    - avif-quality=70  The quality of AVIF conversion
+	 *    - avif-speed=6  The speed of the AVIF encoder (0 to 10)
 	 *    - force=false  Force reoptimization of already optimized images
 	 *    - thumbnails-only=false  Only optimize thumbnails
 	 *
@@ -88,6 +90,8 @@ class Squidge_CLI extends WP_CLI_Command
 			[
 				'quality' => 80,
 				'optimization' => 'o2',
+				'avif-quality' => AVIF::DEFAULT_QUALITY,
+				'avif-speed' => AVIF::DEFAULT_SPEED,
 				'jpg' => true,
 				'png' => true,
 				'webp' => true,
@@ -143,7 +147,10 @@ class Squidge_CLI extends WP_CLI_Command
 				if ($assoc_args['avif']) {
 					try {
 						WP_CLI::log('AVIF Conversion...');
-						AVIF::process($id, $image_args);
+						AVIF::process($id, array_merge($image_args, [
+							'quality' => $assoc_args['avif-quality'],
+							'speed' => $assoc_args['avif-speed'],
+						]));
 					} catch (Exception $e) {
 						WP_CLI::error($e->getMessage());
 					}
