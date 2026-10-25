@@ -34,9 +34,15 @@ global $wpdb;
 // Settings, recent errors, progress of the background job, cached theme scan.
 $options = ['oio_errors', 'oio_job', 'oio_theme_calls'];
 $option_prefixes = ['_oio_'];
-// The background job library keeps its queue, status and lock in the site options.
-$site_options = ['oio_job_status', '_site_transient_oio_job_process_lock', '_site_transient_timeout_oio_job_process_lock'];
-$site_option_prefixes = ['oio_job_batch_'];
+// The background job library keeps its queue, status and lock in the site options,
+// under the identifier of the job: oio_job, or oio_2_job on the site 2 of a network.
+$site_options = [];
+$site_option_prefixes = [];
+$add_job = function ($identifier) use (&$site_options, &$site_option_prefixes) {
+	array_push($site_options, $identifier . '_status', '_site_transient_' . $identifier . '_process_lock', '_site_transient_timeout_' . $identifier . '_process_lock');
+	$site_option_prefixes[] = $identifier . '_batch_';
+	wp_clear_scheduled_hook($identifier . '_cron');
+};
 
 /**
  * Deletes the options of OIO and the meta of the
@@ -52,19 +58,20 @@ $clean_site = function () use ($wpdb, $options, $option_prefixes) {
 	}
 	// Meta of the attachments: settings used, files made, errors, sizes.
 	$wpdb->query($wpdb->prepare("DELETE FROM {$wpdb->postmeta} WHERE meta_key LIKE %s", $wpdb->esc_like('_oio_') . '%'));
-	wp_clear_scheduled_hook('oio_job_cron');
 };
 
 if (is_multisite()) {
 	foreach (get_sites(['fields' => 'ids', 'number' => 0]) as $site_id) {
 		switch_to_blog($site_id);
 		$clean_site();
+		$add_job('oio_' . $site_id . '_job');
 		restore_current_blog();
 	}
 	$table = $wpdb->sitemeta;
 	$column = 'meta_key';
 } else {
 	$clean_site();
+	$add_job('oio_job');
 	$table = $wpdb->options;
 	$column = 'option_name';
 }
