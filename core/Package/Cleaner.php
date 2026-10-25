@@ -95,7 +95,7 @@ class Cleaner
 		$original = get_attached_file($id);
 		foreach (self::files($id) as $file) {
 			$backup = Service::backup_path($file);
-			if (file_exists($backup)) {
+			if (file_exists($backup) && Service::contained($file)) {
 				copy($backup, $file);
 				unlink($backup);
 			} elseif ($file === $original && $compressed && in_array(get_post_mime_type($id), Status::MIMES, true)) {
@@ -203,7 +203,7 @@ class Cleaner
 	 */
 	private static function unlink($path)
 	{
-		if (file_exists($path)) {
+		if (file_exists($path) && Service::contained($path)) {
 			unlink($path);
 		}
 	}

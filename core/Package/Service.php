@@ -422,10 +422,36 @@ class Service
 		}
 
 		foreach (array_unique($paths) as $path) {
-			if (file_exists($path)) {
+			if (file_exists($path) && self::contained($path)) {
 				unlink($path);
 			}
 		}
+	}
+
+	/**
+	 * Determines if a path is in the uploads folder or
+	 * in the folder of the originals: the paths come
+	 * from the metadata of the attachments, OIO never
+	 * writes or deletes a file elsewhere (as WordPress
+	 * with wp_delete_file_from_directory()).
+	 *
+	 * @param string $path
+	 * @return bool
+	 * @since 1.0.0
+	 * @date 25/10/2026
+	 */
+	public static function contained($path)
+	{
+		$path = wp_normalize_path($path);
+		if (preg_match('#(^|/)\.\.(/|$)#', $path)) {
+			return false;
+		}
+		foreach ([self::uploads_dir(), self::backup_dir()] as $dir) {
+			if (strpos($path, trailingslashit(wp_normalize_path($dir))) === 0) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	/**
@@ -504,7 +530,7 @@ class Service
 	private static function get_file_path($path)
 	{
 		$file = wp_get_upload_dir()['basedir'] . DIRECTORY_SEPARATOR . $path;
-		if (file_exists($file)) {
+		if (file_exists($file) && self::contained($file)) {
 			return $file;
 		}
 		return false;

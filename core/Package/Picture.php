@@ -159,7 +159,7 @@ class Picture
 		$uploads = wp_get_upload_dir();
 		$base = preg_replace('#^https?:#i', '', $uploads['baseurl']);
 		$url = preg_replace('#^https?:#i', '', strtok(html_entity_decode($url), '?'));
-		if (strpos($url, $base . '/') !== 0) {
+		if (strpos($url, $base . '/') !== 0 || preg_match('#(^|/)\.\.(/|$)#', $url)) {
 			return null;
 		}
 		return $uploads['basedir'] . substr($url, strlen($base));

@@ -182,7 +182,7 @@ class Optimiser
 			return null;
 		}
 		$backup = Service::backup_path($file);
-		if (file_exists($backup)) {
+		if (file_exists($backup) && Service::contained($file)) {
 			copy($backup, $file);
 		}
 
@@ -198,7 +198,7 @@ class Optimiser
 		$sizes = isset($metadata['sizes']) ? $metadata['sizes'] : [];
 		foreach ($sizes as $size) {
 			$size_backup = Service::backup_path(dirname($file) . DIRECTORY_SEPARATOR . $size['file']);
-			if (file_exists($size_backup)) {
+			if (file_exists($size_backup) && Service::contained($size_backup)) {
 				unlink($size_backup);
 			}
 		}
