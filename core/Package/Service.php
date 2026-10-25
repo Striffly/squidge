@@ -109,7 +109,7 @@ class Service
 		// Update post meta for attachment, unless a file failed
 		// so that it is processed again next time.
 		if (!Errors::has($id, static::cmd_name())) {
-			self::update_meta($id);
+			self::update_meta($id, $args);
 		}
 	}
 
@@ -389,8 +389,13 @@ class Service
 		if (!in_array(static::cmd_name(), $allowed)) {
 			return false;
 		}
-		$return = shell_exec(sprintf("which %s", escapeshellarg(static::cmd_name())));
-		return !empty($return);
+		// Checked once per request, the status of the images asks it often.
+		static $installed = [];
+		if (!isset($installed[static::cmd_name()])) {
+			$return = shell_exec(sprintf("which %s", escapeshellarg(static::cmd_name())));
+			$installed[static::cmd_name()] = !empty($return);
+		}
+		return $installed[static::cmd_name()];
 	}
 
 	/**
@@ -436,19 +441,50 @@ class Service
 	 */
 	public static function has_compressed($id)
 	{
-		$meta = get_post_meta($id, self::META_KEY . '_' . static::cmd_name());
+		$meta = get_post_meta($id, static::meta_key());
 		return !empty($meta);
 	}
 
 	/**
-	 * Updates post meta for squidge.
+	 * Returns the meta key marking an attachment as
+	 * processed by this service.
+	 *
+	 * @return string
+	 * @since 0.1.5
+	 * @date 25/10/2026
+	 */
+	public static function meta_key()
+	{
+		return self::META_KEY . '_' . static::cmd_name();
+	}
+
+	/**
+	 * Returns the settings of a run as a string, saved
+	 * with the attachment to know if it was optimised
+	 * with the current settings.
+	 *
+	 * @param array $args
+	 * @return string
+	 * @since 0.1.5
+	 * @date 25/10/2026
+	 */
+	public static function signature($args)
+	{
+		$quality = isset($args['quality']) && is_numeric($args['quality']) ? (int)$args['quality'] : static::DEFAULT_QUALITY;
+		return 'quality:' . $quality;
+	}
+
+	/**
+	 * Marks the attachment as processed by this service,
+	 * with the settings used.
 	 *
 	 * @param $id
+	 * @param array $args
 	 * @since 0.1.4
 	 * @date 21/12/2021
 	 */
-	public static function update_meta($id)
+	public static function update_meta($id, $args = [])
 	{
-		update_post_meta($id, self::META_KEY . '_' . static::cmd_name(), true);
+		update_post_meta($id, static::meta_key(), static::signature($args));
 	}
 }

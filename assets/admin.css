@@ -59,9 +59,52 @@
 	display: none;
 }
 
-/* Display settings, below the status cards of the overview. */
+/* Media library and display settings, below the status cards of the overview. */
+.squidge-library,
 .squidge-display {
 	margin-top: 20px;
+}
+
+.squidge-counts {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+	gap: 12px;
+	margin: 0;
+	padding: 16px 20px;
+}
+
+.squidge-counts__item {
+	margin: 0;
+	color: var(--squidge-muted);
+}
+
+.squidge-counts__item strong {
+	display: block;
+	font-size: 22px;
+	line-height: 1.3;
+	color: #1d2327;
+}
+
+.squidge-status-label::before {
+	content: "";
+	display: inline-block;
+	width: 8px;
+	height: 8px;
+	margin-right: 6px;
+	border-radius: 50%;
+	background: #a7aaad;
+}
+
+.squidge-status-label--optimised::before {
+	background: var(--squidge-on);
+}
+
+.squidge-status-label--outdated::before {
+	background: #dba617;
+}
+
+.squidge-status-label--error::before {
+	background: var(--squidge-off);
 }
 
 /* Overview

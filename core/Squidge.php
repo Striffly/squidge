@@ -77,6 +77,7 @@ final class Squidge
 		new Admin\Fields();
 		new Admin\Upload();
 		new Admin\Notices();
+		new Admin\Media();
 		new Front\Display();
 	}
 

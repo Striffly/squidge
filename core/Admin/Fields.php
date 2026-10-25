@@ -17,6 +17,7 @@
 
 namespace Squidge\Admin;
 
+use Squidge\Package\Status;
 use Squidge\Services\AVIF;
 use Squidge\Services\JPG;
 use Squidge\Services\PNG;
@@ -222,6 +223,7 @@ class Fields
 							</a>
 						<?php endforeach; ?>
 					</div>
+					<?php $this->render_library(); ?>
 					<div class="squidge-card squidge-display">
 						<header class="squidge-card__header squidge-card__header--text">
 							<h2><?php echo esc_html($display['title']); ?></h2>
@@ -255,6 +257,36 @@ class Fields
 
 				<?php submit_button(); ?>
 			</form>
+		</div>
+		<?php
+	}
+
+	/**
+	 * Renders the number of JPG and PNG images of the
+	 * media library by status.
+	 *
+	 * @since 0.1.5
+	 * @date 25/10/2026
+	 */
+	private function render_library()
+	{
+		$counts = Status::counts();
+		?>
+		<div class="squidge-card squidge-library">
+			<header class="squidge-card__header squidge-card__header--text">
+				<h2>Media library</h2>
+				<p class="description">
+					<?php echo esc_html(sprintf(_n('%s JPG or PNG image', '%s JPG and PNG images', $counts['total']), number_format_i18n($counts['total']))); ?>
+				</p>
+			</header>
+			<ul class="squidge-counts">
+				<?php foreach (Media::LABELS as $status => $label) : ?>
+					<li class="squidge-counts__item">
+						<strong><?php echo esc_html(number_format_i18n($counts[$status])); ?></strong>
+						<span class="squidge-status-label squidge-status-label--<?php echo esc_attr($status); ?>"><?php echo esc_html($label); ?></span>
+					</li>
+				<?php endforeach; ?>
+			</ul>
 		</div>
 		<?php
 	}

@@ -69,6 +69,19 @@ class PNG extends Service implements Convertor
 	}
 
 	/**
+	 * Returns the settings of a run as a string.
+	 *
+	 * @param array $args
+	 * @return string
+	 * @since 0.1.5
+	 * @date 25/10/2026
+	 */
+	public static function signature($args)
+	{
+		return 'level:' . self::optimization_level($args);
+	}
+
+	/**
 	 * Returns the optipng level (0 to 7) from the
 	 * optimization arg, which can be "o3" (CLI)
 	 * or "3" (options page).
