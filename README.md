@@ -43,8 +43,9 @@ unlimited, no API key, no quota: your images never leave your server.
 ## Requirements
 
 - WordPress 6.0 and PHP 7.4 or later.
-- The JPG and PNG compression needs `jpegoptim` and `optipng` or `oxipng` installed on the server, on Linux or macOS,
-  and PHP allowed to run them (`proc_open()` or `exec()`).
+- The JPG and PNG compression needs `jpegoptim` and `optipng` or `oxipng` installed on the server, and PHP allowed to
+  run them (`proc_open()` or `exec()`). Linux and macOS have them; Windows has no official build of `jpegoptim` and
+  `optipng`.
 - The WebP and AVIF formats work without their libraries, with GD or Imagick when they support them (AVIF since
   WordPress 6.5). `cwebp` and `avifenc` are better: they run apart from PHP, `cwebp` makes the PNG graphics much
   lighter and `avifenc` keeps their colours sharper.
@@ -54,6 +55,11 @@ The settings page shows the missing libraries and how to install them, e.g. on D
 ```bash
 sudo apt install jpegoptim optipng webp libavif-bin
 ```
+
+On Windows, put the official builds of [`cwebp`](https://developers.google.com/speed/webp/download) and
+[`avifenc`](https://github.com/AOMediaCodec/libavif/releases) on the `PATH`, or give their path with the
+`oio_binary_path` filter: the WebP and AVIF formats are tested on Windows by a GitHub Action, the JPG and PNG are not
+compressed there.
 
 Each format works on its own: a missing library only turns its format off, or hands the WebP or AVIF to GD or
 Imagick. `oxipng`, faster than `optipng`, replaces it

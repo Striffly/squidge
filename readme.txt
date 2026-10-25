@@ -44,7 +44,7 @@ See the [README on GitHub](https://github.com/Striffly/octopus-image-optimizer) 
 
 == Installation ==
 
-The JPG and PNG compression needs a Linux or macOS server where PHP can run programs (`proc_open()` or `exec()`), with `jpegoptim` and `optipng` or `oxipng` installed. The WebP and AVIF formats work without their libraries, with GD or Imagick when they support them (AVIF since WordPress 6.5), but `cwebp` and `avifenc` are better. E.g. on Debian or Ubuntu: `sudo apt install jpegoptim optipng webp libavif-bin`. Each format works on its own: a missing library only turns its format off, or hands the WebP or AVIF to GD or Imagick. `oxipng`, faster, replaces `optipng` when installed, and `pngquant` adds an optional lossy compression of the PNG images.
+The JPG and PNG compression needs a server where PHP can run programs (`proc_open()` or `exec()`), with `jpegoptim` and `optipng` or `oxipng` installed: Linux and macOS have them, Windows has no official build of them (the WebP and AVIF work there with the official `cwebp` and `avifenc`). The WebP and AVIF formats work without their libraries, with GD or Imagick when they support them (AVIF since WordPress 6.5), but `cwebp` and `avifenc` are better. E.g. on Debian or Ubuntu: `sudo apt install jpegoptim optipng webp libavif-bin`. Each format works on its own: a missing library only turns its format off, or hands the WebP or AVIF to GD or Imagick. `oxipng`, faster, replaces `optipng` when installed, and `pngquant` adds an optional lossy compression of the PNG images.
 
 1. Upload the plugin in `Plugins > Add New > Upload Plugin`, and activate it.
 2. Open `Settings > OIO`: the Overview tab checks the libraries and shows how to install the missing ones.
