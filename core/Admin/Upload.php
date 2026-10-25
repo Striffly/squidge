@@ -152,7 +152,6 @@ class Upload
 		try {
 			$args = [
 				'quality' => Fields::get('squidge_avif_quality'),
-				'speed' => Fields::get('squidge_avif_speed'),
 				'force' => false,
 				'thumbnailsOnly' => false
 			];

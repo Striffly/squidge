@@ -36,8 +36,11 @@ class AVIF extends Service implements Convertor
 	const DEFAULT_QUALITY = 70;
 
 	/**
-	 * DEFAULT_SPEED is the default encoder speed
-	 * (0 slowest to 10 fastest).
+	 * DEFAULT_SPEED is the default encoder speed (0
+	 * slowest to 10 fastest). With aom, speeds 0 to 6
+	 * make files of about the same size (0 is ~40x
+	 * slower), 7 to 10 switch to fast modes making
+	 * larger files: 6 is the best trade-off.
 	 */
 	const DEFAULT_SPEED = 6;
 
@@ -65,17 +68,18 @@ class AVIF extends Service implements Convertor
 
 		// libavif 1.0 replaced --min/--max with -q, older
 		// versions only take the aom cq-level (0 best, 63 worst),
-		// mapped the same way libavif maps -q.
+		// mapped the same way libavif maps -q. tune=ssim has no
+		// effect on the still image mode of libavif 1.x.
 		if (self::version() >= 1) {
 			$options = sprintf('-q %d', $quality);
 		} else {
-			$options = sprintf('--min 0 --max 63 -a end-usage=q -a cq-level=%d', (int)(((100 - $quality) * 63 + 50) / 100));
+			$options = sprintf('--min 0 --max 63 -a end-usage=q -a cq-level=%d -a tune=ssim', (int)(((100 - $quality) * 63 + 50) / 100));
 		}
 
 		$original = self::original($filepath);
 		$source = self::readable_source($original, $mime);
 		$output = $filepath . self::extension();
-		if (self::run(sprintf('%s %s --speed %d -a tune=ssim %s %s', escapeshellarg(self::cmd_name()), $options, $speed, escapeshellarg($source), escapeshellarg($output)), $filepath, $args)) {
+		if (self::run(sprintf('%s %s --speed %d %s %s', escapeshellarg(self::cmd_name()), $options, $speed, escapeshellarg($source), escapeshellarg($output)), $filepath, $args)) {
 			Logger::info("Successfully converted to AVIF file: " . $output);
 			self::remember($args, $output);
 		}

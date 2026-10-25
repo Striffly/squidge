@@ -72,7 +72,7 @@ class Squidge_CLI extends WP_CLI_Command
 	 *    - quality=80     The quality of compression
 	 *    - optimization=o2  Optimization of PNG images (o0 to o7)
 	 *    - avif-quality=70  The quality of AVIF conversion
-	 *    - avif-speed=6  The speed of the AVIF encoder (0 to 10)
+	 *    - avif-speed=6  The speed of the AVIF encoder (0 to 10): 6 is best, faster speeds make larger files
 	 *    - force=false  Force reoptimization of already optimized images
 	 *    - thumbnails-only=false  Only optimize thumbnails
 	 *
