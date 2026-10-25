@@ -1,0 +1,183 @@
+# Runs OIO on a Windows server: WordPress on SQLite (no MySQL), cwebp
+# and avifenc from their official Windows builds, then `wp oio run` and
+# `wp oio restore` on a few images.
+#
+# jpegoptim and optipng have no reliable official Windows build: they
+# are not installed, `wp oio health` reports them missing and the JPG
+# and PNG files are not compressed. The job checks the WebP and AVIF
+# files only, and that the JPG and PNG files come out of the restore
+# as they were imported.
+name: Windows
+
+# On each release tag, and by hand from the Actions tab.
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - '[0-9]+.[0-9]+.[0-9]+*'
+
+permissions:
+  contents: read
+
+env:
+  LIBWEBP_VERSION: 1.6.0
+  LIBWEBP_SHA256: 48886f506b21f62e4661f0f4cbfca19800897c385128e8902542d29a950c93f1
+  LIBAVIF_VERSION: 1.4.2
+  LIBAVIF_SHA256: cb2d9fea43dcbab1d0707e3b37eb7b08070ad2fb60a2c188c39ec12382c0484a
+  SQLITE_PLUGIN_VERSION: 3.1.1
+
+jobs:
+  # Strauss, which builds vendor-prefixed/, fails on Windows ("Unable to
+  # create a directory at ."): the dependencies are built on Linux, as
+  # for the release zip, and handed to the Windows job.
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # 2.40.0
+        with:
+          php-version: '8.2'
+          tools: composer
+          coverage: none
+
+      - name: Build the dependencies of OIO
+        run: composer install --no-interaction --no-progress
+
+      - name: Keep vendor-prefixed for the Windows job
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: vendor-prefixed
+          path: vendor-prefixed
+          retention-days: 1
+
+  windows:
+    needs: build
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - name: Check out
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          path: oio
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # 2.40.0
+        with:
+          php-version: '8.2'
+          extensions: gd, sqlite3, pdo_sqlite, fileinfo
+          tools: wp-cli
+          coverage: none
+
+      - name: Get the dependencies of OIO
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: vendor-prefixed
+          path: oio/vendor-prefixed
+
+      # The commands below set $PSNativeCommandUseErrorActionPreference:
+      # without it, a failing command other than the last one does not
+      # fail the step.
+      - name: Install cwebp and avifenc
+        run: |
+          $PSNativeCommandUseErrorActionPreference = $true
+          $bin = Join-Path $env:RUNNER_TEMP 'libraries'
+          New-Item -ItemType Directory -Force $bin | Out-Null
+
+          $webp = Join-Path $bin 'libwebp.zip'
+          Invoke-WebRequest "https://storage.googleapis.com/downloads.webmproject.org/releases/webp/libwebp-$env:LIBWEBP_VERSION-windows-x64.zip" -OutFile $webp
+          if ((Get-FileHash $webp -Algorithm SHA256).Hash -ne $env:LIBWEBP_SHA256) { throw 'The libwebp zip does not match its checksum.' }
+          Expand-Archive $webp -DestinationPath $bin
+          Add-Content $env:GITHUB_PATH (Join-Path $bin "libwebp-$env:LIBWEBP_VERSION-windows-x64\bin")
+
+          $avif = Join-Path $bin 'libavif.zip'
+          Invoke-WebRequest "https://github.com/AOMediaCodec/libavif/releases/download/v$env:LIBAVIF_VERSION/windows-artifacts.zip" -OutFile $avif
+          if ((Get-FileHash $avif -Algorithm SHA256).Hash -ne $env:LIBAVIF_SHA256) { throw 'The libavif zip does not match its checksum.' }
+          Expand-Archive $avif -DestinationPath (Join-Path $bin 'libavif')
+          Add-Content $env:GITHUB_PATH (Join-Path $bin 'libavif')
+
+      - name: Check cwebp and avifenc
+        run: |
+          $PSNativeCommandUseErrorActionPreference = $true
+          cwebp -version
+          avifenc --version
+
+      # The SQLite Database Integration plugin replaces MySQL with its
+      # db.php drop-in, which finds the plugin in wp-content/plugins.
+      - name: Install WordPress on SQLite
+        run: |
+          $PSNativeCommandUseErrorActionPreference = $true
+          # wp core download cannot extract the tar.gz on Windows (paths
+          # too long in the temporary folder): the zip is used instead.
+          $core = Join-Path $env:RUNNER_TEMP 'wordpress.zip'
+          Invoke-WebRequest 'https://wordpress.org/latest.zip' -OutFile $core
+          Expand-Archive $core -DestinationPath .
+          $sqlite = Join-Path $env:RUNNER_TEMP 'sqlite.zip'
+          Invoke-WebRequest "https://downloads.wordpress.org/plugin/sqlite-database-integration.$env:SQLITE_PLUGIN_VERSION.zip" -OutFile $sqlite
+          Expand-Archive $sqlite -DestinationPath wordpress\wp-content\plugins
+          Copy-Item wordpress\wp-content\plugins\sqlite-database-integration\db.copy wordpress\wp-content\db.php
+          Set-Location wordpress
+          wp config create --dbname=wordpress --dbuser=unused --dbpass=unused --skip-check
+          wp core install --url=http://localhost --title=OIO --admin_user=admin --admin_password=admin --admin_email=admin@example.com --skip-email
+          wp plugin activate sqlite-database-integration
+
+      # OIO is activated after the import, so that `wp oio run` does the
+      # work, not the upload.
+      - name: Install OIO and import images
+        working-directory: wordpress
+        run: |
+          $PSNativeCommandUseErrorActionPreference = $true
+          Copy-Item -Recurse ..\oio wp-content\plugins\octopus-image-optimizer
+          wp media import ..\oio\images\test.jpg ..\oio\images\test.png --porcelain
+          wp plugin activate octopus-image-optimizer
+          wp plugin list
+
+      - name: Check the libraries
+        working-directory: wordpress
+        run: |
+          $PSNativeCommandUseErrorActionPreference = $true
+          $health = wp oio health | Out-String
+          $health
+          foreach ($library in 'cwebp', 'avifenc') {
+            if ($health -notmatch "$library active") { throw "OIO does not find $library." }
+          }
+
+      - name: Optimise and restore the images
+        working-directory: wordpress
+        run: |
+          $PSNativeCommandUseErrorActionPreference = $true
+          $uploads = (Resolve-Path wp-content\uploads).Path
+          function Get-Images {
+            Get-ChildItem $uploads -Recurse -File -Include *.jpg, *.jpeg, *.png |
+              Where-Object { $_.FullName -notlike '*\oio-originals\*' }
+          }
+          function Get-Formats {
+            Get-ChildItem $uploads -Recurse -File -Include *.webp, *.avif
+          }
+
+          $images = Get-Images
+          if (-not $images) { throw 'No image was imported.' }
+          $hashes = @{}
+          foreach ($image in $images) { $hashes[$image.FullName] = (Get-FileHash $image.FullName).Hash }
+
+          wp oio run
+          $missing = foreach ($image in $images) {
+            foreach ($extension in '.webp', '.avif') {
+              if (-not (Test-Path ($image.FullName + $extension))) { $image.FullName + $extension }
+            }
+          }
+          if ($missing) { throw "Not created:`n$($missing -join "`n")" }
+          Write-Output "$((Get-Formats).Count) WebP and AVIF files created for $($images.Count) images."
+
+          wp oio restore
+          $left = Get-Formats
+          if ($left) { throw "Not removed by the restore:`n$($left.FullName -join "`n")" }
+          $changed = foreach ($image in $images) {
+            if (-not (Test-Path $image.FullName) -or (Get-FileHash $image.FullName).Hash -ne $hashes[$image.FullName]) { $image.FullName }
+          }
+          if ($changed) { throw "Not restored:`n$($changed -join "`n")" }
+          Write-Output "The $($images.Count) images are restored."
