@@ -132,7 +132,7 @@
 			result.textContent = (job.state === 'cancelled' ? 'Cancelled after ' : 'Done: ')
 				+ number(job.done) + ' / ' + number(job.total) + ' images processed'
 				+ (job.failed ? ', ' + number(job.failed) + ' with errors (see the Media library)' : '')
-				+ (job.missing ? ', ' + number(job.missing) + ' had no original to restore (optimised by an older version of OIO)' : '')
+				+ (job.missing ? ', ' + number(job.missing) + ' had no original to restore, they stay compressed' : '')
 				+ '.';
 			box.setAttribute('data-result', '');
 		}

@@ -181,7 +181,7 @@ class OIO_CLI extends WP_CLI_Command
 		foreach ($ids as $id) {
 			if (!Cleaner::restore($id)) {
 				$missing++;
-				WP_CLI::warning(get_the_title($id) . ': no original to restore, optimised by an older version of OIO.');
+				WP_CLI::warning(get_the_title($id) . ': no original to restore, it stays compressed.');
 			}
 		}
 		WP_CLI::success('Restored ' . (count($ids) - $missing) . ' images' . ($missing ? ', ' . $missing . ' had no original.' : '.'));

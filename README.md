@@ -229,8 +229,8 @@ wp oio clean
 ### Restore
 
 Restores the original images and removes every file made by OIO (WebP, AVIF, backups). Do it before deleting
-OIO to get your original images back. Images optimised by a version of OIO older than 0.1.5 have no original
-kept, they stay compressed.
+OIO to get your original images back. An image whose original was deleted from
+`uploads/oio-originals/` stays compressed.
 
 ```bash
 wp oio restore

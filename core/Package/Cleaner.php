@@ -84,9 +84,8 @@ class Cleaner
 	 * file (WebP, AVIF, backups) and meta is removed.
 	 *
 	 * @param int $id
-	 * @return bool False if the image was compressed by a
-	 *              previous version, without backup: it
-	 *              stays compressed.
+	 * @return bool False if the original of a compressed image
+	 *              is missing: it stays compressed.
 	 * @since 0.1.5
 	 * @date 25/10/2026
 	 */

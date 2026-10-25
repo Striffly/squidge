@@ -226,7 +226,7 @@ class Media
 			if ($id > 0) {
 				printf('<div class="notice notice-success is-dismissible"><p><strong>OIO</strong> restored the original of %s.</p></div>', esc_html(get_the_title($id)));
 			} else {
-				printf('<div class="notice notice-warning is-dismissible"><p><strong>OIO</strong> removed its files of %s, but it was compressed by an older version of OIO without keeping its original: it stays compressed.</p></div>', esc_html(get_the_title(-$id)));
+				printf('<div class="notice notice-warning is-dismissible"><p><strong>OIO</strong> removed its files of %s, but its original is missing: it stays compressed.</p></div>', esc_html(get_the_title(-$id)));
 			}
 			return;
 		}
