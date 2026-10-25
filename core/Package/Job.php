@@ -200,7 +200,7 @@ class Job extends OIO_Vendor_WP_Background_Process
 				}
 			} elseif ($progress['action'] === self::REMOVE_FORMATS) {
 				Cleaner::remove_formats($id);
-			} elseif ($progress['action'] === self::RESTORE && !Cleaner::restore($id)) {
+			} elseif ($progress['action'] === self::RESTORE && Cleaner::restore($id) === false) {
 				$progress['missing']++;
 			}
 		}

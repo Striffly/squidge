@@ -41,6 +41,13 @@ class Media
 	const RESTORE = 'oio_restore';
 
 	/**
+	 * Query args of the notices after an action.
+	 *
+	 * @var string[]
+	 */
+	const NOTICES = ['oio_optimised', 'oio_restored', 'oio_busy'];
+
+	/**
 	 * Labels of the statuses, as shown to the user.
 	 *
 	 * @var array
@@ -159,13 +166,13 @@ class Media
 		}
 		$status = Status::of($id);
 		if (in_array($status, [Status::OPTIMISED, Status::OUTDATED], true)) {
-			Optimiser::update($id, $status === Status::OPTIMISED);
+			$done = Optimiser::update($id, $status === Status::OPTIMISED);
 		} else {
-			Optimiser::attachment($id, null, Optimiser::settings());
+			$done = Optimiser::attachment($id, null, Optimiser::settings());
 		}
 
-		$redirect = wp_get_referer() ?: admin_url('upload.php?mode=list');
-		wp_safe_redirect(add_query_arg('oio_optimised', $id, remove_query_arg('oio_optimised', $redirect)));
+		$redirect = remove_query_arg(self::NOTICES, wp_get_referer() ?: admin_url('upload.php?mode=list'));
+		wp_safe_redirect(add_query_arg($done === null ? 'oio_busy' : 'oio_optimised', $id, $redirect));
 		exit;
 	}
 
@@ -203,8 +210,13 @@ class Media
 		}
 		$restored = Cleaner::restore($id);
 
-		$redirect = remove_query_arg(['oio_optimised', 'oio_restored'], wp_get_referer() ?: admin_url('upload.php?mode=list'));
-		wp_safe_redirect(add_query_arg('oio_restored', $restored ? $id : -$id, $redirect));
+		$redirect = remove_query_arg(self::NOTICES, wp_get_referer() ?: admin_url('upload.php?mode=list'));
+		if ($restored === null) {
+			$redirect = add_query_arg('oio_busy', $id, $redirect);
+		} else {
+			$redirect = add_query_arg('oio_restored', $restored ? $id : -$id, $redirect);
+		}
+		wp_safe_redirect($redirect);
 		exit;
 	}
 
@@ -218,6 +230,13 @@ class Media
 	public function notice()
 	{
 		if (!current_user_can('upload_files')) {
+			return;
+		}
+		if (!empty($_GET['oio_busy'])) {
+			$id = (int)$_GET['oio_busy'];
+			if (current_user_can('edit_post', $id)) {
+				printf('<div class="notice notice-warning is-dismissible"><p><strong>OIO</strong> is already processing %s, try again in a moment.</p></div>', esc_html(get_the_title($id)));
+			}
 			return;
 		}
 		if (!empty($_GET['oio_restored'])) {

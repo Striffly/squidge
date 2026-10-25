@@ -54,27 +54,31 @@ class Cleaner
 	 * The compressed JPG and PNG files stay.
 	 *
 	 * @param int $id
+	 * @return true|null Null if another request is processing the image.
 	 * @since 1.0.0
 	 * @date 25/10/2026
 	 */
 	public static function remove_formats($id)
 	{
-		foreach (self::files($id) as $file) {
-			self::unlink($file . WebP::extension());
-			self::unlink($file . AVIF::extension());
-		}
-		$listed = self::listed($id);
-		foreach ($listed as $index => $path) {
-			if (preg_match('/\.(webp|avif)$/', $path)) {
-				self::unlink($path);
-				unset($listed[$index]);
+		return Lock::run($id, function () use ($id) {
+			foreach (self::files($id) as $file) {
+				self::unlink($file . WebP::extension());
+				self::unlink($file . AVIF::extension());
 			}
-		}
-		self::save_listed($id, $listed);
-		foreach ([WebP::class, AVIF::class] as $service) {
-			delete_post_meta($id, $service::meta_key());
-			Errors::clear_attachment($id, $service::cmd_name());
-		}
+			$listed = self::listed($id);
+			foreach ($listed as $index => $path) {
+				if (preg_match('/\.(webp|avif)$/', $path)) {
+					self::unlink($path);
+					unset($listed[$index]);
+				}
+			}
+			self::save_listed($id, $listed);
+			foreach ([WebP::class, AVIF::class] as $service) {
+				delete_post_meta($id, $service::meta_key());
+				Errors::clear_attachment($id, $service::cmd_name());
+			}
+			return true;
+		});
 	}
 
 	/**
@@ -83,44 +87,48 @@ class Cleaner
 	 * file (WebP, AVIF, backups) and meta is removed.
 	 *
 	 * @param int $id
-	 * @return bool False if the original of a compressed image
-	 *              is missing: it stays compressed.
+	 * @return bool|null False if the original of a compressed
+	 *                   image is missing: it stays compressed.
+	 *                   Null if another request is processing
+	 *                   the image.
 	 * @since 1.0.0
 	 * @date 25/10/2026
 	 */
 	public static function restore($id)
 	{
-		$restored = true;
-		$compressed = get_post_meta($id, JPG::meta_key(), true) !== '' || get_post_meta($id, PNG::meta_key(), true) !== '';
-		$original = get_attached_file($id);
-		foreach (self::files($id) as $file) {
-			$backup = Service::backup_path($file);
-			if (file_exists($backup) && Service::contained($file)) {
-				copy($backup, $file);
-				unlink($backup);
-			} elseif ($file === $original && $compressed && in_array(get_post_mime_type($id), Status::MIMES, true)) {
-				$restored = false;
+		return Lock::run($id, function () use ($id) {
+			$restored = true;
+			$compressed = get_post_meta($id, JPG::meta_key(), true) !== '' || get_post_meta($id, PNG::meta_key(), true) !== '';
+			$original = get_attached_file($id);
+			foreach (self::files($id) as $file) {
+				$backup = Service::backup_path($file);
+				if (file_exists($backup) && Service::contained($file)) {
+					copy($backup, $file);
+					unlink($backup);
+				} elseif ($file === $original && $compressed && in_array(get_post_mime_type($id), Status::MIMES, true)) {
+					$restored = false;
+				}
+				self::unlink($file . WebP::extension());
+				self::unlink($file . AVIF::extension());
 			}
-			self::unlink($file . WebP::extension());
-			self::unlink($file . AVIF::extension());
-		}
-		// Without its original, e.g. the folder of the originals moved, the
-		// files kept elsewhere stay listed: they are restored once it is back.
-		$kept = [];
-		foreach (self::listed($id) as $path) {
-			if (!$restored && !preg_match('/\.(webp|avif)$/', $path)) {
-				$kept[] = $path;
-				continue;
+			// Without its original, e.g. the folder of the originals moved, the
+			// files kept elsewhere stay listed: they are restored once it is back.
+			$kept = [];
+			foreach (self::listed($id) as $path) {
+				if (!$restored && !preg_match('/\.(webp|avif)$/', $path)) {
+					$kept[] = $path;
+					continue;
+				}
+				self::unlink($path);
 			}
-			self::unlink($path);
-		}
-		foreach (array_keys(get_post_meta($id)) as $key) {
-			if (strpos($key, '_oio_') === 0) {
-				delete_post_meta($id, $key);
+			foreach (array_keys(get_post_meta($id)) as $key) {
+				if (strpos($key, '_oio_') === 0) {
+					delete_post_meta($id, $key);
+				}
 			}
-		}
-		self::save_listed($id, $kept);
-		return $restored;
+			self::save_listed($id, $kept);
+			return $restored;
+		});
 	}
 
 	/**

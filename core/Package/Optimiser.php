@@ -98,27 +98,31 @@ class Optimiser
 	 * @param array $settings Args by format, see settings().
 	 * @param bool $force Optimise again the formats already done.
 	 * @param bool $thumbnails_only
+	 * @return true|null Null if another request is processing the image.
 	 * @since 1.0.0
 	 * @date 25/10/2026
 	 */
 	public static function attachment($id, $metadata, $settings, $force = false, $thumbnails_only = false)
 	{
-		$attachment = $metadata ?: (int)$id;
-		foreach (self::SERVICES as $format => $service) {
-			if (!isset($settings[$format])) {
-				continue;
+		return Lock::run($id, function () use ($id, $metadata, $settings, $force, $thumbnails_only) {
+			$attachment = $metadata ?: (int)$id;
+			foreach (self::SERVICES as $format => $service) {
+				if (!isset($settings[$format])) {
+					continue;
+				}
+				try {
+					$service::process($attachment, array_merge($settings[$format], [
+						'id' => (int)$id,
+						'force' => $force,
+						'thumbnailsOnly' => $thumbnails_only,
+					]));
+				} catch (Exception $e) {
+					Logger::error($e->getMessage());
+				}
 			}
-			try {
-				$service::process($attachment, array_merge($settings[$format], [
-					'id' => (int)$id,
-					'force' => $force,
-					'thumbnailsOnly' => $thumbnails_only,
-				]));
-			} catch (Exception $e) {
-				Logger::error($e->getMessage());
-			}
-		}
-		Status::stamp_sizes($id, $metadata ?: wp_get_attachment_metadata($id));
+			Status::stamp_sizes($id, $metadata ?: wp_get_attachment_metadata($id));
+			return true;
+		});
 	}
 
 	/**
@@ -133,33 +137,37 @@ class Optimiser
 	 *
 	 * @param int $id
 	 * @param bool $regenerate
+	 * @return true|null Null if another request is processing the image.
 	 * @since 1.0.0
 	 * @date 25/10/2026
 	 */
 	public static function update($id, $regenerate = false)
 	{
-		$settings = self::settings();
-		$metadata = wp_get_attachment_metadata($id);
-		$sizes = get_post_meta($id, Status::SIZES_KEY, true);
-		if ($regenerate || !Status::sizes_current($metadata) || ($sizes !== '' && $sizes !== Status::sizes_signature())) {
-			$metadata = self::regenerate($id);
-			if ($metadata) {
-				self::attachment($id, $metadata, $settings, true);
+		return Lock::run($id, function () use ($id, $regenerate) {
+			$settings = self::settings();
+			$metadata = wp_get_attachment_metadata($id);
+			$sizes = get_post_meta($id, Status::SIZES_KEY, true);
+			if ($regenerate || !Status::sizes_current($metadata) || ($sizes !== '' && $sizes !== Status::sizes_signature())) {
+				$metadata = self::regenerate($id);
+				if ($metadata) {
+					self::attachment($id, $metadata, $settings, true);
+				}
+				return true;
 			}
-			return;
-		}
-		$outdated = [];
-		foreach ($settings as $format => $args) {
-			$service = self::SERVICES[$format];
-			if (get_post_meta($id, $service::meta_key(), true) !== $service::signature($args)) {
-				$outdated[$format] = $args;
+			$outdated = [];
+			foreach ($settings as $format => $args) {
+				$service = self::SERVICES[$format];
+				if (get_post_meta($id, $service::meta_key(), true) !== $service::signature($args)) {
+					$outdated[$format] = $args;
+				}
 			}
-		}
-		if ($outdated) {
-			self::attachment($id, $metadata, $outdated, true);
-		} else {
-			Status::stamp_sizes($id, $metadata);
-		}
+			if ($outdated) {
+				self::attachment($id, $metadata, $outdated, true);
+			} else {
+				Status::stamp_sizes($id, $metadata);
+			}
+			return true;
+		});
 	}
 
 	/**
@@ -173,53 +181,56 @@ class Optimiser
 	 * uploaded, as WordPress does on upload.
 	 *
 	 * @param int $id
-	 * @return array|null The new metadata.
+	 * @return array|null The new metadata, null if it failed or
+	 *                    another request is processing the image.
 	 * @since 1.0.0
 	 * @date 25/10/2026
 	 */
 	public static function regenerate($id)
 	{
-		$file = get_attached_file($id);
-		if (!$file || !file_exists($file)) {
-			return null;
-		}
-		// WordPress scaled a big image down: it is scaled again from the image
-		// uploaded, which OIO does not optimise, and its thumbnails keep their names.
-		$source = wp_get_original_image_path($id);
-		if (!$source || $source === $file || !file_exists($source)) {
-			$source = $file;
-			$backup = Service::backup_path($file);
-			if (file_exists($backup) && Service::contained($file)) {
-				copy($backup, $file);
+		return Lock::run($id, function () use ($id) {
+			$file = get_attached_file($id);
+			if (!$file || !file_exists($file)) {
+				return null;
 			}
-		}
-
-		$previous = wp_get_attachment_metadata($id);
-		require_once ABSPATH . 'wp-admin/includes/image.php';
-		self::$regenerating = true;
-		$metadata = wp_generate_attachment_metadata($id, $source);
-		self::$regenerating = false;
-		if (empty($metadata) || is_wp_error($metadata)) {
-			return null;
-		}
-		if (!empty($previous['original_image']) && empty($metadata['original_image'])) {
-			$metadata['original_image'] = $previous['original_image'];
-		}
-		wp_update_attachment_metadata($id, $metadata);
-
-		// The files made again are the new originals of the next optimisation.
-		$file = get_attached_file($id);
-		$made = $source === $file ? [] : [$file];
-		$sizes = isset($metadata['sizes']) ? $metadata['sizes'] : [];
-		foreach ($sizes as $size) {
-			$made[] = dirname($file) . DIRECTORY_SEPARATOR . $size['file'];
-		}
-		foreach ($made as $path) {
-			$backup = Service::backup_path($path);
-			if (file_exists($backup) && Service::contained($backup)) {
-				unlink($backup);
+			// WordPress scaled a big image down: it is scaled again from the image
+			// uploaded, which OIO does not optimise, and its thumbnails keep their names.
+			$source = wp_get_original_image_path($id);
+			if (!$source || $source === $file || !file_exists($source)) {
+				$source = $file;
+				$backup = Service::backup_path($file);
+				if (file_exists($backup) && Service::contained($file)) {
+					copy($backup, $file);
+				}
 			}
-		}
-		return $metadata;
+
+			$previous = wp_get_attachment_metadata($id);
+			require_once ABSPATH . 'wp-admin/includes/image.php';
+			self::$regenerating = true;
+			$metadata = wp_generate_attachment_metadata($id, $source);
+			self::$regenerating = false;
+			if (empty($metadata) || is_wp_error($metadata)) {
+				return null;
+			}
+			if (!empty($previous['original_image']) && empty($metadata['original_image'])) {
+				$metadata['original_image'] = $previous['original_image'];
+			}
+			wp_update_attachment_metadata($id, $metadata);
+
+			// The files made again are the new originals of the next optimisation.
+			$file = get_attached_file($id);
+			$made = $source === $file ? [] : [$file];
+			$sizes = isset($metadata['sizes']) ? $metadata['sizes'] : [];
+			foreach ($sizes as $size) {
+				$made[] = dirname($file) . DIRECTORY_SEPARATOR . $size['file'];
+			}
+			foreach ($made as $path) {
+				$backup = Service::backup_path($path);
+				if (file_exists($backup) && Service::contained($backup)) {
+					unlink($backup);
+				}
+			}
+			return $metadata;
+		});
 	}
 }

@@ -31,9 +31,9 @@ global $wpdb;
  * options of another plugin using this prefix.
  */
 
-// Settings, recent errors, progress of the background job, cached theme scan.
+// Settings, recent errors, progress of the background job, cached theme scan, locks of the images.
 $options = ['oio_errors', 'oio_job', 'oio_theme_calls'];
-$option_prefixes = ['_oio_'];
+$option_prefixes = ['_oio_', 'oio_lock_'];
 // The background job library keeps its queue, status and lock in the site options,
 // under the identifier of the job: oio_job, or oio_2_job on the site 2 of a network.
 $site_options = [];

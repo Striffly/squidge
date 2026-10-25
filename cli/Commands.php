@@ -23,6 +23,7 @@ if (!defined('ABSPATH')) {
 }
 
 use OIO\Package\Cleaner;
+use OIO\Package\Lock;
 use OIO\Package\Optimiser;
 use OIO\OIO;
 use OIO\Services\JPG;
@@ -136,8 +137,14 @@ class OIO_CLI extends WP_CLI_Command
 			]);
 			foreach ($query->posts as $id) {
 				WP_CLI::log(WP_CLI::colorize("%BProcessing image: %n") . get_the_title($id));
-				$metadata = $regenerate ? Optimiser::regenerate($id) : null;
-				Optimiser::attachment($id, $metadata, $settings, $force || $regenerate, $thumbnails_only);
+				$done = Lock::run($id, function () use ($id, $regenerate, $settings, $force, $thumbnails_only) {
+					$metadata = $regenerate ? Optimiser::regenerate($id) : null;
+					return Optimiser::attachment($id, $metadata, $settings, $force || $regenerate, $thumbnails_only);
+				});
+				if ($done === null) {
+					WP_CLI::warning(get_the_title($id) . ': skipped, another request is processing it.');
+					continue;
+				}
 				$counter++;
 			}
 			$page++;
@@ -177,13 +184,18 @@ class OIO_CLI extends WP_CLI_Command
 		Optimiser::$context = 'cli';
 		$ids = Cleaner::ids();
 		$missing = 0;
+		$skipped = 0;
 		foreach ($ids as $id) {
-			if (!Cleaner::restore($id)) {
+			$restored = Cleaner::restore($id);
+			if ($restored === null) {
+				$skipped++;
+				WP_CLI::warning(get_the_title($id) . ': skipped, another request is processing it.');
+			} elseif (!$restored) {
 				$missing++;
 				WP_CLI::warning(get_the_title($id) . ': no original to restore, it stays compressed.');
 			}
 		}
-		WP_CLI::success('Restored ' . (count($ids) - $missing) . ' images' . ($missing ? ', ' . $missing . ' had no original.' : '.'));
+		WP_CLI::success('Restored ' . (count($ids) - $missing - $skipped) . ' images' . ($missing ? ', ' . $missing . ' had no original' : '') . ($skipped ? ', ' . $skipped . ' skipped' : '') . '.');
 	}
 
 	/**
