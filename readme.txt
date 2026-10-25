@@ -6,8 +6,8 @@ Requires at least: 6.0
 Tested up to: 7.1
 Requires PHP: 7.4
 Stable tag: 0.1.4
-License: GPLv2 or later
-License URI: https://www.gnu.org/licenses/gpl-2.0.html
+License: GPLv3 or later
+License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
 Squidge is a FREE WordpPress Plugin built for developers in mind compressing and convert images using jpegoptim,
 optipng, cwebp, and libavif. It's extremley simple to use and is designed to increase PSI and boost rankings.
