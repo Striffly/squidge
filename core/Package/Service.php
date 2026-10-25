@@ -129,7 +129,7 @@ class Service
 			}
 		}
 		foreach ($files as $file) {
-			if ($complete && static::is_done($file)) {
+			if ($complete && static::is_done($file, $id)) {
 				continue;
 			}
 			// The library reads the original and writes the version of the file:
@@ -408,18 +408,22 @@ class Service
 
 	/**
 	 * Determines if this service already processed a
-	 * file: its WebP or AVIF version exists, or for a
-	 * compression, its original is kept as a backup.
+	 * file: its WebP or AVIF version exists, or was
+	 * deleted as heavier than the file (see
+	 * Optimiser::drop_heavier()), or for a compression,
+	 * its original is kept as a backup.
 	 *
 	 * @param string $filepath
+	 * @param int $id
 	 * @return bool
 	 * @since 1.0.0
 	 * @date 25/10/2026
 	 */
-	protected static function is_done($filepath)
+	protected static function is_done($filepath, $id = 0)
 	{
 		if (static::extension() !== '') {
-			return file_exists($filepath . static::extension());
+			$variant = $filepath . static::extension();
+			return file_exists($variant) || in_array(self::relative_path($variant), Optimiser::heavier($id), true);
 		}
 		return file_exists(self::backup_path($filepath));
 	}

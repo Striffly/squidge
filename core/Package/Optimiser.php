@@ -54,6 +54,14 @@ class Optimiser
 	const READER = 'wordpress';
 
 	/**
+	 * HEAVIER_KEY is the meta key listing the WebP and
+	 * AVIF files deleted as they were not lighter than
+	 * the JPG or PNG, relative to the uploads folder:
+	 * they count as done.
+	 */
+	const HEAVIER_KEY = '_oio_heavier';
+
+	/**
 	 * Set while WordPress regenerates the thumbnails of
 	 * an image, so that the upload hook leaves it to
 	 * regenerate().
@@ -132,7 +140,9 @@ class Optimiser
 					Logger::error($e->getMessage());
 				}
 			}
-			Status::stamp_sizes($id, $metadata ?: wp_get_attachment_metadata($id));
+			$metadata = $metadata ?: wp_get_attachment_metadata($id);
+			self::drop_heavier($id, $metadata);
+			Status::stamp_sizes($id, $metadata);
 			// On upload, the metadata is saved once the filter returns it, see
 			// Upload::process(): saving it now would be overwritten.
 			if (!doing_filter('wp_generate_attachment_metadata')) {
@@ -220,6 +230,74 @@ class Optimiser
 	}
 
 	/**
+	 * Deletes the WebP and AVIF files of an image that
+	 * are not lighter than the JPG or PNG they replace,
+	 * as compressed: on small graphics and thumbnails,
+	 * serving them would slow the page down. They are
+	 * listed, so that they count as done.
+	 *
+	 * @param int $id
+	 * @param array $metadata
+	 * @since 1.0.0
+	 * @date 25/10/2026
+	 */
+	private static function drop_heavier($id, $metadata)
+	{
+		if (empty($metadata['file'])) {
+			return;
+		}
+		$base = wp_get_upload_dir()['basedir'] . DIRECTORY_SEPARATOR;
+		$main = $base . $metadata['file'];
+		$files = [$main];
+		$sizes = isset($metadata['sizes']) ? $metadata['sizes'] : [];
+		foreach ($sizes as $size) {
+			if (!empty($size['file'])) {
+				$files[] = dirname($main) . DIRECTORY_SEPARATOR . $size['file'];
+			}
+		}
+		$heavier = self::heavier($id);
+		clearstatcache();
+		foreach (array_unique($files) as $file) {
+			foreach ([WebP::extension(), AVIF::extension()] as $extension) {
+				$variant = $file . $extension;
+				if (!file_exists($variant) || !file_exists($file) || !Service::contained($variant)) {
+					continue;
+				}
+				$relative = substr($variant, strlen($base));
+				if (filesize($variant) < filesize($file)) {
+					$heavier = array_diff($heavier, [$relative]);
+					continue;
+				}
+				unlink($variant);
+				$heavier[] = $relative;
+				Logger::info("Deleted, not lighter than the image: " . $variant);
+			}
+		}
+		$heavier = array_values(array_unique($heavier));
+		if ($heavier) {
+			update_post_meta($id, self::HEAVIER_KEY, $heavier);
+		} else {
+			delete_post_meta($id, self::HEAVIER_KEY);
+		}
+	}
+
+	/**
+	 * Returns the WebP and AVIF files of an image
+	 * deleted as heavier than the JPG or PNG, relative
+	 * to the uploads folder.
+	 *
+	 * @param int $id
+	 * @return string[]
+	 * @since 1.0.0
+	 * @date 25/10/2026
+	 */
+	public static function heavier($id)
+	{
+		$heavier = $id ? get_post_meta($id, self::HEAVIER_KEY, true) : [];
+		return is_array($heavier) ? $heavier : [];
+	}
+
+	/**
 	 * Brings an optimised image up to date with the
 	 * current settings. If its thumbnails do not match
 	 * the registered sizes (dimensions, or the sizes
@@ -227,7 +305,8 @@ class Optimiser
 	 * with $regenerate, they are made again from the
 	 * original and every format is done again. Otherwise
 	 * only the formats done with other settings are
-	 * done again.
+	 * done again, and the WebP and AVIF deleted as
+	 * heavier if the JPG or PNG is.
 	 *
 	 * @param int $id
 	 * @param bool $regenerate
@@ -254,6 +333,11 @@ class Optimiser
 				if (get_post_meta($id, $service::meta_key(), true) !== $service::signature($args)) {
 					$outdated[$format] = $args;
 				}
+			}
+			// The JPG or PNG changes: the WebP and AVIF deleted as heavier may be lighter now.
+			$compression = get_post_mime_type($id) === 'image/png' ? 'png' : 'jpg';
+			if (isset($outdated[$compression]) && self::heavier($id)) {
+				$outdated = array_merge($outdated, array_intersect_key($settings, ['webp' => true, 'avif' => true]));
 			}
 			if ($outdated) {
 				self::attachment($id, $metadata, $outdated, true);

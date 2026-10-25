@@ -104,8 +104,11 @@ class Picture
 
 	/**
 	 * Returns the srcset of a format from the srcset
-	 * candidates of the image, without the candidates
-	 * that have no file in this format.
+	 * candidates of the image, empty if no candidate has
+	 * a file in this format. A candidate without one
+	 * (e.g. deleted as heavier than the JPG or PNG)
+	 * keeps its JPG or PNG: without it, the browser
+	 * would pick a smaller size of this format.
 	 *
 	 * @param array $candidates
 	 * @param string $extension
@@ -116,13 +119,13 @@ class Picture
 	private static function build_srcset($candidates, $extension)
 	{
 		$parts = [];
+		$found = false;
 		foreach ($candidates as $candidate) {
 			$url = self::variant($candidate[0], $extension);
-			if ($url) {
-				$parts[] = trim($url . ' ' . $candidate[1]);
-			}
+			$found = $found || $url;
+			$parts[] = trim(($url ?: $candidate[0]) . ' ' . $candidate[1]);
 		}
-		return implode(', ', $parts);
+		return $found ? implode(', ', $parts) : '';
 	}
 
 	/**

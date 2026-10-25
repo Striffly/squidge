@@ -73,6 +73,7 @@ class Cleaner
 				}
 			}
 			self::save_listed($id, $listed);
+			delete_post_meta($id, Optimiser::HEAVIER_KEY);
 			foreach ([WebP::class, AVIF::class] as $service) {
 				delete_post_meta($id, $service::meta_key());
 				Errors::clear_attachment($id, $service::cmd_name());

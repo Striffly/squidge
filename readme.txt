@@ -16,7 +16,7 @@ OIO optimises the images of your media library with the libraries of your own se
 
 = Optimisation =
 
-* Compresses JPG and PNG images in place, and creates their WebP and AVIF versions next to them (`photo.jpg.webp`, `photo.jpg.avif`).
+* Compresses JPG and PNG images in place, and creates their WebP and AVIF versions next to them (`photo.jpg.webp`, `photo.jpg.avif`), kept only when lighter than the compressed image.
 * Keeps the original images: every optimisation starts again from them, and they can be restored at any time.
 * Strips the metadata (camera, date, GPS position) from every optimised file.
 * Handles CMYK JPGs, which the WebP and AVIF encoders cannot read.
