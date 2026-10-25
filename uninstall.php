@@ -31,9 +31,26 @@ global $wpdb;
  * options of another plugin using this prefix.
  */
 
-// Settings, recent errors, progress of the background job, cached theme scan, locks of the images.
+// Recent errors, progress of the background job, cached theme scan, locks of the images.
 $options = ['oio_errors', 'oio_job', 'oio_theme_calls'];
-$option_prefixes = ['_oio_', 'oio_lock_'];
+$option_prefixes = ['oio_lock_'];
+// The settings, by name: _ and the name of each field of Fields::sections(), as
+// WordPress does not load OIO here. A prefix would delete the options of another
+// plugin starting with _oio_.
+$settings = [
+	'oio_jpg_enable',
+	'oio_jpg_quality',
+	'oio_png_enable',
+	'oio_png_quality',
+	'oio_webp_enable',
+	'oio_webp_quality',
+	'oio_avif_enable',
+	'oio_avif_quality',
+	'oio_display_formats',
+];
+foreach ($settings as $setting) {
+	$options[] = '_' . $setting;
+}
 // The background job library keeps its queue, status and lock in the site options,
 // under the identifier of the job: oio_job, or oio_2_job on the site 2 of a network.
 $site_options = [];
