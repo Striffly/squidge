@@ -38,7 +38,8 @@ unlimited, no API key, no quota: your images never leave your server.
 - Serves AVIF and WebP, with the JPG or PNG as fallback (optional): in a `<picture>` element, or from the server
   with rewrite rules (written for Apache, given for nginx), which leaves the HTML as it is.
 - Tests the delivery: types sent by the server, rewrite, originals kept private.
-- `octopus_image()` returns a `<picture>` in your own templates.
+- `octopus_image()` returns a `<picture>` in your own templates, `octopus_image_sources()` only its AVIF and WebP
+  srcsets.
 
 ## Requirements
 
@@ -209,6 +210,19 @@ if (function_exists('octopus_image')) {
 	<source type="image/webp" srcset="photo.jpg.webp 2500w, photo-300x200.jpg.webp 300w" sizes="(max-width: 2500px) 100vw, 2500px">
 	<img data-octopus src="photo.jpg" srcset="photo.jpg 2500w, photo-300x200.jpg 300w" sizes="(max-width: 2500px) 100vw, 2500px" width="2500" height="1667" alt="">
 </picture>
+```
+
+A theme writing its own `<picture>` (lazy loading, preview…) can ask for the sources only: `octopus_image_sources()`
+takes a srcset, or a single image URL, and returns the srcset of each format with files, keyed by MIME type, best first.
+A size without a file in a format (deleted as heavier than its JPG or PNG) keeps its JPG or PNG in that srcset.
+
+```php
+$sources = function_exists('octopus_image_sources') ? octopus_image_sources($srcset) : [];
+// ['image/avif' => 'photo.jpg.avif 2500w, photo-300x200.jpg 300w', 'image/webp' => 'photo.jpg.webp 2500w, photo-300x200.jpg.webp 300w']
+
+foreach ($sources as $type => $format_srcset) {
+	printf('<source type="%s" srcset="%s" sizes="%s">', esc_attr($type), esc_attr($format_srcset), esc_attr($sizes));
+}
 ```
 
 Keep the `function_exists()` check: without it, the pages break while OIO is deactivated.

@@ -63,17 +63,13 @@ class Picture
 			return $html;
 		}
 		$srcset = self::attr($img, 'srcset');
-		$candidates = $srcset ? self::parse_srcset($srcset) : [[$src, '']];
 
 		$new_img = preg_replace('/^<img\s/i', '<img ' . self::MARKER . ' ', $img);
 
 		$sources = '';
 		$sizes = self::attr($img, 'sizes');
-		foreach (self::FORMATS as $extension => $type) {
-			$format_srcset = self::build_srcset($candidates, $extension);
-			if ($format_srcset !== '') {
-				$sources .= sprintf('<source type="%s" srcset="%s"%s>', $type, esc_attr($format_srcset), $sizes ? sprintf(' sizes="%s"', esc_attr($sizes)) : '');
-			}
+		foreach (self::sources($srcset ?: $src) as $type => $format_srcset) {
+			$sources .= sprintf('<source type="%s" srcset="%s"%s>', $type, esc_attr($format_srcset), $sizes ? sprintf(' sizes="%s"', esc_attr($sizes)) : '');
 		}
 
 		if ($sources !== '' || $picture_class !== null) {
@@ -82,6 +78,29 @@ class Picture
 		}
 
 		return str_replace($img, $new_img, $html);
+	}
+
+	/**
+	 * Returns the srcset of each modern format of a
+	 * srcset or an image URL, keyed by MIME type, best
+	 * first: only the formats with at least one file,
+	 * empty for an image out of the uploads folder.
+	 *
+	 * @param string $srcset
+	 * @return array
+	 * @since 1.0.0
+	 */
+	public static function sources($srcset)
+	{
+		$candidates = self::parse_srcset((string)$srcset);
+		$sources = [];
+		foreach (self::FORMATS as $extension => $type) {
+			$format_srcset = self::build_srcset($candidates, $extension);
+			if ($format_srcset !== '') {
+				$sources[$type] = $format_srcset;
+			}
+		}
+		return $sources;
 	}
 
 	/**

@@ -54,3 +54,23 @@ if (!function_exists('octopus_image')) {
 		return $html;
 	}
 }
+
+if (!function_exists('octopus_image_sources')) {
+
+	/**
+	 * Returns the AVIF and WebP srcsets of a srcset or an
+	 * image URL of the uploads folder, keyed by MIME type,
+	 * best first, for a theme writing its own <source>
+	 * elements. A size without a file in a format (e.g.
+	 * deleted as heavier) keeps its JPG or PNG in that
+	 * srcset, and a format without any file is left out.
+	 *
+	 * @param string $srcset
+	 * @return array
+	 * @since 1.0.0
+	 */
+	function octopus_image_sources($srcset)
+	{
+		return Picture::sources($srcset);
+	}
+}

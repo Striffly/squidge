@@ -134,6 +134,27 @@ class PictureTest extends TestCase
 		$this->assertDoesNotMatchRegularExpression('/\s(src|srcset)=/', $lazy);
 	}
 
+	public function test_octopus_image_sources_returns_the_srcset_of_each_format()
+	{
+		$srcset = $this->url . '/2026/10/photo.jpg 640w, ' . $this->url . '/2026/10/photo-300x200.jpg 300w';
+
+		$this->assertSame(
+			[
+				'image/avif' => $this->url . '/2026/10/photo.jpg.avif 640w, ' . $this->url . '/2026/10/photo-300x200.jpg 300w',
+				'image/webp' => $this->url . '/2026/10/photo.jpg.webp 640w, ' . $this->url . '/2026/10/photo-300x200.jpg.webp 300w',
+			],
+			octopus_image_sources($srcset)
+		);
+	}
+
+	public function test_octopus_image_sources_takes_a_single_url()
+	{
+		$this->assertSame(['image/webp' => $this->url . '/2026/10/photo-300x200.jpg.webp'], octopus_image_sources($this->url . '/2026/10/photo-300x200.jpg'));
+		$this->assertSame([], octopus_image_sources($this->url . '/2026/10/other.jpg'), 'An image without versions has no source.');
+		$this->assertSame([], octopus_image_sources('https://cdn.example.com/2026/10/photo.jpg'), 'Nor an image out of the uploads folder.');
+		$this->assertSame([], octopus_image_sources(''));
+	}
+
 	/**
 	 * Returns the <img> of the photo, as WordPress
 	 * writes it.

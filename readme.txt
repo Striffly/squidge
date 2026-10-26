@@ -34,7 +34,7 @@ OIO optimises the images of your media library with the libraries of your own se
 
 * Serves AVIF and WebP, with the JPG or PNG as fallback (optional): in a `<picture>` element, or from the server with rewrite rules (written for Apache, given for nginx), which leaves the HTML as it is.
 * Tests the delivery: types sent by the server, rewrite, originals kept private.
-* `octopus_image( $image_id, $class, $lazy )` returns a `<picture>` in your own templates.
+* `octopus_image( $image_id, $class, $lazy )` returns a `<picture>` in your own templates, `octopus_image_sources( $srcset )` only its AVIF and WebP srcsets, keyed by MIME type.
 
 = For developers =
 
