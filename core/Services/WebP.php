@@ -156,7 +156,8 @@ class WebP extends Service implements Convertor
 	}
 
 	/**
-	 * Returns the extension to convert too.
+	 * Returns the extension added to the files made:
+	 * photo.jpg.webp.
 	 *
 	 * @return string
 	 * @since 0.1.0

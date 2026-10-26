@@ -46,8 +46,10 @@ class PNG extends Service implements Convertor
 	const DEFAULT_LOSSY_QUALITY = 80;
 
 	/**
-	 * Compresses all image sizes have a jpg mime type
-	 * with the given file path.
+	 * Compresses a PNG file in place with oxipng or
+	 * optipng, after pngquant for the lossy
+	 * compression, from its original kept as a
+	 * backup.
 	 *
 	 * The library runs without shell, see
 	 * Service::execute().
@@ -249,7 +251,8 @@ class PNG extends Service implements Convertor
 	}
 
 	/**
-	 * Returns the extension to convert too.
+	 * Returns the extension of the files made: none,
+	 * the PNG files are compressed in place.
 	 *
 	 * @return string
 	 * @since 0.1.0

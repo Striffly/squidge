@@ -53,8 +53,9 @@ class AVIF extends Service implements Convertor
 	const EDITOR_MIME = 'image/avif';
 
 	/**
-	 * Compresses all image sizes have a png mime type
-	 * with the given file path.
+	 * Makes the AVIF version of a JPG or PNG file with
+	 * avifenc, or the image editor without it, from
+	 * its original.
 	 *
 	 * The library runs without shell, see
 	 * Service::execute().
@@ -238,7 +239,8 @@ class AVIF extends Service implements Convertor
 	}
 
 	/**
-	 * Returns the extension to convert too.
+	 * Returns the extension added to the files made:
+	 * photo.jpg.avif.
 	 *
 	 * @return string
 	 * @since 0.1.0

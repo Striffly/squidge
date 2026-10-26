@@ -4,7 +4,7 @@
  * Convertor
  *
  * Should be implemented by any service that
- * coverts or compresses an image.
+ * converts or compresses an image.
  *
  * @package     OIO
  * @author      Clément Gayot

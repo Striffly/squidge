@@ -31,14 +31,14 @@ class JPG extends Service implements Convertor
 {
 
 	/**
-	 * DEFAULT_QUALITY is the default image quality
-	 * when processing a PNG image.
+	 * DEFAULT_QUALITY is the default maximum quality
+	 * of the compressed JPG images.
 	 */
 	const DEFAULT_QUALITY = 80;
 
 	/**
-	 * Compresses all image sizes have a png mime type
-	 * with the given file path.
+	 * Compresses a JPG file in place with jpegoptim,
+	 * from its original kept as a backup.
 	 *
 	 * The library runs without shell, see
 	 * Service::execute().
@@ -89,7 +89,8 @@ class JPG extends Service implements Convertor
 	}
 
 	/**
-	 * Returns the extension to convert too.
+	 * Returns the extension of the files made: none,
+	 * the JPG files are compressed in place.
 	 *
 	 * @return string
 	 * @since 0.1.0
