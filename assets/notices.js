@@ -1,5 +1,5 @@
 /**
- * media.js
+ * notices.js
  *
  * Shows the OIO errors of an image right after
  * it is uploaded to the media library, and clears
@@ -7,7 +7,7 @@
  */
 
 (function ($) {
-	var settings = window.octopusMedia || {};
+	var settings = window.octopusNotices || {};
 
 	function getNotice() {
 		var $notice = $('.octopus-errors-notice');

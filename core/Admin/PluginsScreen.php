@@ -89,7 +89,7 @@ class PluginsScreen
 			'restoreUrl' => SettingsPage::page_url() . '#overview',
 			'themeCalls' => $this->theme_calls(),
 		]);
-		wp_add_inline_style('wp-admin', '.octopus-dialog{max-width:520px;padding:24px;border:0;border-radius:8px;box-shadow:0 10px 40px rgba(0,0,0,.25)}.octopus-dialog::backdrop{background:rgba(0,0,0,.4)}.octopus-dialog h2{margin-top:0}.octopus-dialog__actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:20px}');
+		wp_enqueue_style('octopus-plugins', OCTOPUS_URL . 'assets/plugins.css', [], filemtime(OCTOPUS_PATH . 'assets/plugins.css'));
 	}
 
 	/**

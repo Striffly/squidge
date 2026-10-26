@@ -283,6 +283,6 @@ class MediaColumn
 		if ($hook !== 'upload.php') {
 			return;
 		}
-		wp_add_inline_style('wp-admin', '.column-octopus{width:170px}.octopus-saved{white-space:nowrap}.octopus-status-label::before{content:"";display:inline-block;width:8px;height:8px;margin-right:6px;border-radius:50%;background:#a7aaad}.octopus-status-label--optimised::before{background:#00a32a}.octopus-status-label--outdated::before{background:#dba617}.octopus-status-label--error::before{background:#d63638}');
+		wp_enqueue_style('octopus-media', OCTOPUS_URL . 'assets/media.css', [], filemtime(OCTOPUS_PATH . 'assets/media.css'));
 	}
 }
