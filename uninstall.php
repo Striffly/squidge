@@ -32,30 +32,9 @@ global $wpdb;
  */
 
 // Recent errors, progress of the background job, cached theme scan and versions of the
-// libraries, locks of the images.
-$options = ['octopus_errors', 'octopus_job', 'octopus_theme_calls', 'octopus_versions'];
+// libraries, the settings, locks of the images.
+$options = ['octopus_errors', 'octopus_job', 'octopus_theme_calls', 'octopus_versions', 'octopus_settings'];
 $option_prefixes = ['octopus_lock_'];
-// The settings, by name: _ and the name of each field of Fields::sections(), as
-// WordPress does not load OIO here. A prefix would delete the options of another
-// plugin starting with _octopus_.
-$settings = [
-	'octopus_jpg_enable',
-	'octopus_jpg_quality',
-	'octopus_png_enable',
-	'octopus_png_quality',
-	'octopus_png_lossy',
-	'octopus_png_lossy_quality',
-	'octopus_webp_enable',
-	'octopus_webp_quality',
-	'octopus_avif_enable',
-	'octopus_avif_quality',
-	'octopus_display_formats',
-	'octopus_rewrite_rules',
-	'octopus_max_size',
-];
-foreach ($settings as $setting) {
-	$options[] = '_' . $setting;
-}
 // The background job library keeps its queue, status and lock in the site options,
 // under the identifier of the job: octopus_job, or octopus_2_job on the site 2 of a network.
 $site_options = [];

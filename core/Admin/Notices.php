@@ -42,7 +42,7 @@ class Notices
 	const SCREENS = ['upload', 'media', 'attachment', 'settings_page_' . Fields::PAGE];
 
 	/**
-	 * What each library does, as shown to the user.
+	 * What failed, by format, as shown to the user.
 	 * WordPress reads the images first, see
 	 * Optimiser::readable().
 	 *
@@ -50,10 +50,10 @@ class Notices
 	 */
 	const ACTIONS = [
 		Optimiser::READER => 'Optimisation',
-		'jpegoptim' => 'JPG compression',
-		'optipng' => 'PNG compression',
-		'cwebp' => 'WebP conversion',
-		'avifenc' => 'AVIF conversion',
+		'jpg' => 'JPG compression',
+		'png' => 'PNG compression',
+		'webp' => 'WebP conversion',
+		'avif' => 'AVIF conversion',
 	];
 
 	/**
@@ -150,9 +150,9 @@ class Notices
 			if (!isset($groups[$key])) {
 				$groups[$key] = ['id' => $error['id'], 'file' => $error['file'], 'reason' => $reason, 'actions' => [], 'details' => []];
 			}
-			$action = array_key_exists($error['tool'], self::ACTIONS) ? self::ACTIONS[$error['tool']] : $error['tool'];
+			$action = array_key_exists($error['format'], self::ACTIONS) ? self::ACTIONS[$error['format']] : $error['format'];
 			$groups[$key]['actions'][$action] = $action;
-			$groups[$key]['details'][] = sprintf('%s on %s: %s', $error['tool'], $error['file'], $error['message']);
+			$groups[$key]['details'][] = sprintf('%s: %s', $error['file'], $error['message']);
 		}
 
 		$items = [];

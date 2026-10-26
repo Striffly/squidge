@@ -17,13 +17,13 @@
 namespace Octopus\Media;
 
 use Exception;
-use Octopus\Admin\Fields;
 use Octopus\Encoders\AVIF;
 use Octopus\Encoders\JPG;
 use Octopus\Encoders\PNG;
 use Octopus\Encoders\WebP;
 use Octopus\Log\Errors;
 use Octopus\Log\Logger;
+use Octopus\Settings;
 
 if (!defined('ABSPATH')) {
 	exit; // Exit if accessed directly
@@ -46,12 +46,13 @@ class Optimiser
 	];
 
 	/**
-	 * The tool of the errors of the images WordPress
-	 * cannot read, as the libraries for their failures.
+	 * The key of the errors of the images WordPress
+	 * cannot read, next to the formats of the
+	 * libraries (see Errors).
 	 *
 	 * @var string
 	 */
-	const READER = 'wordpress';
+	const READER = 'read';
 
 	/**
 	 * HEAVIER_KEY is the meta key listing the WebP and
@@ -93,17 +94,13 @@ class Optimiser
 	public static function settings($enabled_only = true)
 	{
 		$settings = [
-			'webp' => ['quality' => Fields::get('octopus_webp_quality')],
-			'avif' => ['quality' => Fields::get('octopus_avif_quality')],
-			'jpg' => ['quality' => Fields::get('octopus_jpg_quality')],
-			'png' => [
-				'optimization' => Fields::get('octopus_png_quality'),
-				'lossy' => Fields::get('octopus_png_lossy'),
-				'lossy_quality' => Fields::get('octopus_png_lossy_quality'),
-			],
+			'webp' => ['quality' => Settings::get('webp_quality')],
+			'avif' => ['quality' => Settings::get('avif_quality')],
+			'jpg' => ['quality' => Settings::get('jpg_quality')],
+			'png' => ['lossy' => Settings::get('png_compression') === 'lossy'],
 		];
 		foreach (array_keys($settings) as $format) {
-			if ($enabled_only && !Fields::get('octopus_' . $format . '_enable')) {
+			if ($enabled_only && !Settings::get($format . '_enable')) {
 				unset($settings[$format]);
 			}
 		}

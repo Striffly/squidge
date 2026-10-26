@@ -16,10 +16,9 @@
 
 namespace Octopus\Media;
 
-use Octopus\Admin\Fields;
-use Octopus\Delivery\Htaccess;
 use Octopus\Encoders\AVIF;
 use Octopus\Encoders\WebP;
+use Octopus\Settings;
 
 if (!defined('ABSPATH')) {
 	exit; // Exit if accessed directly
@@ -110,7 +109,7 @@ class Stats
 	 */
 	public static function save($id, $metadata = null)
 	{
-		$bytes = self::processed($id) ? self::measure($id, $metadata) : null;
+		$bytes = Status::processed($id) ? self::measure($id, $metadata) : null;
 		foreach (self::KEYS as $name => $key) {
 			if ($bytes === null) {
 				delete_post_meta($id, $key);
@@ -118,24 +117,6 @@ class Stats
 				update_post_meta($id, $key, $bytes[$name]);
 			}
 		}
-	}
-
-	/**
-	 * Determines if a library processed an image.
-	 *
-	 * @param int $id
-	 * @return bool
-	 * @since 1.0.0
-	 * @date 25/10/2026
-	 */
-	private static function processed($id)
-	{
-		foreach (Optimiser::SERVICES as $service) {
-			if ($service::has_compressed($id)) {
-				return true;
-			}
-		}
-		return false;
 	}
 
 	/**
@@ -214,7 +195,7 @@ class Stats
 	 */
 	public static function served()
 	{
-		return Fields::get('octopus_display_formats') || Fields::get(Htaccess::OPTION) ? 'modern' : 'compressed';
+		return Settings::get('serve_picture') || Settings::get('serve_rewrite') ? 'modern' : 'compressed';
 	}
 
 	/**

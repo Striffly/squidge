@@ -28,6 +28,10 @@ if (!defined('ABSPATH')) {
 
 class WebP extends Encoder implements Convertor
 {
+	/**
+	 * The format of the encoder, see Encoder::FORMAT.
+	 */
+	const FORMAT = 'webp';
 
 	/**
 	 * DEFAULT_QUALITY is the default image quality

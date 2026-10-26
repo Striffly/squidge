@@ -28,6 +28,10 @@ if (!defined('ABSPATH')) {
 
 class AVIF extends Encoder implements Convertor
 {
+	/**
+	 * The format of the encoder, see Encoder::FORMAT.
+	 */
+	const FORMAT = 'avif';
 
 	/**
 	 * DEFAULT_QUALITY is the default image quality

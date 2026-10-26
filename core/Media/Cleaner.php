@@ -49,6 +49,25 @@ class Cleaner
 	}
 
 	/**
+	 * Determines if OIO left something on an image:
+	 * formats made, files, errors, bytes measured.
+	 * Restoring it then removes them, see restore().
+	 *
+	 * @param int $id
+	 * @return bool
+	 * @since 1.0.0
+	 */
+	public static function has_data($id)
+	{
+		foreach (array_keys(get_post_meta($id)) as $key) {
+			if (strpos($key, '_octopus_') === 0) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	/**
 	 * Removes the WebP and AVIF files of an image, of
 	 * the original and every size, and their metas.
 	 * The compressed JPG and PNG files stay.
@@ -76,7 +95,7 @@ class Cleaner
 			delete_post_meta($id, Optimiser::HEAVIER_KEY);
 			foreach ([WebP::class, AVIF::class] as $service) {
 				delete_post_meta($id, $service::meta_key());
-				Errors::clear_attachment($id, $service::cmd_name());
+				Errors::clear_attachment($id, $service::FORMAT);
 			}
 			Stats::save($id);
 			return true;

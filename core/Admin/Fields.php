@@ -27,6 +27,7 @@ use Octopus\Media\Cleaner;
 use Octopus\Media\Files;
 use Octopus\Media\Stats;
 use Octopus\Media\Status;
+use Octopus\Settings;
 
 if (!defined('ABSPATH')) {
 	exit; // Exit if accessed directly
@@ -40,22 +41,6 @@ class Fields
 	 * @var string
 	 */
 	const PAGE = 'octopus-image-optimizer';
-
-	/**
-	 * Prefix of the option names in the database,
-	 * kept from Carbon Fields so existing settings
-	 * are still read.
-	 *
-	 * @var string
-	 */
-	const OPTION_PREFIX = '_';
-
-	/**
-	 * Value stored for a checked checkbox.
-	 *
-	 * @var string
-	 */
-	const CHECKBOX_ON = 'yes';
 
 	/**
 	 * Labels of the format states, see state().
@@ -77,7 +62,6 @@ class Fields
 	public function __construct()
 	{
 		add_action('admin_menu', [$this, 'add_page']);
-		add_action('admin_init', [$this, 'register_fields']);
 		add_action('admin_enqueue_scripts', [$this, 'styles_and_scripts']);
 	}
 
@@ -91,38 +75,6 @@ class Fields
 	public static function page_url()
 	{
 		return admin_url('options-general.php?page=' . self::PAGE);
-	}
-
-	/**
-	 * Returns the value of an OIO option, or its
-	 * default if it has never been saved.
-	 *
-	 * @param string $name
-	 * @return mixed
-	 * @since 1.0.0
-	 * @date 25/10/2026
-	 */
-	public static function get($name)
-	{
-		foreach (self::sections() as $section) {
-			if (!isset($section['fields'][$name])) {
-				continue;
-			}
-			$field = $section['fields'][$name];
-			$value = get_option(self::OPTION_PREFIX . $name, null);
-			if ($value === null) {
-				return $field['default'];
-			}
-			if ($field['type'] === 'checkbox') {
-				return $value === self::CHECKBOX_ON;
-			}
-			// An emptied number field falls back to its default, not to 0.
-			if ($field['type'] === 'number' && !is_numeric($value)) {
-				return $field['default'];
-			}
-			return $value;
-		}
-		return null;
 	}
 
 	/**
@@ -154,25 +106,6 @@ class Fields
 	public function add_page()
 	{
 		add_options_page('OIO – Octopus Image Optimizer', 'Image Optimizer', 'manage_options', self::PAGE, [$this, 'render_page']);
-	}
-
-	/**
-	 * Registers the admin fields (options).
-	 *
-	 * @since 0.1.0
-	 * @date 24/11/2021
-	 */
-	public function register_fields()
-	{
-		foreach (self::sections() as $section) {
-			foreach ($section['fields'] as $name => $field) {
-				register_setting(self::PAGE, self::OPTION_PREFIX . $name, [
-					'sanitize_callback' => function ($value) use ($field) {
-						return $this->sanitize($value, $field);
-					},
-				]);
-			}
-		}
 	}
 
 	/**
@@ -238,7 +171,7 @@ class Fields
 			<?php endif; ?>
 
 			<form class="octopus-page__form" action="options.php" method="post">
-				<?php settings_fields(self::PAGE); ?>
+				<?php settings_fields(Settings::GROUP); ?>
 
 				<section class="octopus-panel" id="octopus-panel-overview" role="tabpanel" data-panel="overview">
 					<?php $this->render_overview($formats, $counts); ?>
@@ -287,7 +220,7 @@ class Fields
 			$service = $section['service'];
 			$section['installed'] = $service::installed();
 			$section['version'] = $service::version_number();
-			$section['enabled'] = self::get('octopus_' . $id . '_enable');
+			$section['enabled'] = Settings::get($id . '_enable');
 			$section['library'] = $service::library();
 			$section['engine'] = $service::engine();
 			$section['optional'] = isset($section['optional']) ? $section['optional'] : [];
@@ -484,7 +417,7 @@ class Fields
 		$made = self::with_formats();
 		$total = $counts['total'];
 		$percent = $total ? min(100, (int)round($made / $total * 100)) : 0;
-		$rewrite = $display['fields'][Htaccess::OPTION];
+		$rewrite = $display['fields']['serve_rewrite'];
 		if ($server !== 'apache') {
 			// OIO cannot write the rules: the option tells they are in place.
 			$rewrite['note'] = sprintf('%s: add the rules below to its configuration, then tick this box.', esc_html($names[$server]));
@@ -534,10 +467,10 @@ class Fields
 				</header>
 				<div class="octopus-step__body octopus-methods">
 					<div class="octopus-method">
-						<?php $this->render_field('octopus_display_formats', $display['fields']['octopus_display_formats']); ?>
+						<?php $this->render_field('serve_picture', $display['fields']['serve_picture']); ?>
 					</div>
 					<div class="octopus-method">
-						<?php $this->render_field(Htaccess::OPTION, $rewrite); ?>
+						<?php $this->render_field('serve_rewrite', $rewrite); ?>
 					</div>
 				</div>
 				<footer class="octopus-step__actions">
@@ -668,7 +601,7 @@ class Fields
 			<?php foreach ($formats as $id => $format) : ?>
 				<?php
 				$state = self::state($format);
-				$switch = 'octopus_' . $id . '_enable';
+				$switch = $id . '_enable';
 				$fields = $format['fields'];
 				unset($fields[$switch]);
 				?>
@@ -922,26 +855,25 @@ class Fields
 	 */
 	private function render_field($name, $field)
 	{
-		$id = esc_attr(self::OPTION_PREFIX . $name);
-		$value = self::get($name);
-		// A sub-option, e.g. the lossy quality, shown under its checkbox while it is ticked (admin.js).
-		$sub = empty($field['parent']) ? '' : ' octopus-field--sub';
-		$parent = empty($field['parent']) ? '' : sprintf(' data-parent="%s"', esc_attr(self::OPTION_PREFIX . $field['parent']));
+		$id = esc_attr('octopus-' . str_replace('_', '-', $name));
+		$input = esc_attr(Settings::OPTION . '[' . $name . ']');
+		$value = Settings::get($name);
+		$setting = Settings::FIELDS[$name];
 
 		// The label names the control without being a <label>: hovering it would hover the control.
-		printf('<div class="octopus-field%s%s"%s><span class="octopus-field__label" id="%s-label">%s</span>', $field['type'] === 'checkbox' ? ' octopus-field--toggle' : '', $sub, $parent, $id, esc_html($field['label']));
+		printf('<div class="octopus-field%s"><span class="octopus-field__label" id="%s-label">%s</span>', $field['type'] === 'checkbox' ? ' octopus-field--toggle' : '', $id, esc_html($field['label']));
 
 		if ($field['type'] === 'checkbox') {
 			printf(
-				'<label class="octopus-toggle"><input type="checkbox" class="octopus-toggle__input" id="%s" name="%s" value="%s" aria-labelledby="%s-label" %s><span class="octopus-toggle__track" aria-hidden="true"></span></label>',
-				$id, $id, self::CHECKBOX_ON, $id, checked($value, true, false)
+				'<label class="octopus-toggle"><input type="checkbox" class="octopus-toggle__input" id="%s" name="%s" value="1" aria-labelledby="%s-label" %s><span class="octopus-toggle__track" aria-hidden="true"></span></label>',
+				$id, $input, $id, checked($value, true, false)
 			);
 		} else {
 			echo '<div class="octopus-field__control">';
 			if ($field['type'] === 'number') {
-				printf('<input type="number" class="octopus-field__input" id="%s" name="%s" value="%s" min="%d" max="%d" step="1" aria-labelledby="%s-label">', $id, $id, esc_attr($value), $field['min'], $field['max'], $id);
+				printf('<input type="number" class="octopus-field__input" id="%s" name="%s" value="%s" min="%d" max="%d" step="1" aria-labelledby="%s-label">', $id, $input, esc_attr($value), $setting['min'], $setting['max'], $id);
 			} elseif ($field['type'] === 'select') {
-				printf('<select class="octopus-field__input" id="%s" name="%s" aria-labelledby="%s-label">', $id, $id, $id);
+				printf('<select class="octopus-field__input" id="%s" name="%s" aria-labelledby="%s-label">', $id, $input, $id);
 				foreach ($field['options'] as $optionValue => $optionLabel) {
 					printf('<option value="%s" %s>%s</option>', esc_attr($optionValue), selected((string)$value, (string)$optionValue, false), esc_html($optionLabel));
 				}
@@ -977,36 +909,11 @@ class Fields
 	 */
 	private function render_switch($name, $field)
 	{
-		$id = esc_attr(self::OPTION_PREFIX . $name);
+		$id = esc_attr('octopus-' . str_replace('_', '-', $name));
 		printf(
-			'<label class="octopus-toggle octopus-toggle--switch"><input type="checkbox" class="octopus-toggle__input" id="%s" name="%s" value="%s" %s><span class="octopus-toggle__track" aria-hidden="true"></span><span class="screen-reader-text">%s</span></label>',
-			$id, $id, self::CHECKBOX_ON, checked(self::get($name), true, false), esc_html($field['label'])
+			'<label class="octopus-toggle octopus-toggle--switch"><input type="checkbox" class="octopus-toggle__input" id="%s" name="%s" value="1" %s><span class="octopus-toggle__track" aria-hidden="true"></span><span class="screen-reader-text">%s</span></label>',
+			$id, esc_attr(Settings::OPTION . '[' . $name . ']'), checked(Settings::get($name), true, false), esc_html($field['label'])
 		);
-	}
-
-	/**
-	 * Sanitizes an option value before it is saved.
-	 *
-	 * @param mixed $value
-	 * @param array $field
-	 * @return string
-	 * @since 1.0.0
-	 * @date 25/10/2026
-	 */
-	private function sanitize($value, $field)
-	{
-		switch ($field['type']) {
-			case 'checkbox':
-				return $value === self::CHECKBOX_ON ? self::CHECKBOX_ON : '';
-			case 'number':
-				if (!is_numeric($value)) {
-					return (string)$field['default'];
-				}
-				return (string)max($field['min'], min($field['max'], (int)$value));
-			case 'select':
-				return array_key_exists((string)$value, $field['options']) ? (string)$value : (string)$field['default'];
-		}
-		return '';
 	}
 
 	/**
@@ -1024,18 +931,14 @@ class Fields
 				'service' => JPG::class,
 				'template' => 'jpg.php',
 				'fields' => [
-					'octopus_jpg_enable' => [
+					'jpg_enable' => [
 						'type' => 'checkbox',
 						'label' => 'Compress JPG images',
-						'default' => true,
 						'help' => 'Compresses the JPG images in place with jpegoptim, and makes them progressive. Their originals are kept.',
 					],
-					'octopus_jpg_quality' => [
+					'jpg_quality' => [
 						'type' => 'number',
 						'label' => 'Quality',
-						'min' => 0,
-						'max' => 100,
-						'default' => 80,
 						'help' => 'From 0 to 100, 80 by default.',
 					],
 				],
@@ -1046,42 +949,19 @@ class Fields
 				'template' => 'png.php',
 				'optional' => ['pngquant' => 'lossy compression'],
 				'fields' => [
-					'octopus_png_enable' => [
+					'png_enable' => [
 						'type' => 'checkbox',
 						'label' => 'Compress PNG images',
-						'default' => true,
-						'help' => 'Compresses the PNG images in place without loss, with oxipng or optipng. Their originals are kept.',
+						'help' => 'Compresses the PNG images in place with oxipng or optipng, after pngquant when lossy. Their originals are kept.',
 					],
-					'octopus_png_quality' => [
+					'png_compression' => [
 						'type' => 'select',
-						'label' => 'Optimisation level',
+						'label' => 'Compression',
 						'options' => [
-							'0' => 'o0',
-							'1' => 'o1',
-							'2' => 'o2',
-							'3' => 'o3',
-							'4' => 'o4',
-							'5' => 'o5',
-							'6' => 'o6',
-							'7' => 'o7',
+							'lossless' => 'Lossless',
+							'lossy' => 'Lossy (pngquant)',
 						],
-						'default' => '2',
-						'help' => 'From o0 (fastest) to o7 (smallest files), o2 by default.',
-					],
-					'octopus_png_lossy' => [
-						'type' => 'checkbox',
-						'label' => 'Lossy compression (pngquant)',
-						'default' => false,
-						'help' => 'Often 60 to 80 % lighter, for graphics and screenshots. Needs pngquant.',
-					],
-					'octopus_png_lossy_quality' => [
-						'type' => 'number',
-						'label' => 'Lossy quality',
-						'min' => 0,
-						'max' => 100,
-						'default' => 80,
-						'parent' => 'octopus_png_lossy',
-						'help' => 'The quality pngquant aims at, from 0 to 100, 80 by default.',
+						'help' => 'Lossy: often 60 to 80 % lighter, for graphics and screenshots. Needs pngquant.',
 					],
 				],
 			],
@@ -1091,18 +971,14 @@ class Fields
 				'template' => 'webp.php',
 				'recommendation' => '%s makes the WebP files for now, in the PHP process. cwebp runs apart from PHP, and makes the PNG graphics and screenshots much lighter.',
 				'fields' => [
-					'octopus_webp_enable' => [
+					'webp_enable' => [
 						'type' => 'checkbox',
 						'label' => 'Make WebP versions',
-						'default' => true,
 						'help' => 'Makes a WebP version of each image and thumbnail (<code>photo.jpg.webp</code>), lighter than the JPG or PNG.',
 					],
-					'octopus_webp_quality' => [
+					'webp_quality' => [
 						'type' => 'number',
 						'label' => 'Quality',
-						'min' => 0,
-						'max' => 100,
-						'default' => 80,
 						'help' => 'From 0 to 100, 80 by default.',
 					],
 				],
@@ -1113,18 +989,14 @@ class Fields
 				'template' => 'avif.php',
 				'recommendation' => '%s makes the AVIF files for now, in the PHP process. avifenc runs apart from PHP, on several threads, and keeps the colours of the PNG images sharper.',
 				'fields' => [
-					'octopus_avif_enable' => [
+					'avif_enable' => [
 						'type' => 'checkbox',
 						'label' => 'Make AVIF versions',
-						'default' => true,
 						'help' => 'Makes an AVIF version of each image and thumbnail (<code>photo.jpg.avif</code>), often the lightest. Kept only when lighter than the WebP and the JPG or PNG.',
 					],
-					'octopus_avif_quality' => [
+					'avif_quality' => [
 						'type' => 'number',
 						'label' => 'Quality',
-						'min' => 0,
-						'max' => 100,
-						'default' => 70,
 						'help' => 'From 0 to 100 (lossless), 70 by default.',
 					],
 				],
@@ -1133,13 +1005,10 @@ class Fields
 				'title' => 'Image size',
 				'description' => 'WordPress scales the big images down on upload, and keeps the image uploaded as their original.',
 				'fields' => [
-					'octopus_max_size' => [
+					'max_size' => [
 						'type' => 'number',
 						'label' => 'Maximum image size',
-						'min' => 0,
-						'max' => 20000,
 						'unit' => 'px',
-						'default' => 2560,
 						'help' => 'Longest side, 2560 by default. <strong>0 means no limit: huge images can exhaust the server.</strong>',
 					],
 				],
@@ -1148,17 +1017,15 @@ class Fields
 				'title' => 'Serve',
 				'description' => 'Each browser gets the lightest version it reads: AVIF, then WebP, or the JPG or PNG for older ones. Choose one way, or both.',
 				'fields' => [
-					'octopus_display_formats' => [
+					'serve_picture' => [
 						'type' => 'checkbox',
 						'label' => 'In the HTML, with <picture>',
-						'default' => false,
 						'note' => 'Wraps the images of the content in a <code>&lt;picture&gt;</code>. Untick it if the layout breaks.',
 						'help' => 'Images of the post content, featured images and galleries are wrapped in a <code>&lt;picture&gt;</code> tag offering the AVIF and WebP versions. Works on every server. <strong>Untick this if your theme layout breaks around images.</strong>',
 					],
-					Htaccess::OPTION => [
+					'serve_rewrite' => [
 						'type' => 'checkbox',
 						'label' => 'From the server, with rewrite rules',
-						'default' => false,
 						'note' => 'Every image, CSS backgrounds included, the HTML unchanged.',
 						'help' => 'The server answers <code>photo.jpg</code> with <code>photo.jpg.avif</code> or <code>.webp</code> when the browser reads them. The HTML does not change, and every image is served, CSS backgrounds and custom themes included. A CDN must vary its cache on the <code>Accept</code> header.',
 					],

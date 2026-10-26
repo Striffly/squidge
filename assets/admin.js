@@ -89,20 +89,6 @@
 		document.getElementById(toggle.getAttribute('aria-controls')).hidden = !open;
 	});
 
-	// A sub-option shows while its checkbox is ticked, e.g. the lossy quality.
-	function showSubOptions() {
-		page.querySelectorAll('[data-parent]').forEach(function (field) {
-			var parent = document.getElementById(field.getAttribute('data-parent'));
-			field.hidden = !!parent && !parent.checked;
-		});
-	}
-	page.addEventListener('change', function (event) {
-		if (event.target.matches('.octopus-toggle__input')) {
-			showSubOptions();
-		}
-	});
-	showSubOptions();
-
 	// A field the browser refuses on saving is shown: its tab, its folded settings.
 	page.addEventListener('invalid', function (event) {
 		var panel = event.target.closest('[data-panel]');
@@ -112,10 +98,6 @@
 		var fold = event.target.closest('details');
 		if (fold) {
 			fold.open = true;
-		}
-		var sub = event.target.closest('[data-parent]');
-		if (sub) {
-			sub.hidden = false;
 		}
 	}, true);
 })();

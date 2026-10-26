@@ -17,11 +17,11 @@
 
 namespace Octopus\Delivery;
 
-use Octopus\Admin\Fields;
 use Octopus\Admin\JobsAjax;
 use Octopus\Encoders\AVIF;
 use Octopus\Encoders\WebP;
 use Octopus\Media\Files;
+use Octopus\Settings;
 
 if (!defined('ABSPATH')) {
 	exit; // Exit if accessed directly
@@ -88,7 +88,7 @@ class Test
 		$expected = !empty($sample['avif']) ? 'image/avif' : 'image/webp';
 		$rewrite = self::head($sample['image'], 'image/avif,image/webp,image/*,*/*;q=0.8');
 		$rewritten = $rewrite['type'] === $expected;
-		$wanted = Fields::get(Htaccess::OPTION) || Htaccess::server() === 'nginx';
+		$wanted = Settings::get('serve_rewrite') || Htaccess::server() === 'nginx';
 		$checks[] = [
 			'state' => $rewritten ? 'ok' : ($wanted ? 'fail' : 'info'),
 			'label' => $rewritten ? 'The server answers the image with its ' . ($expected === 'image/avif' ? 'AVIF' : 'WebP') . ' version' : 'The server answers the image with the JPG or PNG',

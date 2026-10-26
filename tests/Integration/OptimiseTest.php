@@ -38,7 +38,7 @@ class OptimiseTest extends TestCase
 	{
 		parent::set_up();
 		$this->require_libraries('cwebp', 'avifenc', 'jpegoptim', 'optipng');
-		self::set('octopus_avif_quality', 30);
+		self::set('avif_quality', 30);
 	}
 
 	public function test_upload_makes_the_webp_and_avif_files_of_every_size()
@@ -178,7 +178,7 @@ class OptimiseTest extends TestCase
 		$this->require_libraries('pngquant');
 		$lossless = filesize(get_attached_file($this->upload('graphic.png')));
 
-		self::set('octopus_png_lossy', true);
+		self::set('png_compression', 'lossy');
 		$id = $this->upload('graphic.png');
 
 		$this->assertSame('level:2,lossy:80', get_post_meta($id, PNG::meta_key(), true));
@@ -204,7 +204,7 @@ class OptimiseTest extends TestCase
 
 	public function test_an_avif_heavier_than_its_webp_is_deleted()
 	{
-		self::set('octopus_avif_quality', 100);
+		self::set('avif_quality', 100);
 		$id = $this->upload('photo.jpg');
 		$file = get_attached_file($id);
 
@@ -229,7 +229,7 @@ class OptimiseTest extends TestCase
 		$originals = self::hashes(array_map([Files::class, 'backup_path'], self::files($id)));
 		$webp = filesize(get_attached_file($id) . '.webp');
 
-		self::set('octopus_webp_quality', 40);
+		self::set('webp_quality', 40);
 		$this->assertSame(Status::OUTDATED, Status::of($id));
 		$this->assertTrue(Optimiser::update($id));
 
@@ -256,7 +256,7 @@ class OptimiseTest extends TestCase
 
 	public function test_the_maximum_size_scales_the_image_and_back()
 	{
-		self::set('octopus_max_size', 400);
+		self::set('max_size', 400);
 		$id = $this->upload('photo.jpg');
 		$scaled = get_attached_file($id);
 		$this->assertStringEndsWith('photo-scaled.jpg', $scaled);
@@ -264,7 +264,7 @@ class OptimiseTest extends TestCase
 		$this->assertFileExists($scaled . '.webp');
 
 		// No maximum any more: the image uploaded is the main file again.
-		self::set('octopus_max_size', 0);
+		self::set('max_size', 0);
 		$this->assertSame(Status::OUTDATED, Status::of($id));
 		$this->assertTrue(Optimiser::update($id));
 
@@ -277,6 +277,20 @@ class OptimiseTest extends TestCase
 		}
 		$this->assertFileEquals(self::fixture('photo.jpg'), Files::backup_path($main));
 		$this->assertSame(Status::OPTIMISED, Status::of($id));
+	}
+
+	public function test_the_images_are_counted_by_status()
+	{
+		$optimised = $this->upload('photo.jpg');
+		$new = $this->upload_unoptimised('photo.jpg');
+		$this->upload('damaged.jpg');
+
+		$this->assertSame(['total' => 3, 'to-optimise' => 1, 'optimised' => 1, 'error' => 1, 'outdated' => 0], Status::counts());
+		$this->assertSame([$new], Status::ids(Status::TO_OPTIMISE));
+
+		self::set('webp_quality', 40);
+		$this->assertSame(['total' => 3, 'to-optimise' => 1, 'optimised' => 0, 'error' => 1, 'outdated' => 1], Status::counts());
+		$this->assertSame([$optimised], Status::ids(Status::OUTDATED));
 	}
 
 	public function test_deleting_the_image_deletes_its_files()

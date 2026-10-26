@@ -14,10 +14,9 @@
 
 namespace Octopus\Tests\Integration;
 
-use Octopus\Admin\Fields;
 use Octopus\Delivery\Htaccess;
+use Octopus\Settings;
 use Octopus\Tests\TestCase;
-use ReflectionMethod;
 
 class UninstallTest extends TestCase
 {
@@ -78,14 +77,9 @@ class UninstallTest extends TestCase
 	 */
 	private function fill_site($other_rules)
 	{
-		// Every field of the options page: uninstall.php lists them by hand.
-		$sections = new ReflectionMethod(Fields::class, 'sections');
-		$sections->setAccessible(true);
-		foreach ($sections->invoke(null) as $section) {
-			foreach ($section['fields'] as $name => $field) {
-				update_option(Fields::OPTION_PREFIX . $name, 'yes');
-			}
-		}
+		Settings::set(array_map(function ($field) {
+			return $field['default'];
+		}, Settings::FIELDS));
 		foreach (['octopus_errors', 'octopus_job', 'octopus_theme_calls', 'octopus_lock_7'] as $option) {
 			update_option($option, ['data']);
 		}
@@ -95,15 +89,14 @@ class UninstallTest extends TestCase
 		}
 		$id = self::factory()->attachment->create_object(['file' => '2026/10/photo.jpg', 'post_mime_type' => 'image/jpeg']);
 		update_post_meta($id, '_octopus_files', ['2026/10/photo.jpg.webp']);
-		update_post_meta($id, '_octopus_compressed_cwebp', 'quality:80');
+		update_post_meta($id, '_octopus_webp', 'quality:80');
 		update_post_meta($id, 'octopus_other_plugin', 'kept');
 
 		wp_mkdir_p(dirname(Htaccess::htaccess()));
 		if ($other_rules) {
 			file_put_contents(Htaccess::htaccess(), self::OTHER_RULES);
 		}
-		update_option(Fields::OPTION_PREFIX . Htaccess::OPTION, 'no');
-		update_option(Fields::OPTION_PREFIX . Htaccess::OPTION, Fields::CHECKBOX_ON);
+		Settings::set(['serve_rewrite' => true]);
 		$this->assertTrue(Htaccess::rules_written());
 		return $id;
 	}

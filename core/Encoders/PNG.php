@@ -28,6 +28,10 @@ if (!defined('ABSPATH')) {
 
 class PNG extends Encoder implements Convertor
 {
+	/**
+	 * The format of the encoder, see Encoder::FORMAT.
+	 */
+	const FORMAT = 'png';
 
 	/**
 	 * DEFAULT_OPTIMIZATION is the default optipng
@@ -153,7 +157,8 @@ class PNG extends Encoder implements Convertor
 
 	/**
 	 * Returns the quality of the lossy compression, or
-	 * null if it is disabled.
+	 * null if it is disabled: 80 by default, set by the
+	 * octopus_pngquant_quality filter, or by WP-CLI.
 	 *
 	 * @param array $args
 	 * @return int|null
@@ -165,10 +170,8 @@ class PNG extends Encoder implements Convertor
 		if (empty($args['lossy'])) {
 			return null;
 		}
-		if (!isset($args['lossy_quality']) || !is_numeric($args['lossy_quality'])) {
-			return self::DEFAULT_LOSSY_QUALITY;
-		}
-		return max(0, min(100, (int)$args['lossy_quality']));
+		$quality = isset($args['lossy_quality']) ? $args['lossy_quality'] : apply_filters('octopus_pngquant_quality', self::DEFAULT_LOSSY_QUALITY);
+		return is_numeric($quality) ? max(0, min(100, (int)$quality)) : self::DEFAULT_LOSSY_QUALITY;
 	}
 
 	/**
@@ -218,9 +221,9 @@ class PNG extends Encoder implements Convertor
 	}
 
 	/**
-	 * Returns the optipng level (0 to 7) from the
-	 * optimization arg, which can be "o3" (CLI)
-	 * or "3" (options page). oxipng gets 6 for 7.
+	 * Returns the optipng level (0 to 7): 2 by default,
+	 * set by the octopus_png_level filter, or by WP-CLI
+	 * ("o3" or "3"). oxipng gets 6 for 7.
 	 *
 	 * @param $args
 	 * @return int
@@ -229,7 +232,8 @@ class PNG extends Encoder implements Convertor
 	 */
 	private static function optimization_level($args)
 	{
-		$level = isset($args['optimization']) ? ltrim((string)$args['optimization'], 'oO') : '';
+		$level = isset($args['optimization']) ? $args['optimization'] : apply_filters('octopus_png_level', self::DEFAULT_OPTIMIZATION);
+		$level = ltrim((string)$level, 'oO');
 		if (!ctype_digit($level)) {
 			return self::DEFAULT_OPTIMIZATION;
 		}

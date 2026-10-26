@@ -71,6 +71,7 @@ final class Plugin
 		$this->define('OCTOPUS_URL', plugin_dir_url($base));
 		$this->define('OCTOPUS_PATH', plugin_dir_path($base));
 		$this->define('OCTOPUS_TEMPLATE_PATH', dirname($base) . DIRECTORY_SEPARATOR . 'templates');
+		add_action('init', [Settings::class, 'register']);
 		new Fields();
 		new UploadHooks();
 		new Notices();

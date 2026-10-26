@@ -154,7 +154,8 @@ avifenc -q {quality} --speed 6 --ignore-exif --ignore-xmp photo.jpg photo.jpg.av
 ```
 
 `avifenc` older than 1.0 gets the quality as `cq-level` instead of `-q`. `oxipng` runs instead of `optipng` when
-installed, after `pngquant` when the lossy compression is on (it then compresses `tmp.png`). In background jobs, `cwebp`
+installed, after `pngquant` when the PNG compression is lossy (it then compresses `tmp.png`). The PNG level is 2 and
+the `pngquant` quality 80, set by the `octopus_png_level` and `octopus_pngquant_quality` filters. In background jobs, `cwebp`
 runs without `-mt`, `avifenc` with `--jobs 2` and `oxipng` with `--threads 2`. A PNG is also encoded with `cwebp -near_lossless 60`, kept if lighter: graphics
 and screenshots get much lighter and sharper, photos are left lossy.
 
@@ -249,6 +250,8 @@ nothing is encoded again.
 | `octopus_job_seconds_between_batches` | `0`                                            | A pause after each image of a background job, seconds. |
 | `octopus_job_default_time_limit`      | `20`                                           | The duration of a batch of a background job, seconds.  |
 | `octopus_binary_path`                 | Found in the `PATH`, then `/usr/bin`...        | The path of a library, or `false` to turn it off.      |
+| `octopus_png_level`                   | `2`                                            | The level of `oxipng` or `optipng`, `0` to `7`.        |
+| `octopus_pngquant_quality`            | `80`                                           | The quality `pngquant` aims at, `0` to `100`.          |
 
 `octopus_nice`, `octopus_avif_jobs`, `octopus_webp_mt` and `octopus_oxipng_threads` receive the context as second argument: `upload`,
 `background` or `cli`. On multisite, the two job filters carry the ID of the site: `octopus_2_job_default_time_limit` on

@@ -115,7 +115,7 @@ class FilesTest extends TestCase
 	public function test_the_file_names_reach_the_libraries_as_given()
 	{
 		$this->require_libraries('cwebp', 'avifenc', 'jpegoptim');
-		self::set('octopus_avif_quality', 30);
+		self::set('avif_quality', 30);
 		// WordPress cleans the names of the files uploaded, not of the files
 		// added by other means (FTP, plugins, WP-CLI).
 		$name = "a b;touch octopus-pwned;\$(touch octopus-pwned)'\"`touch octopus-pwned`.jpg";

@@ -27,6 +27,10 @@ if (!defined('ABSPATH')) {
 
 class JPG extends Encoder implements Convertor
 {
+	/**
+	 * The format of the encoder, see Encoder::FORMAT.
+	 */
+	const FORMAT = 'jpg';
 
 	/**
 	 * DEFAULT_QUALITY is the default maximum quality
@@ -63,7 +67,7 @@ class JPG extends Encoder implements Convertor
 		}
 		$original = Files::backup_path($filepath);
 		if (!copy($original, $filepath)) {
-			Errors::add(isset($args['id']) ? $args['id'] : 0, self::cmd_name(), $filepath, 'cannot write ' . basename($filepath));
+			Errors::add(isset($args['id']) ? $args['id'] : 0, self::FORMAT, $filepath, 'cannot write ' . basename($filepath));
 			return;
 		}
 		// Progressive: the browser shows the whole image blurred first, then sharpens it.

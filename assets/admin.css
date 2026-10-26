@@ -1130,21 +1130,6 @@
 	border-top: 0;
 }
 
-/* A sub-option, under its checkbox. */
-.octopus-field--sub {
-	margin-left: var(--octopus-space-1);
-	padding-left: var(--octopus-space-4);
-	border-left: 2px solid var(--octopus-violet-soft);
-}
-
-.octopus-fields .octopus-field--sub {
-	padding: var(--octopus-space-2) 0 var(--octopus-space-2) var(--octopus-space-4);
-}
-
-.octopus-field--sub .octopus-field__label {
-	font-weight: 400;
-}
-
 /* The "?" opening the full help of a field, under its short note. */
 .octopus-page:not(.octopus-page--js) .octopus-help__toggle {
 	display: none;

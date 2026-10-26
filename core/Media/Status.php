@@ -16,8 +16,8 @@
 
 namespace Octopus\Media;
 
-use Octopus\Admin\Fields;
 use Octopus\Log\Errors;
+use Octopus\Settings;
 use WP_Query;
 
 if (!defined('ABSPATH')) {
@@ -56,7 +56,6 @@ class Status
 	 */
 	const PROCESSED = 'processed';
 
-
 	/**
 	 * Meta key saving the thumbnail sizes an image was
 	 * optimised with, when its thumbnails match them.
@@ -74,7 +73,7 @@ class Status
 	 */
 	public static function sizes_signature()
 	{
-		return md5(wp_json_encode([wp_get_registered_image_subsizes(), (int)Fields::get('octopus_max_size')]));
+		return md5(wp_json_encode([wp_get_registered_image_subsizes(), Settings::get('max_size')]));
 	}
 
 	/**
@@ -146,6 +145,25 @@ class Status
 			}
 		}
 		return $expected;
+	}
+
+	/**
+	 * Determines if an image has been processed: a
+	 * library (or the image editor) made at least one
+	 * of its formats.
+	 *
+	 * @param int $id
+	 * @return bool
+	 * @since 1.0.0
+	 */
+	public static function processed($id)
+	{
+		foreach (Optimiser::SERVICES as $service) {
+			if ($service::has_compressed($id)) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	/**
@@ -247,7 +265,7 @@ class Status
 		$args = array_merge([
 			'post_type' => 'attachment',
 			'post_status' => 'inherit',
-			'post_mime_type' => self::MIMES,
+			'post_mime_type' => Files::MIMES,
 			'fields' => 'ids',
 			'orderby' => 'ID',
 			'order' => 'ASC',

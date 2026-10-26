@@ -76,7 +76,7 @@ class JobTest extends TestCase
 	public function test_the_outdated_images_are_optimised_again()
 	{
 		$id = $this->upload('photo.jpg');
-		self::set('octopus_webp_quality', 40);
+		self::set('webp_quality', 40);
 
 		$this->job->start(Job::OPTIMISE, [$id], Job::MODE_OUTDATED);
 		$this->run_job();

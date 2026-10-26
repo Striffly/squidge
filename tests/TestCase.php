@@ -15,9 +15,9 @@
 
 namespace Octopus\Tests;
 
-use Octopus\Admin\Fields;
 use Octopus\Encoders\Encoder;
 use Octopus\Media\Optimiser;
+use Octopus\Settings;
 use ReflectionProperty;
 use WP_UnitTestCase;
 
@@ -109,11 +109,11 @@ abstract class TestCase extends WP_UnitTestCase
 	{
 		$settings = Optimiser::SERVICES;
 		foreach (array_keys($settings) as $format) {
-			self::set('octopus_' . $format . '_enable', false);
+			self::set($format . '_enable', false);
 		}
 		$id = $this->upload($name);
 		foreach (array_keys($settings) as $format) {
-			self::set('octopus_' . $format . '_enable', true);
+			self::set($format . '_enable', true);
 		}
 		return $id;
 	}
@@ -185,10 +185,7 @@ abstract class TestCase extends WP_UnitTestCase
 	 */
 	protected static function set($name, $value)
 	{
-		if (is_bool($value)) {
-			$value = $value ? Fields::CHECKBOX_ON : 'no';
-		}
-		update_option(Fields::OPTION_PREFIX . $name, $value);
+		Settings::set([$name => $value]);
 	}
 
 	/**

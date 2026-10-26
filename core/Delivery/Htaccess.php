@@ -19,8 +19,8 @@
 
 namespace Octopus\Delivery;
 
-use Octopus\Admin\Fields;
 use Octopus\Media\Files;
+use Octopus\Settings;
 
 if (!defined('ABSPATH')) {
 	exit; // Exit if accessed directly
@@ -28,14 +28,6 @@ if (!defined('ABSPATH')) {
 
 class Htaccess
 {
-	/**
-	 * Option writing the Apache rules, without the
-	 * prefix of Fields.
-	 *
-	 * @var string
-	 */
-	const OPTION = 'octopus_rewrite_rules';
-
 	/**
 	 * Marker of the rules in uploads/.htaccess.
 	 *
@@ -52,9 +44,8 @@ class Htaccess
 	 */
 	public function __construct()
 	{
-		$option = Fields::OPTION_PREFIX . self::OPTION;
-		add_action('add_option_' . $option, [self::class, 'sync'], 10, 0);
-		add_action('update_option_' . $option, [self::class, 'sync'], 10, 0);
+		add_action('add_option_' . Settings::OPTION, [self::class, 'sync'], 10, 0);
+		add_action('update_option_' . Settings::OPTION, [self::class, 'sync'], 10, 0);
 	}
 
 	/**
@@ -161,14 +152,14 @@ class Htaccess
 	{
 		// nginx does not read .htaccess: its rules are added by hand. WP-CLI does
 		// not know the server, the rules are written (a .htaccess not read does nothing).
-		$on = Fields::get(self::OPTION) && self::server() !== 'nginx';
+		$on = Settings::get('serve_rewrite') && self::server() !== 'nginx';
 		if (!$on) {
 			self::remove_rules(self::htaccess());
 			return;
 		}
 		require_once ABSPATH . 'wp-admin/includes/misc.php';
 		if (!insert_with_markers(self::htaccess(), self::MARKER, self::apache_rules())) {
-			add_settings_error(Fields::PAGE, 'octopus_rewrite_rules', 'OIO could not write the rules in uploads/.htaccess: copy them by hand from the Delivery tab.');
+			add_settings_error(Settings::OPTION, 'octopus_rewrite_rules', 'OIO could not write the rules in uploads/.htaccess: copy them by hand from the Delivery tab.');
 		}
 	}
 

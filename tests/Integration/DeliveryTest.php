@@ -68,7 +68,7 @@ class DeliveryTest extends TestCase
 
 	public function test_the_rules_are_written_when_enabled_and_removed_when_disabled()
 	{
-		self::set(Htaccess::OPTION, true);
+		self::set('serve_rewrite', true);
 
 		$htaccess = file_get_contents(Htaccess::htaccess());
 		$this->assertStringContainsString("# BEGIN Octopus Image Optimizer\n", $htaccess);
@@ -77,7 +77,7 @@ class DeliveryTest extends TestCase
 		}
 		$this->assertTrue(Htaccess::rules_written());
 
-		self::set(Htaccess::OPTION, false);
+		self::set('serve_rewrite', false);
 		$this->assertFileDoesNotExist(Htaccess::htaccess(), 'It held the rules only.');
 		$this->assertFalse(Htaccess::rules_written());
 	}
@@ -87,12 +87,12 @@ class DeliveryTest extends TestCase
 		$other = "# Another plugin\nOptions -Indexes\n";
 		file_put_contents(Htaccess::htaccess(), $other);
 
-		self::set(Htaccess::OPTION, true);
+		self::set('serve_rewrite', true);
 		$this->assertStringStartsWith($other, file_get_contents(Htaccess::htaccess()));
 
 		// As many times as it is switched on and off.
 		foreach ([false, true, false] as $on) {
-			self::set(Htaccess::OPTION, $on);
+			self::set('serve_rewrite', $on);
 		}
 		$this->assertSame($other, file_get_contents(Htaccess::htaccess()));
 	}
@@ -101,7 +101,7 @@ class DeliveryTest extends TestCase
 	{
 		$_SERVER['SERVER_SOFTWARE'] = 'nginx/1.28.0';
 
-		self::set(Htaccess::OPTION, true);
+		self::set('serve_rewrite', true);
 
 		$this->assertFileDoesNotExist(Htaccess::htaccess());
 		$this->assertStringContainsString('location ~* ^/wp-content/uploads/.+\.(jpe?g|png)$ {', Htaccess::nginx_rules());

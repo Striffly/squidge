@@ -17,7 +17,7 @@
 
 namespace Octopus\Delivery;
 
-use Octopus\Admin\Fields;
+use Octopus\Settings;
 
 if (!defined('ABSPATH')) {
 	exit; // Exit if accessed directly
@@ -58,7 +58,7 @@ class Display
 	 */
 	public function filter($html)
 	{
-		if (self::$bypass || (is_admin() && !wp_doing_ajax()) || !Fields::get('octopus_display_formats')) {
+		if (self::$bypass || (is_admin() && !wp_doing_ajax()) || !Settings::get('serve_picture')) {
 			return $html;
 		}
 		return Picture::render($html);

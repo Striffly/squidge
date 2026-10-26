@@ -49,18 +49,18 @@ class Errors
 	 * Records a library failure on a file.
 	 *
 	 * @param int $id Attachment ID, 0 if unknown.
-	 * @param string $tool
+	 * @param string $format The format that failed (jpg, png, webp, avif), or Optimiser::READER.
 	 * @param string $filepath
 	 * @param string $message
 	 * @since 1.0.0
 	 * @date 25/10/2026
 	 */
-	public static function add($id, $tool, $filepath, $message)
+	public static function add($id, $format, $filepath, $message)
 	{
 		$file = basename($filepath);
-		Logger::error(sprintf('%s failed on %s: %s', $tool, $filepath, $message));
+		Logger::error(sprintf('%s failed on %s: %s', $format, $filepath, $message));
 		if (defined('WP_CLI') && WP_CLI) {
-			\WP_CLI::warning(sprintf('%s failed on %s: %s', $tool, $file, $message));
+			\WP_CLI::warning(sprintf('%s failed on %s: %s', $format, $file, $message));
 		}
 
 		if ($id) {
@@ -68,7 +68,7 @@ class Errors
 			if (!is_array($meta)) {
 				$meta = [];
 			}
-			$meta[$tool][] = ['file' => $file, 'message' => $message];
+			$meta[$format][] = ['file' => $file, 'message' => $message];
 			update_post_meta($id, self::META_KEY, $meta);
 		}
 
@@ -76,7 +76,7 @@ class Errors
 		array_unshift($recent, [
 			'time' => time(),
 			'id' => (int)$id,
-			'tool' => $tool,
+			'format' => $format,
 			'file' => $file,
 			'message' => $message,
 		]);
@@ -85,7 +85,7 @@ class Errors
 
 	/**
 	 * Returns the errors of an attachment, as a flat
-	 * list of tool, file and message.
+	 * list of format, file and message.
 	 *
 	 * @param int $id
 	 * @return array
@@ -99,9 +99,9 @@ class Errors
 			return [];
 		}
 		$errors = [];
-		foreach ($meta as $tool => $failures) {
+		foreach ($meta as $format => $failures) {
 			foreach ($failures as $failure) {
-				$errors[] = ['id' => (int)$id, 'tool' => $tool, 'file' => $failure['file'], 'message' => $failure['message']];
+				$errors[] = ['id' => (int)$id, 'format' => $format, 'file' => $failure['file'], 'message' => $failure['message']];
 			}
 		}
 		return $errors;
@@ -111,15 +111,15 @@ class Errors
 	 * Determines if a library failed on an attachment.
 	 *
 	 * @param int $id
-	 * @param string $tool
+	 * @param string $format The format that failed (jpg, png, webp, avif), or Optimiser::READER.
 	 * @return bool
 	 * @since 1.0.0
 	 * @date 25/10/2026
 	 */
-	public static function has($id, $tool)
+	public static function has($id, $format)
 	{
 		$meta = get_post_meta($id, self::META_KEY, true);
-		return is_array($meta) && !empty($meta[$tool]);
+		return is_array($meta) && !empty($meta[$format]);
 	}
 
 	/**
@@ -127,17 +127,17 @@ class Errors
 	 * before it processes it again.
 	 *
 	 * @param int $id
-	 * @param string $tool
+	 * @param string $format The format that failed (jpg, png, webp, avif), or Optimiser::READER.
 	 * @since 1.0.0
 	 * @date 25/10/2026
 	 */
-	public static function clear_attachment($id, $tool)
+	public static function clear_attachment($id, $format)
 	{
 		$meta = get_post_meta($id, self::META_KEY, true);
-		if (!is_array($meta) || !isset($meta[$tool])) {
+		if (!is_array($meta) || !isset($meta[$format])) {
 			return;
 		}
-		unset($meta[$tool]);
+		unset($meta[$format]);
 		if (empty($meta)) {
 			delete_post_meta($id, self::META_KEY);
 			return;

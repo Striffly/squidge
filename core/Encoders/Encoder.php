@@ -34,10 +34,12 @@ class Encoder
 {
 
 	/**
-	 * META_KEY is the meta key for lookup for the
-	 * service.
+	 * FORMAT is the format the encoder makes or
+	 * compresses: webp, avif, jpg or png. It names the
+	 * meta of the settings an image was processed with
+	 * (_octopus_webp) and its errors.
 	 */
-	const META_KEY = "_octopus_compressed";
+	const FORMAT = '';
 
 	/**
 	 * VERSIONS_TRANSIENT caches the versions of the
@@ -126,7 +128,7 @@ class Encoder
 		// yet (e.g. a new thumbnail size), unless forced.
 		$complete = self::has_compressed($id) && empty($args['force']);
 		$args['id'] = $id;
-		Errors::clear_attachment($id, static::cmd_name());
+		Errors::clear_attachment($id, static::FORMAT);
 
 		if (!empty($args['thumbnailsOnly'])) {
 			array_shift($files);
@@ -146,7 +148,7 @@ class Encoder
 		// Save the settings used, unless a file failed so that it is processed
 		// again next time. A completed attachment keeps the settings it was
 		// processed with.
-		if (!$complete && !Errors::has($id, static::cmd_name())) {
+		if (!$complete && !Errors::has($id, static::FORMAT)) {
 			self::update_meta($id, $args);
 		}
 	}
@@ -171,7 +173,7 @@ class Encoder
 			return true;
 		}
 		$lines = preg_split('/\r?\n/', $output);
-		Errors::add(isset($args['id']) ? $args['id'] : 0, static::cmd_name(), $filepath, self::error_message($lines, $code, $filepath));
+		Errors::add(isset($args['id']) ? $args['id'] : 0, static::FORMAT, $filepath, self::error_message($lines, $code, $filepath));
 		return false;
 	}
 
@@ -436,7 +438,7 @@ class Encoder
 		$class = self::editor_class();
 		wp_raise_memory_limit('image');
 		if (!self::fits_in_memory($source, $mime, $class)) {
-			Errors::add($id, static::cmd_name(), $filepath, sprintf('not enough PHP memory for %s to read the image', static::editor()));
+			Errors::add($id, static::FORMAT, $filepath, sprintf('not enough PHP memory for %s to read the image', static::editor()));
 			return false;
 		}
 
@@ -474,7 +476,7 @@ class Encoder
 			$saved = new WP_Error('octopus_editor_error', sprintf('saved as %s instead of %s', $saved['mime-type'], static::EDITOR_MIME));
 		}
 		if (is_wp_error($saved)) {
-			Errors::add($id, static::cmd_name(), $filepath, static::editor() . ': ' . $saved->get_error_message());
+			Errors::add($id, static::FORMAT, $filepath, static::editor() . ': ' . $saved->get_error_message());
 			return false;
 		}
 		return true;
@@ -689,7 +691,7 @@ class Encoder
 			return true;
 		}
 		if (!wp_mkdir_p(dirname($backup)) || !copy($filepath, $backup)) {
-			Errors::add(isset($args['id']) ? $args['id'] : 0, static::cmd_name(), $filepath, 'cannot write the backup of the original image');
+			Errors::add(isset($args['id']) ? $args['id'] : 0, static::FORMAT, $filepath, 'cannot write the backup of the original image');
 			return false;
 		}
 		Files::remember(isset($args['id']) ? (int)$args['id'] : 0, $backup);
@@ -715,7 +717,7 @@ class Encoder
 			unlink($original);
 			return;
 		}
-		Errors::add(isset($args['id']) ? $args['id'] : 0, static::cmd_name(), $filepath, 'cannot put the original back, it stays in ' . Files::BACKUP_DIR);
+		Errors::add(isset($args['id']) ? $args['id'] : 0, static::FORMAT, $filepath, 'cannot put the original back, it stays in ' . Files::BACKUP_DIR);
 	}
 
 	/**
@@ -848,7 +850,7 @@ class Encoder
 	 */
 	public static function meta_key()
 	{
-		return self::META_KEY . '_' . static::cmd_name();
+		return '_octopus_' . static::FORMAT;
 	}
 
 	/**

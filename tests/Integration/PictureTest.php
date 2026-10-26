@@ -107,7 +107,7 @@ class PictureTest extends TestCase
 		$this->assertStringNotContainsString('<picture', wp_get_attachment_image($id, 'full'));
 		$this->assertStringNotContainsString('<picture', apply_filters('the_content', $this->img()));
 
-		self::set('octopus_display_formats', true);
+		self::set('serve_picture', true);
 		$this->assertStringStartsWith('<picture class="octopus-picture">', wp_get_attachment_image($id, 'full'));
 		$this->assertStringContainsString('<picture class="octopus-picture">', apply_filters('the_content', '<p>' . $this->img(' class="wp-image-' . $id . '"') . '</p>'));
 	}
@@ -115,7 +115,7 @@ class PictureTest extends TestCase
 	public function test_the_images_of_the_admin_are_not_wrapped()
 	{
 		$id = $this->attachment();
-		self::set('octopus_display_formats', true);
+		self::set('serve_picture', true);
 		set_current_screen('upload');
 
 		$this->assertStringNotContainsString('<picture', wp_get_attachment_image($id, 'full'));

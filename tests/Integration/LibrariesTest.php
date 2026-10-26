@@ -75,7 +75,7 @@ class LibrariesTest extends TestCase
 		$id = $this->upload('photo.jpg');
 
 		$this->assertSame(Status::ERROR, Status::of($id));
-		$this->assertTrue(Errors::has($id, 'cwebp'));
+		$this->assertTrue(Errors::has($id, 'webp'));
 		$this->assertStringContainsString('Error! Cannot encode picture as WebP', wp_json_encode(Errors::for_attachment($id)));
 		$this->assertSame('', get_post_meta($id, WebP::meta_key(), true), 'Done again next time.');
 		// The other formats go on.
@@ -89,7 +89,7 @@ class LibrariesTest extends TestCase
 		$id = $this->upload('photo.jpg');
 		$main = get_attached_file($id);
 
-		$this->assertTrue(Errors::has($id, 'jpegoptim'));
+		$this->assertTrue(Errors::has($id, 'jpg'));
 		$this->assertFileEquals(self::fixture('photo.jpg'), $main);
 		$this->assertFileDoesNotExist(Files::backup_path($main), 'Retried next time.');
 	}
@@ -125,7 +125,7 @@ class LibrariesTest extends TestCase
 	{
 		$this->require_editor('image/avif');
 		self::hide_libraries('avifenc');
-		self::set('octopus_avif_quality', 30);
+		self::set('avif_quality', 30);
 
 		$this->assertContains(AVIF::engine(), ['GD', 'Imagick']);
 		$id = $this->upload('photo.jpg');

@@ -173,7 +173,7 @@ class MediaColumn
 		$url = wp_nonce_url(admin_url('admin-post.php?action=' . self::ACTION . '&id=' . $post->ID), self::ACTION . '_' . $post->ID);
 		$label = Status::of($post->ID) === Status::OPTIMISED ? 'Optimise again' : 'Optimise';
 		$actions[self::ACTION] = sprintf('<a href="%s">%s</a>', esc_url($url), esc_html($label));
-		if ($this->is_processed($post->ID)) {
+		if (Cleaner::has_data($post->ID)) {
 			$url = wp_nonce_url(admin_url('admin-post.php?action=' . self::RESTORE . '&id=' . $post->ID), self::RESTORE . '_' . $post->ID);
 			$actions[self::RESTORE] = sprintf('<a href="%s">%s</a>', esc_url($url), 'Restore original');
 		}
@@ -206,24 +206,6 @@ class MediaColumn
 		$redirect = remove_query_arg(self::NOTICES, wp_get_referer() ?: admin_url('upload.php?mode=list'));
 		wp_safe_redirect(add_query_arg($done === null ? 'octopus_busy' : 'octopus_optimised', $id, $redirect));
 		exit;
-	}
-
-	/**
-	 * Determines if OIO processed an image.
-	 *
-	 * @param int $id
-	 * @return bool
-	 * @since 1.0.0
-	 * @date 25/10/2026
-	 */
-	private function is_processed($id)
-	{
-		foreach (array_keys(get_post_meta($id)) as $key) {
-			if (strpos($key, '_octopus_') === 0) {
-				return true;
-			}
-		}
-		return false;
 	}
 
 	/**
