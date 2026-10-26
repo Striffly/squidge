@@ -3,7 +3,7 @@
 /**
  * Service
  *
- * Service os responsible for processing file attachments
+ * Service is responsible for processing file attachments
  * and executing commands.
  *
  * @package     OIO
@@ -143,7 +143,7 @@ class Service
 
 		// An attachment already processed is only completed: the files not done
 		// yet (e.g. a new thumbnail size), unless forced.
-		$id = !empty($args['id']) ? (int)$args['id'] : attachment_url_to_postid($attachment['file']);
+		$id = isset($args['id']) ? (int)$args['id'] : 0;
 		$complete = self::has_compressed($id) && empty($args['force']);
 		$args['id'] = $id;
 		Errors::clear_attachment($id, static::cmd_name());
@@ -169,7 +169,7 @@ class Service
 			if (!self::contained($file . static::extension()) || !self::contained(self::backup_path($file))) {
 				continue;
 			}
-			static::convert($file, self::get_mime_type($file), $args);
+			static::convert($file, (string)wp_get_image_mime($file), $args);
 		}
 
 		// Save the settings used, unless a file failed so that it is processed
@@ -1105,19 +1105,6 @@ class Service
 			return $file;
 		}
 		return false;
-	}
-
-	/**
-	 * Returns the mimetype of a file passed.
-	 *
-	 * @param $file
-	 * @return false|string
-	 * @since 0.1.0
-	 * @date 24/11/2021
-	 */
-	private static function get_mime_type($file)
-	{
-		return mime_content_type($file);
 	}
 
 	/**
