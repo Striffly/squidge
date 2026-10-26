@@ -1,0 +1,28 @@
+# The checks run before each commit, on the staged files: the
+# linters fix what they can and stage it, then the translations
+# follow the strings of the code (tools/check-translations.sh).
+# Installed by bun install (the prepare script).
+pre-commit:
+  commands:
+    lint-php:
+      glob: "*.php"
+      exclude:
+        - "tests/**"
+        - "vendor/**"
+        - "vendor-prefixed/**"
+      run: ./vendor/bin/phpcs {staged_files}
+    lint-js:
+      glob: "*.{js,mjs}"
+      run: bun x eslint --fix {staged_files}
+      stage_fixed: true
+    lint-css:
+      glob: "*.css"
+      run: bun x stylelint --fix {staged_files}
+      stage_fixed: true
+    translations:
+      glob: "*.{php,js,po}"
+      exclude:
+        - "tests/**"
+        - "vendor/**"
+        - "vendor-prefixed/**"
+      run: bash tools/check-translations.sh --stage

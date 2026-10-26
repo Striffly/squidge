@@ -36,14 +36,26 @@
     "release:dry": "release-it --dry-run",
     "release:zip": "composer install --no-interaction && bun run check-licenses && bun run plugin-zip",
     "check-translations": "bash tools/check-translations.sh",
+    "lint": "bun run lint:php && bun run lint:js && bun run lint:css",
+    "lint:php": "composer lint",
+    "lint:js": "eslint .",
+    "lint:css": "stylelint \"assets/css/**/*.css\"",
+    "fix": "eslint . --fix && stylelint \"assets/css/**/*.css\" --fix",
     "check-licenses": "wp-scripts check-licenses --prod",
     "plugin-zip": "wp-scripts plugin-zip && zip -dq octopus-image-optimizer.zip octopus-image-optimizer/README.md octopus-image-optimizer/package.json",
-    "logo": "bun tools/logo/build.js"
+    "logo": "bun tools/logo/build.js",
+    "prepare": "node -e \"process.env.CI || !require('fs').existsSync('.git') || require('child_process').execSync('lefthook install', {stdio:'inherit'})\""
   },
   "devDependencies": {
+    "@eslint/js": "^10.0.1",
     "@release-it/bumper": "^8.0.1",
     "@wordpress/scripts": "^37.0.0",
+    "eslint": "^10.13.0",
     "gifenc": "^1.0.3",
-    "release-it": "^21.1.1"
+    "globals": "^17.13.0",
+    "lefthook": "^2.2.2",
+    "release-it": "^21.1.1",
+    "stylelint": "^17.16.0",
+    "stylelint-config-standard": "^40.0.0"
   }
 }
