@@ -26,6 +26,7 @@
     }
   },
   "hooks": {
+    "before:init": "bash tools/check-translations.sh",
     "after:bump": "perl -pi -e 's/^Stable tag:.*/Stable tag: ${version}/' readme.txt"
   }
 }
