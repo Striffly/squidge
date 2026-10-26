@@ -52,6 +52,21 @@ class PluginsScreen
 		add_action('admin_enqueue_scripts', [$this, 'scripts']);
 		add_action('wp_ajax_' . self::NONCE, [$this, 'info']);
 		add_action('switch_theme', [$this, 'forget_theme']);
+		add_filter('plugin_action_links_' . plugin_basename(OCTOPUS_FILE), [$this, 'settings_link']);
+	}
+
+	/**
+	 * Adds a link to the settings page, next to
+	 * Deactivate in the list of the plugins.
+	 *
+	 * @param string[] $links
+	 * @return string[]
+	 * @since 1.0.0
+	 */
+	public function settings_link($links)
+	{
+		$links[] = sprintf('<a href="%s">%s</a>', esc_url(SettingsPage::page_url()), esc_html__('Settings', 'octopus-image-optimizer'));
+		return $links;
 	}
 
 	/**
@@ -68,7 +83,7 @@ class PluginsScreen
 		}
 		wp_enqueue_script('octopus-plugins', OCTOPUS_URL . 'assets/plugins.js', [], filemtime(OCTOPUS_PATH . 'assets/plugins.js'), true);
 		wp_localize_script('octopus-plugins', 'octopusPlugins', [
-			'plugin' => plugin_basename(OCTOPUS_PATH . 'octopus-image-optimizer.php'),
+			'plugin' => plugin_basename(OCTOPUS_FILE),
 			'ajaxurl' => admin_url('admin-ajax.php'),
 			'nonce' => wp_create_nonce(self::NONCE),
 			'restoreUrl' => SettingsPage::page_url() . '#overview',

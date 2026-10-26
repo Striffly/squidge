@@ -24,6 +24,7 @@ if (!defined('ABSPATH')) {
 
 // The version of OIO, set by npm run release with the header above.
 define('OCTOPUS_VERSION', '0.1.4');
+define('OCTOPUS_FILE', __FILE__);
 
 require_once __DIR__ . '/autoload.php';
 
@@ -34,8 +35,8 @@ if (!file_exists(__DIR__ . '/vendor-prefixed/autoload.php')) {
 	});
 }
 
-// Boot OIO (Once).
-Octopus\Plugin::boot();
+// Boots OIO once the plugins are loaded, so that other plugins can hook in first.
+add_action('plugins_loaded', ['Octopus\\Plugin', 'boot']);
 
 register_activation_hook(__FILE__, ['Octopus\\Lifecycle', 'activate']);
 register_deactivation_hook(__FILE__, ['Octopus\\Lifecycle', 'deactivate']);
@@ -44,27 +45,5 @@ if (defined('WP_CLI') && WP_CLI) {
 	WP_CLI::add_command('octopus', Octopus\Cli\Commands::class);
 }
 
-// Require Functions.
-if (file_exists(__DIR__ . '/functions/functions.php')) {
-	require(__DIR__ . '/functions/functions.php');
-}
-
-if (!function_exists('octopus_add_settings_link')) {
-
-	/**
-	 * Add Settings Link.
-	 *
-	 * @param $links
-	 * @return mixed
-	 * @since 0.1.0
-	 * @date 24/11/2021
-	 */
-	function octopus_add_settings_link($links)
-	{
-		$links[] = '<a href="' .
-			Octopus\Admin\SettingsPage::page_url() .
-			'">' . __('Settings') . '</a>';
-		return $links;
-	}
-	add_filter('plugin_action_links_' . plugin_basename(__FILE__), 'octopus_add_settings_link');
-}
+// octopus_image(), for the themes.
+require __DIR__ . '/functions/functions.php';
