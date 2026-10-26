@@ -271,11 +271,6 @@ msgstr "Maintenance"
 msgid "A format has no library"
 msgstr "Un format n’a pas de bibliothèque"
 
-#. translators: Followed by the links to PayPal and Bitcoin.
-#: core/Admin/SettingsPage.php:307
-msgid "Buy me a coffee:"
-msgstr "Offrez-moi un café :"
-
 #: core/Admin/SettingsPage.php:315
 msgid "QR code of the Bitcoin address"
 msgstr "QR code de l’adresse Bitcoin"
@@ -1286,3 +1281,8 @@ msgstr "La tâche n’a pas pu démarrer."
 #: core/Admin/SettingsPage.php:168
 msgid "Optimise images"
 msgstr "Optimiser les images"
+
+#. translators: Followed by the links to PayPal and Bitcoin.
+#: core/Admin/SettingsPage.php:307
+msgid "OIO is free, and will stay so. If it saves you time or bytes, you can buy me a coffee:"
+msgstr "OIO est gratuit, et le restera. S’il vous fait gagner du temps ou des octets, vous pouvez m’offrir un café :"
