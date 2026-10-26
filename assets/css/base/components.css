@@ -1,0 +1,341 @@
+/**
+ * base/components.css
+ *
+ * The small components shared by the tabs: badges,
+ * dots, chips, the state of a library, the folds, the
+ * install instructions and the code with its copy
+ * button.
+ */
+
+/* Badge: a state, its dot in its colour
+   ========================================================================== */
+
+.octopus-badge {
+	display: inline-flex;
+	flex: none;
+	align-items: center;
+	gap: 5px;
+	padding: 2px 10px;
+	border-radius: var(--octopus-radius-pill);
+	font-size: var(--octopus-size-small);
+	font-weight: 600;
+	white-space: nowrap;
+
+	&::before {
+		content: "";
+		width: 6px;
+		height: 6px;
+		border-radius: 50%;
+		background: currentColor;
+	}
+}
+
+.octopus-badge--on {
+	background: var(--octopus-on-bg);
+	color: var(--octopus-on);
+}
+
+.octopus-badge--off {
+	background: var(--octopus-off-bg);
+	color: var(--octopus-off);
+}
+
+.octopus-badge--muted {
+	background: var(--octopus-neutral-bg);
+	color: var(--octopus-muted);
+}
+
+/* Dot
+   ========================================================================== */
+
+.octopus-dot {
+	display: inline-block;
+	flex: none;
+	width: 10px;
+	height: 10px;
+	border-radius: 50%;
+	background: var(--octopus-neutral);
+}
+
+.octopus-dot--on {
+	background: var(--octopus-on);
+	box-shadow: 0 0 0 3px var(--octopus-on-bg);
+}
+
+.octopus-dot--off {
+	background: var(--octopus-off);
+	box-shadow: 0 0 0 3px var(--octopus-off-bg);
+}
+
+/* Chip: a format and its state, linking to its settings
+   ========================================================================== */
+
+.octopus-page .octopus-chip {
+	display: inline-flex;
+	align-items: center;
+	gap: var(--octopus-space-2);
+	padding: 5px var(--octopus-space-3);
+	border: 1px solid var(--octopus-border);
+	border-radius: var(--octopus-radius-pill);
+	background: var(--octopus-surface);
+	color: var(--octopus-text);
+	text-decoration: none;
+	transition: border-color var(--octopus-transition), box-shadow var(--octopus-transition);
+
+	&:hover,
+	&:focus {
+		border-color: var(--octopus-violet-edge);
+		box-shadow: var(--octopus-shadow-hover);
+		color: var(--octopus-text);
+	}
+
+	& .octopus-dot {
+		width: 8px;
+		height: 8px;
+	}
+}
+
+.octopus-chip__name {
+	font-weight: 600;
+}
+
+.octopus-chip__state {
+	color: var(--octopus-muted);
+	font-size: var(--octopus-size-small);
+}
+
+/* Engine: the name of a library, its state and version, on one baseline
+   ========================================================================== */
+
+.octopus-engine {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: baseline;
+	gap: var(--octopus-space-1) var(--octopus-space-2);
+	color: var(--octopus-text-soft);
+	font-size: var(--octopus-size-small);
+	line-height: 20px;
+
+	&::before {
+		content: "\f147"; /* Dashicon yes. */
+		align-self: center;
+		color: var(--octopus-on);
+		font-family: dashicons;
+		font-size: 16px;
+		line-height: 1;
+	}
+}
+
+.octopus-engine--off::before {
+	content: "\f335"; /* Dashicon no-alt. */
+	color: var(--octopus-off);
+}
+
+.octopus-engine__name {
+	color: var(--octopus-text);
+	font-size: var(--octopus-size-body);
+	font-weight: 600;
+}
+
+.octopus-engine__version {
+	margin-left: auto;
+	padding: 0 8px;
+	border-radius: var(--octopus-radius-pill);
+	background: var(--octopus-surface-soft);
+	color: var(--octopus-muted);
+	font-variant-numeric: tabular-nums;
+	line-height: 18px;
+}
+
+/* Fold: rules and code, one line each until opened
+   ========================================================================== */
+
+.octopus-fold {
+	margin-top: var(--octopus-space-3);
+	border: 1px solid var(--octopus-border);
+	border-radius: var(--octopus-radius);
+	background: var(--octopus-surface);
+	box-shadow: var(--octopus-shadow);
+
+	&[open] > .octopus-fold__summary::before {
+		transform: rotate(90deg);
+	}
+}
+
+/* The chevron, the title, then its badge: on the right, or under the title
+   on small screens. */
+.octopus-fold__summary {
+	display: grid;
+	grid-template-columns: auto minmax(0, 1fr) auto;
+	align-items: center;
+	gap: var(--octopus-space-1) var(--octopus-space-2);
+	padding: var(--octopus-space-3) var(--octopus-space-5);
+	font-weight: 600;
+	list-style: none;
+	cursor: pointer;
+
+	&::-webkit-details-marker {
+		display: none;
+	}
+
+	&::before {
+		content: "\f345"; /* Dashicon arrow-right-alt2. */
+		color: var(--octopus-violet);
+		font-family: dashicons;
+		font-size: 16px;
+		line-height: 1;
+		transition: transform var(--octopus-transition);
+	}
+
+	&:hover {
+		color: var(--octopus-violet-dark);
+	}
+
+	& .octopus-badge {
+		justify-self: end;
+	}
+
+	@media (max-width: 782px) {
+		padding: var(--octopus-space-3) var(--octopus-space-4);
+
+		& .octopus-badge {
+			grid-column: 2;
+			justify-self: start;
+		}
+	}
+}
+
+.octopus-fold__content {
+	padding: 0 var(--octopus-space-5) var(--octopus-space-5);
+
+	@media (max-width: 782px) {
+		padding: 0 var(--octopus-space-4) var(--octopus-space-4);
+	}
+}
+
+.octopus-fold__text {
+	margin: 0 0 var(--octopus-space-3);
+	color: var(--octopus-text-soft);
+
+	:is(.octopus-code, .octopus-code-block) + & {
+		margin: var(--octopus-space-3) 0 0;
+	}
+}
+
+/* Install: how to install a library, folded
+   ========================================================================== */
+
+.octopus-install {
+	margin: 0 var(--octopus-space-5) var(--octopus-space-5);
+	padding: var(--octopus-space-3) var(--octopus-space-4);
+	border: 1px solid var(--octopus-off-border);
+	border-radius: var(--octopus-radius-small);
+	background: var(--octopus-off-bg);
+}
+
+.octopus-install--advice {
+	border-color: var(--octopus-border);
+	background: var(--octopus-surface-soft);
+}
+
+.octopus-install__summary {
+	font-weight: 600;
+	cursor: pointer;
+}
+
+.octopus-install__text {
+	margin: var(--octopus-space-2) 0 0;
+	color: var(--octopus-text-soft);
+}
+
+.octopus-install__list {
+	margin: var(--octopus-space-3) 0 0;
+
+	& li {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: var(--octopus-space-2);
+		margin-bottom: var(--octopus-space-2);
+	}
+}
+
+.octopus-install__os {
+	display: inline-block;
+	min-width: 70px;
+	font-weight: 600;
+}
+
+/* Code, and its copy button (settings.js)
+   ========================================================================== */
+
+.octopus-code {
+	margin: 0;
+	padding: var(--octopus-space-4);
+	overflow-x: auto;
+	border-radius: var(--octopus-radius-small);
+	background: var(--octopus-night);
+	color: var(--octopus-code-text);
+	font-family: var(--octopus-font-code);
+	font-size: var(--octopus-size-small);
+	line-height: 1.6;
+
+	.octopus-page & code {
+		padding: 0;
+		background: none;
+		color: inherit;
+	}
+}
+
+/* A block of code, its button at the top right. */
+.octopus-code-block {
+	position: relative;
+
+	& .octopus-code {
+		padding-right: 88px;
+	}
+
+	& .octopus-copy {
+		position: absolute;
+		top: var(--octopus-space-2);
+		right: var(--octopus-space-2);
+		border-color: rgba(255, 255, 255, .3);
+		background: rgba(255, 255, 255, .08);
+		color: var(--octopus-code-text);
+
+		&:hover,
+		&:focus-visible {
+			background: rgba(255, 255, 255, .18);
+			color: #fff;
+		}
+	}
+}
+
+/* After a command, or at the top right of a block. */
+.octopus-copy {
+	padding: 2px 12px;
+	border: 1px solid var(--octopus-violet);
+	border-radius: var(--octopus-radius-pill);
+	background: var(--octopus-surface);
+	color: var(--octopus-violet-dark);
+	font-size: var(--octopus-size-small);
+	font-weight: 600;
+	line-height: 20px;
+	cursor: pointer;
+	transition: background-color var(--octopus-transition), color var(--octopus-transition);
+
+	/* It copies with JS only. */
+	.octopus-page:not(.octopus-page--js) & {
+		display: none;
+	}
+
+	&:hover,
+	&:focus-visible {
+		background: var(--octopus-violet-soft);
+	}
+
+	&:focus-visible {
+		outline: 2px solid var(--octopus-violet);
+		outline-offset: 1px;
+	}
+}

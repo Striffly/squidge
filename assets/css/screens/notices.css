@@ -1,0 +1,28 @@
+/**
+ * screens/notices.css
+ *
+ * The details of the errors in the notices of OIO,
+ * folded under their summary (see notices.js).
+ */
+
+.octopus-error-details {
+	display: inline;
+
+	&[open] {
+		display: block;
+	}
+
+	& summary {
+		display: inline;
+		margin-left: 4px;
+		color: #646970;
+		font-size: 12px;
+		cursor: pointer;
+	}
+
+	& code {
+		display: block;
+		margin: 4px 0 0;
+		font-size: 12px;
+	}
+}

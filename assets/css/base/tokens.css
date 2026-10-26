@@ -1,0 +1,119 @@
+/**
+ * base/tokens.css
+ *
+ * The tokens of the OIO options page, and its font.
+ * Loaded first: base/ styles what every tab shares,
+ * tabs/ one tab each, screens/ the other screens of
+ * the admin.
+ *
+ * Conventions:
+ * - BEM: one block per component (octopus-card), its
+ *   elements (octopus-card__title) and modifiers
+ *   (octopus-card--danger), each a rule of its own:
+ *   native nesting cannot build a class name from &.
+ *   States, pseudo-elements, the children a modifier
+ *   changes and the media queries nest in their rule.
+ * - Every colour, size and shadow comes from the tokens.
+ * - .octopus-page before a class only where the styles
+ *   of the WordPress admin would win otherwise.
+ * - Only what can be clicked reacts on hover.
+ *
+ * @author Clément Gayot
+ * @author Ainsley Clark (Squidge, original author)
+ */
+
+/* Tokens
+   ========================================================================== */
+
+.octopus-page {
+	/* Palette of the logo. */
+	--octopus-night: #1b0b3b;
+	--octopus-night-2: #2a0e4f;
+	--octopus-night-3: #3d1170;
+	--octopus-pink: #ff3cac;
+	--octopus-violet: #7b2ff7;
+	--octopus-violet-dark: #6420d6;
+	--octopus-violet-soft: #f3edff;
+	--octopus-violet-line: rgba(123, 47, 247, .25);
+	--octopus-violet-edge: rgba(123, 47, 247, .4);
+	--octopus-cyan: #00e5ff;
+	--octopus-gradient: linear-gradient(120deg, var(--octopus-pink) 0%, var(--octopus-violet) 100%);
+	--octopus-gradient-night: linear-gradient(120deg, var(--octopus-night) 0%, var(--octopus-night-2) 55%, var(--octopus-night-3) 100%);
+	/* A light glow of the logo, from the top right corner. */
+	--octopus-gradient-glow: radial-gradient(circle at 100% 0%, rgba(255, 60, 172, .1) 0%, rgba(123, 47, 247, .07) 40%, var(--octopus-surface) 78%);
+
+	/* Text and surfaces. The pink and cyan are too light for text on white. */
+	--octopus-text: #1d2327;
+	--octopus-text-soft: #50575e;
+	--octopus-muted: #646970;
+	--octopus-surface: #fff;
+	--octopus-surface-soft: #f8f7fc;
+	--octopus-border: #e4e2ee;
+	--octopus-code-text: #e9e5f5;
+
+	/* States. */
+	--octopus-on: #00a32a;
+	--octopus-on-bg: #edfaef;
+	--octopus-warning: #b8860b;
+	--octopus-warning-strong: #dba617;
+	--octopus-warning-bg: #fcf9e8;
+	--octopus-off: #d63638;
+	--octopus-off-bg: #fcf0f1;
+	--octopus-off-border: #f2c8c9;
+	--octopus-neutral: #8c8f94;
+	--octopus-neutral-bg: #f0f0f1;
+
+	/* Type. Unbounded is wide: titles and figures only. */
+	--octopus-font-display: "Unbounded", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+	--octopus-font-code: Consolas, Monaco, monospace;
+	--octopus-size-small: 12px;
+	--octopus-size-body: 13px;
+	--octopus-size-lead: 14px;
+	--octopus-size-title: 15px;
+	--octopus-size-heading: 20px;
+	--octopus-size-figure: 34px;
+
+	/* Space, shapes, motion. */
+	--octopus-space-1: 4px;
+	--octopus-space-2: 8px;
+	--octopus-space-3: 12px;
+	--octopus-space-4: 16px;
+	--octopus-space-5: 24px;
+	--octopus-space-6: 32px;
+	--octopus-radius-small: 6px;
+	--octopus-radius: 12px;
+	--octopus-radius-large: 16px;
+	--octopus-radius-pill: 999px;
+	--octopus-shadow: 0 1px 2px rgba(27, 11, 59, .06), 0 6px 20px rgba(27, 11, 59, .06);
+	--octopus-shadow-hover: 0 2px 4px rgba(27, 11, 59, .08), 0 12px 32px rgba(123, 47, 247, .14);
+	--octopus-glow: 0 0 24px rgba(255, 60, 172, .45);
+	--octopus-focus-ring: 0 0 0 2px var(--octopus-surface), 0 0 0 4px var(--octopus-violet);
+	--octopus-transition: 150ms ease;
+}
+
+/* Font
+   ========================================================================== */
+
+@font-face {
+	font-family: "Unbounded";
+	font-style: normal;
+	font-weight: 500;
+	font-display: swap;
+	src: url("../../fonts/unbounded-500.woff2") format("woff2");
+}
+
+@font-face {
+	font-family: "Unbounded";
+	font-style: normal;
+	font-weight: 600;
+	font-display: swap;
+	src: url("../../fonts/unbounded-600.woff2") format("woff2");
+}
+
+@font-face {
+	font-family: "Unbounded";
+	font-style: normal;
+	font-weight: 700;
+	font-display: swap;
+	src: url("../../fonts/unbounded-700.woff2") format("woff2");
+}

@@ -1,0 +1,156 @@
+/**
+ * tabs/settings.css
+ *
+ * The Settings tab: one card per format, two per row
+ * on wide screens, one on small ones. Each shows the
+ * same header, its settings folded below; a card
+ * opened leaves the other as is.
+ */
+
+/* Formats
+   ========================================================================== */
+
+.octopus-formats {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr));
+	align-items: start;
+	gap: var(--octopus-space-4);
+}
+
+.octopus-format {
+	display: flex;
+	flex-direction: column;
+	/* Clear of the admin bar when a card of the overview links here. */
+	scroll-margin-top: 48px;
+	border: 1px solid var(--octopus-border);
+	border-radius: var(--octopus-radius);
+	background: var(--octopus-surface);
+	box-shadow: var(--octopus-shadow);
+
+	& > .octopus-install {
+		margin: 0 var(--octopus-space-5) var(--octopus-space-4);
+	}
+}
+
+.octopus-format--off {
+	border-color: var(--octopus-off-border);
+}
+
+.octopus-format__header {
+	padding: var(--octopus-space-5) var(--octopus-space-5) var(--octopus-space-3);
+}
+
+.octopus-format__top {
+	display: flex;
+	align-items: center;
+	gap: var(--octopus-space-3);
+	margin-bottom: var(--octopus-space-3);
+
+	& .octopus-toggle--switch {
+		margin-left: auto;
+	}
+}
+
+.octopus-page .octopus-format__title {
+	margin: 0;
+	padding: 0;
+	font-family: var(--octopus-font-display);
+	font-size: var(--octopus-size-heading);
+	font-weight: 600;
+	line-height: 1.3;
+}
+
+/* The library and the optional ones on one line, as long as it fits. */
+.octopus-format__engines {
+	display: flex;
+	flex-wrap: wrap;
+	gap: var(--octopus-space-1) var(--octopus-space-5);
+
+	& .octopus-engine__version {
+		margin-left: 0;
+	}
+}
+
+.octopus-format__description {
+	margin: 0;
+	padding: 0 var(--octopus-space-5) var(--octopus-space-4);
+	color: var(--octopus-text-soft);
+}
+
+/* Settings: the fold of a format
+   ========================================================================== */
+
+/* A soft band at the bottom of its card, its title and its fields
+   together. At the bottom of the cards of a row. */
+.octopus-format__settings {
+	margin-top: auto;
+	border-top: 1px solid var(--octopus-border);
+	border-radius: 0 0 calc(var(--octopus-radius) - 1px) calc(var(--octopus-radius) - 1px);
+	background: var(--octopus-surface-soft);
+
+	&[open] > .octopus-format__summary {
+		padding-bottom: var(--octopus-space-1);
+
+		&::after {
+			transform: rotate(180deg);
+		}
+	}
+}
+
+/* A gear before, a chevron at the end, turned once open. */
+.octopus-format__summary {
+	display: flex;
+	align-items: center;
+	gap: var(--octopus-space-2);
+	padding: var(--octopus-space-3) var(--octopus-space-5);
+	color: var(--octopus-text-soft);
+	font-size: var(--octopus-size-small);
+	font-weight: 700;
+	letter-spacing: .06em;
+	text-transform: uppercase;
+	list-style: none;
+	cursor: pointer;
+	transition: color var(--octopus-transition);
+
+	&::-webkit-details-marker {
+		display: none;
+	}
+
+	&::before,
+	&::after {
+		font-family: dashicons;
+		font-size: 16px;
+		font-weight: 400;
+		line-height: 1;
+		letter-spacing: 0;
+	}
+
+	&::before {
+		content: "\f111"; /* Dashicon admin-generic. */
+		color: var(--octopus-violet);
+	}
+
+	&::after {
+		content: "\f347"; /* Dashicon arrow-down-alt2. */
+		margin-left: auto;
+		transition: transform var(--octopus-transition);
+	}
+
+	&:hover {
+		color: var(--octopus-violet-dark);
+	}
+}
+
+.octopus-format__fields {
+	padding: 0 var(--octopus-space-5) var(--octopus-space-3);
+
+	& .octopus-install {
+		margin: var(--octopus-space-2) 0 0;
+	}
+
+	/* A format switched off: its settings fade until it is switched on again. */
+	.octopus-format:has(.octopus-toggle--switch .octopus-toggle__input:not(:checked)) & {
+		opacity: .5;
+		transition: opacity var(--octopus-transition);
+	}
+}

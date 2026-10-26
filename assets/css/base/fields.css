@@ -1,0 +1,264 @@
+/**
+ * base/fields.css
+ *
+ * The fields of the settings: their layout, the "?"
+ * opening their full help, the switches, the choices
+ * between a few values, and the fields nothing can use.
+ */
+
+/* Field
+   ========================================================================== */
+
+/* One layout for every field: its label on the left, its control on the
+   right (a switch for a checkbox), its note below. The label is not a
+   <label>: hovering it would hover the control. Only the control reacts. */
+.octopus-field {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) auto;
+	align-items: center;
+	column-gap: var(--octopus-space-4);
+	padding: var(--octopus-space-4) 0;
+
+	&[hidden] {
+		display: none;
+	}
+
+	& + & {
+		border-top: 1px solid var(--octopus-border);
+	}
+}
+
+.octopus-field__label {
+	font-weight: 600;
+}
+
+.octopus-field__control {
+	display: flex;
+	align-items: center;
+	gap: var(--octopus-space-2);
+}
+
+.octopus-page .octopus-field__input {
+	width: 96px;
+	min-width: 0;
+	border-color: var(--octopus-border);
+	border-radius: var(--octopus-radius-small);
+
+	&:focus {
+		border-color: var(--octopus-violet);
+		box-shadow: 0 0 0 1px var(--octopus-violet);
+	}
+}
+
+.octopus-field__unit {
+	color: var(--octopus-muted);
+}
+
+.octopus-field__help {
+	grid-column: 1 / -1;
+	max-width: 680px;
+	margin: var(--octopus-space-1) 0 0;
+	color: var(--octopus-muted);
+}
+
+/* A setting nothing can use, e.g. without its library: greyed. */
+.octopus-field--disabled {
+	& :is(.octopus-field__label, .octopus-field__control, .octopus-field__help) {
+		opacity: .5;
+	}
+
+	& :is(.octopus-field__input, .octopus-choice__option) {
+		cursor: not-allowed;
+	}
+}
+
+/* Fields in a settings card: closer, without rules between them. The help
+   stays under its label, the control on their right, centred on both. On
+   small screens, the help goes back under both, as wide as the field. */
+.octopus-fields {
+	& .octopus-field {
+		padding: var(--octopus-space-3) 0;
+	}
+
+	& .octopus-field + .octopus-field {
+		border-top: 0;
+	}
+
+	& .octopus-field__help {
+		grid-column: 1;
+
+		@media (max-width: 782px) {
+			grid-column: 1 / -1;
+		}
+	}
+
+	& :is(.octopus-field__control, .octopus-field > .octopus-toggle) {
+		grid-column: 2;
+		grid-row: 1 / span 3;
+
+		@media (max-width: 782px) {
+			grid-row: auto;
+		}
+	}
+}
+
+/* Help: the "?" opening the full help of a field, under its short note
+   ========================================================================== */
+
+.octopus-help__toggle {
+	width: 18px;
+	height: 18px;
+	margin-left: 2px;
+	padding: 0;
+	border: 1px solid var(--octopus-violet);
+	border-radius: 50%;
+	background: var(--octopus-surface);
+	color: var(--octopus-violet-dark);
+	font-size: 11px;
+	font-weight: 700;
+	line-height: 16px;
+	text-align: center;
+	vertical-align: 1px;
+	cursor: pointer;
+	transition: background-color var(--octopus-transition), color var(--octopus-transition);
+
+	.octopus-page:not(.octopus-page--js) & {
+		display: none;
+	}
+
+	&:hover,
+	&:focus-visible {
+		background: var(--octopus-violet-soft);
+	}
+
+	&:focus-visible {
+		outline: 2px solid var(--octopus-violet);
+		outline-offset: 1px;
+	}
+
+	&[aria-expanded="true"] {
+		background: var(--octopus-violet);
+		color: #fff;
+	}
+}
+
+.octopus-help__text {
+	padding-top: var(--octopus-space-2);
+	border-top: 1px dashed var(--octopus-border);
+}
+
+/* Toggle: a switch, only its track is clickable
+   ========================================================================== */
+
+.octopus-toggle {
+	display: inline-flex;
+	align-items: center;
+	cursor: pointer;
+}
+
+.octopus-page .octopus-toggle__input {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	margin: 0;
+	opacity: 0;
+}
+
+.octopus-toggle__track {
+	position: relative;
+	flex: none;
+	width: 40px;
+	height: 22px;
+	border-radius: var(--octopus-radius-pill);
+	background: #c3c4c7;
+	transition: background var(--octopus-transition);
+
+	&::after {
+		content: "";
+		position: absolute;
+		top: 3px;
+		left: 3px;
+		width: 16px;
+		height: 16px;
+		border-radius: 50%;
+		background: #fff;
+		box-shadow: 0 1px 2px rgba(0, 0, 0, .2);
+		transition: transform var(--octopus-transition);
+	}
+
+	.octopus-toggle__input:checked + & {
+		background: var(--octopus-gradient);
+
+		&::after {
+			transform: translateX(18px);
+		}
+	}
+
+	.octopus-toggle__input:focus-visible + & {
+		box-shadow: var(--octopus-focus-ring);
+	}
+}
+
+/* Choice: a few values, all in sight
+   ========================================================================== */
+
+/* Buttons side by side, the chosen one in the colours of OIO. Radio
+   buttons underneath. */
+.octopus-choice {
+	display: inline-flex;
+	flex-wrap: wrap;
+	gap: 2px;
+	padding: 3px;
+	border: 1px solid var(--octopus-border);
+	border-radius: var(--octopus-radius-small);
+	background: var(--octopus-surface-soft);
+}
+
+.octopus-choice__option {
+	display: flex;
+	cursor: pointer;
+
+	&:hover .octopus-choice__label {
+		color: var(--octopus-violet-dark);
+	}
+}
+
+/* A value nothing can make, e.g. lossy without pngquant: struck out. */
+.octopus-choice__option--disabled {
+	cursor: not-allowed;
+
+	& .octopus-choice__label,
+	&:hover .octopus-choice__label {
+		color: var(--octopus-neutral);
+		text-decoration: line-through;
+		text-decoration-color: rgba(140, 143, 148, .6);
+	}
+}
+
+/* Disabled too: WordPress shows the disabled radio buttons at .7. */
+.octopus-page .octopus-choice__input,
+.octopus-page .octopus-choice__input:disabled {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	margin: 0;
+	opacity: 0;
+}
+
+.octopus-choice__label {
+	padding: 5px 12px;
+	border-radius: 4px;
+	color: var(--octopus-text-soft);
+	font-weight: 600;
+	white-space: nowrap;
+	transition: background var(--octopus-transition), color var(--octopus-transition);
+
+	.octopus-choice__input:checked + & {
+		background: var(--octopus-gradient);
+		color: #fff;
+	}
+
+	.octopus-choice__input:focus-visible + & {
+		box-shadow: var(--octopus-focus-ring);
+	}
+}

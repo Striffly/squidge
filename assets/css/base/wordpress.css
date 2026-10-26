@@ -1,0 +1,53 @@
+/**
+ * base/wordpress.css
+ *
+ * The WordPress components of the options page,
+ * their classes kept, in the colours of the logo.
+ */
+
+/* Buttons
+   ========================================================================== */
+
+.octopus-page .button-primary {
+	border-color: var(--octopus-violet-dark);
+	background: var(--octopus-violet);
+	color: #fff;
+	transition: background-color var(--octopus-transition), box-shadow var(--octopus-transition);
+
+	&:hover,
+	&:focus {
+		border-color: var(--octopus-violet-dark);
+		background: var(--octopus-violet-dark);
+		color: #fff;
+	}
+
+	&:focus {
+		box-shadow: 0 0 0 1px #fff, 0 0 0 3px var(--octopus-violet);
+	}
+}
+
+.octopus-page .button:not(.button-primary) {
+	border-color: var(--octopus-violet);
+	color: var(--octopus-violet-dark);
+
+	&:hover,
+	&:focus {
+		background: var(--octopus-violet-soft);
+		color: var(--octopus-violet-dark);
+	}
+}
+
+.octopus-page .button.octopus-button--danger {
+	border-color: var(--octopus-off);
+	color: var(--octopus-off);
+
+	&:hover,
+	&:focus {
+		background: var(--octopus-off-bg);
+		color: var(--octopus-off);
+	}
+}
+
+.octopus-page .button[disabled] {
+	opacity: .55;
+}

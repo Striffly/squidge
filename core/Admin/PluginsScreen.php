@@ -20,6 +20,7 @@ namespace Octopus\Admin;
 
 use Octopus\Media\Cleaner;
 use Octopus\Media\Files;
+use Octopus\Plugin;
 
 if (!defined('ABSPATH')) {
 	exit; // Exit if accessed directly
@@ -98,16 +99,15 @@ class PluginsScreen
 		if ($hook !== 'plugins.php' || !current_user_can('activate_plugins')) {
 			return;
 		}
-		wp_enqueue_script('octopus-plugins', OCTOPUS_URL . 'assets/js/plugins.js', ['wp-i18n'], filemtime(OCTOPUS_PATH . 'assets/js/plugins.js'), true);
-		wp_set_script_translations('octopus-plugins', 'octopus-image-optimizer', OCTOPUS_PATH . 'languages');
-		wp_localize_script('octopus-plugins', 'octopusPlugins', [
+		$script = Plugin::enqueue_script('plugins', ['wp-i18n']);
+		wp_localize_script($script, 'octopusPlugins', [
 			'plugin' => plugin_basename(OCTOPUS_FILE),
 			'ajaxurl' => admin_url('admin-ajax.php'),
 			'nonce' => wp_create_nonce(self::NONCE),
 			'restoreUrl' => SettingsPage::page_url() . '#overview',
 			'themeCalls' => $this->theme_calls(),
 		]);
-		wp_enqueue_style('octopus-plugins', OCTOPUS_URL . 'assets/css/plugins.css', [], filemtime(OCTOPUS_PATH . 'assets/css/plugins.css'));
+		Plugin::enqueue_style('screens/plugins');
 	}
 
 	/**

@@ -98,4 +98,76 @@ final class Plugin
 		// phpcs:ignore PluginCheck.CodeAnalysis.DiscouragedFunctions.load_plugin_textdomainFound -- Loads the translations shipped with OIO, also installed from GitHub.
 		load_plugin_textdomain('octopus-image-optimizer', false, dirname(plugin_basename(OCTOPUS_FILE)) . '/languages');
 	}
+
+	/**
+	 * Enqueues a stylesheet of assets/css, e.g.
+	 * base/tokens as octopus-base-tokens. Its version
+	 * is its last change, so that browsers load it again
+	 * after an update.
+	 *
+	 * @param string $path Relative to assets/css, without .css.
+	 * @param string[] $deps
+	 * @return string The handle.
+	 * @since 1.0.0
+	 */
+	public static function enqueue_style($path, $deps = [])
+	{
+		$handle = self::handle($path);
+		$file = 'assets/css/' . $path . '.css';
+		wp_enqueue_style($handle, OCTOPUS_URL . $file, $deps, filemtime(OCTOPUS_PATH . $file));
+		return $handle;
+	}
+
+	/**
+	 * Enqueues a script of assets/js in the footer, with
+	 * its translations when it uses wp.i18n.
+	 *
+	 * @param string $path Relative to assets/js, without .js.
+	 * @param string[] $deps
+	 * @return string The handle.
+	 * @since 1.0.0
+	 */
+	public static function enqueue_script($path, $deps = [])
+	{
+		$handle = self::handle($path);
+		$file = 'assets/js/' . $path . '.js';
+		wp_enqueue_script($handle, OCTOPUS_URL . $file, $deps, filemtime(OCTOPUS_PATH . $file), true);
+		if (in_array('wp-i18n', $deps, true)) {
+			wp_set_script_translations($handle, 'octopus-image-optimizer', OCTOPUS_PATH . 'languages');
+		}
+		return $handle;
+	}
+
+	/**
+	 * Enqueues files in their order, each one after
+	 * the previous one: the stylesheets cascade, the
+	 * scripts use the classes loaded before them.
+	 *
+	 * @param string[] $paths
+	 * @param string $type style or script.
+	 * @param string[] $deps Of the first file.
+	 * @return string The handle of the last file.
+	 * @since 1.0.0
+	 */
+	public static function enqueue_chain($paths, $type, $deps = [])
+	{
+		$handle = '';
+		foreach ($paths as $path) {
+			$handle = $type === 'style' ? self::enqueue_style($path, $deps) : self::enqueue_script($path, array_merge(['wp-i18n'], $deps));
+			$deps = [$handle];
+		}
+		return $handle;
+	}
+
+	/**
+	 * Returns the handle of an asset, from its path.
+	 *
+	 * @param string $path
+	 * @return string
+	 * @since 1.0.0
+	 */
+	private static function handle($path)
+	{
+		return 'octopus-' . strtolower(str_replace('/', '-', $path));
+	}
 }

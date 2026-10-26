@@ -1,0 +1,41 @@
+/**
+ * screens/media.css
+ *
+ * The Optimisation column of the media library: the
+ * status of each image, a dot of its colour, and the
+ * bytes saved.
+ */
+
+.column-octopus {
+	width: 170px;
+}
+
+.octopus-saved {
+	white-space: nowrap;
+}
+
+.octopus-status-label {
+	--octopus-status: #a7aaad;
+
+	&::before {
+		content: "";
+		display: inline-block;
+		width: 8px;
+		height: 8px;
+		margin-right: 6px;
+		border-radius: 50%;
+		background: var(--octopus-status);
+	}
+}
+
+.octopus-status-label--optimised {
+	--octopus-status: #00a32a;
+}
+
+.octopus-status-label--outdated {
+	--octopus-status: #dba617;
+}
+
+.octopus-status-label--error {
+	--octopus-status: #d63638;
+}

@@ -1,0 +1,41 @@
+/**
+ * tabs/optimise.css
+ *
+ * The Optimise tab: the message when the page opens on
+ * a media library all optimised. Its jobs are styled
+ * by base/jobs.css, shared with the Maintenance tab.
+ */
+
+/* Done: all the images optimised, shown when the page opens
+   ========================================================================== */
+
+.octopus-done {
+	position: relative;
+	display: flex;
+	align-items: center;
+	gap: var(--octopus-space-3);
+	margin: var(--octopus-space-4) var(--octopus-space-5) 0;
+	padding: var(--octopus-space-3) var(--octopus-space-4);
+	border: 1px solid var(--octopus-violet-line);
+	border-radius: var(--octopus-radius);
+	background: var(--octopus-surface);
+	/* The halo of the logo. */
+	box-shadow: var(--octopus-glow);
+
+	&[hidden] {
+		display: none;
+	}
+}
+
+.octopus-done__icon {
+	flex: none;
+	width: 28px;
+	height: 28px;
+	color: var(--octopus-violet);
+	font-size: 28px;
+}
+
+.octopus-done__text {
+	margin: 0;
+	color: var(--octopus-text);
+}

@@ -1,0 +1,383 @@
+/**
+ * base/layout.css
+ *
+ * The frame of the options page: the page, its
+ * header, the tabs, the cards the tabs are made of,
+ * and the support at the bottom.
+ */
+
+/* Page
+   ========================================================================== */
+
+.octopus-page {
+	max-width: 1160px;
+	color: var(--octopus-text);
+
+	& .wp-header-end {
+		margin: 0;
+		border: 0;
+	}
+
+	& code {
+		padding: 1px 6px;
+		border-radius: var(--octopus-radius-small);
+		background: var(--octopus-violet-soft);
+		font-family: var(--octopus-font-code);
+		font-size: var(--octopus-size-small);
+	}
+
+	& a {
+		color: var(--octopus-violet-dark);
+
+		&:hover,
+		&:focus {
+			color: var(--octopus-violet);
+		}
+	}
+}
+
+.octopus-page__save {
+	display: flex;
+	justify-content: flex-end;
+	margin-top: var(--octopus-space-4);
+}
+
+/* The steps of the Delivery tab lay out on the width of the panel. */
+.octopus-panel {
+	margin-top: var(--octopus-space-5);
+	container-type: inline-size;
+}
+
+.octopus-heading {
+	margin: var(--octopus-space-6) 0 var(--octopus-space-3);
+	font-family: var(--octopus-font-display);
+	font-size: var(--octopus-size-title);
+	font-weight: 500;
+}
+
+/* Header
+   ========================================================================== */
+
+.octopus-header {
+	display: flex;
+	align-items: center;
+	gap: var(--octopus-space-5);
+	margin-top: var(--octopus-space-4);
+	padding: var(--octopus-space-5) var(--octopus-space-6);
+	border-radius: var(--octopus-radius-large);
+	background: var(--octopus-gradient-night);
+	box-shadow: var(--octopus-shadow);
+	color: #fff;
+
+	@media (max-width: 782px) {
+		flex-wrap: wrap;
+		padding: var(--octopus-space-5);
+	}
+}
+
+.octopus-header__logo {
+	flex: none;
+	width: 64px;
+	height: 64px;
+	border-radius: var(--octopus-radius);
+	box-shadow: var(--octopus-glow);
+}
+
+.octopus-header__text {
+	flex: 1;
+	min-width: 0;
+}
+
+.octopus-page .octopus-header__title {
+	margin: 0;
+	padding: 0;
+	color: #fff;
+	font-family: var(--octopus-font-display);
+	font-size: 26px;
+	font-weight: 700;
+	line-height: 1.2;
+	letter-spacing: -.01em;
+
+	@media (max-width: 782px) {
+		font-size: 20px;
+	}
+}
+
+.octopus-header__name {
+	margin-left: var(--octopus-space-1);
+	font-weight: 500;
+	opacity: .85;
+
+	@media (max-width: 782px) {
+		display: block;
+		margin-left: 0;
+	}
+}
+
+.octopus-header__tagline {
+	margin: var(--octopus-space-1) 0 0;
+	color: var(--octopus-cyan);
+	font-size: var(--octopus-size-lead);
+}
+
+.octopus-header__version {
+	flex: none;
+	align-self: flex-start;
+	padding: 2px 10px;
+	border: 1px solid rgba(255, 255, 255, .25);
+	border-radius: var(--octopus-radius-pill);
+	color: rgba(255, 255, 255, .8);
+	font-size: var(--octopus-size-small);
+}
+
+/* Tabs: without JS, every panel shows one after another
+   ========================================================================== */
+
+.octopus-tabs {
+	display: flex;
+	flex-wrap: wrap;
+	gap: var(--octopus-space-1);
+	margin-top: var(--octopus-space-5);
+	padding: var(--octopus-space-1);
+	border: 1px solid var(--octopus-border);
+	border-radius: var(--octopus-radius);
+	background: var(--octopus-surface);
+	box-shadow: var(--octopus-shadow);
+
+	.octopus-page:not(.octopus-page--js) & {
+		display: none;
+	}
+
+	/* On one line, scrolled sideways, without a scrollbar. */
+	@media (max-width: 782px) {
+		position: relative;
+		flex-wrap: nowrap;
+		overflow-x: auto;
+		scroll-snap-type: x proximity;
+		scrollbar-width: none;
+
+		&::-webkit-scrollbar {
+			display: none;
+		}
+	}
+}
+
+.octopus-page .octopus-tabs__tab {
+	display: inline-flex;
+	align-items: center;
+	gap: var(--octopus-space-2);
+	padding: var(--octopus-space-2) var(--octopus-space-4);
+	border-radius: var(--octopus-radius-small);
+	color: var(--octopus-text-soft);
+	font-size: var(--octopus-size-lead);
+	font-weight: 600;
+	text-decoration: none;
+	transition: background-color var(--octopus-transition), color var(--octopus-transition);
+
+	&:hover,
+	&:focus {
+		background: var(--octopus-violet-soft);
+		color: var(--octopus-violet-dark);
+		box-shadow: none;
+	}
+
+	/* The dot of the Settings tab, a format without library: it pulses. */
+	& .octopus-dot--off {
+		animation: octopus-pulse 1.8s ease-out infinite;
+
+		@media (prefers-reduced-motion: reduce) {
+			animation: none;
+		}
+	}
+
+	@media (max-width: 782px) {
+		flex: none;
+		padding: var(--octopus-space-2) var(--octopus-space-3);
+		scroll-snap-align: start;
+	}
+}
+
+.octopus-page .octopus-tabs__tab--active {
+	&,
+	&:hover,
+	&:focus {
+		background: var(--octopus-gradient);
+		color: #fff;
+	}
+
+	/* White on the gradient, where red would not show. */
+	& .octopus-dot--off {
+		animation-name: octopus-pulse-light;
+	}
+}
+
+/* A wave spreading from the dot, fading. */
+@keyframes octopus-pulse {
+	0% {
+		box-shadow: 0 0 0 0 rgba(214, 54, 56, .7);
+	}
+
+	70%,
+	100% {
+		box-shadow: 0 0 0 6px rgba(214, 54, 56, 0);
+	}
+}
+
+@keyframes octopus-pulse-light {
+	0% {
+		box-shadow: 0 0 0 0 rgba(255, 255, 255, .9);
+	}
+
+	70%,
+	100% {
+		box-shadow: 0 0 0 6px rgba(255, 255, 255, 0);
+	}
+}
+
+/* Cards
+   ========================================================================== */
+
+.octopus-card {
+	margin-bottom: var(--octopus-space-4);
+	border: 1px solid var(--octopus-border);
+	border-radius: var(--octopus-radius);
+	background: var(--octopus-surface);
+	box-shadow: var(--octopus-shadow);
+}
+
+.octopus-card--danger {
+	border-color: var(--octopus-off-border);
+
+	& .octopus-card__icon {
+		background: var(--octopus-off-bg);
+		color: var(--octopus-off);
+	}
+}
+
+.octopus-card--hero {
+	overflow: hidden;
+}
+
+.octopus-card__header {
+	display: flex;
+	align-items: flex-start;
+	gap: var(--octopus-space-3);
+	padding: var(--octopus-space-5) var(--octopus-space-5) 0;
+
+	& > div {
+		flex: 1;
+		min-width: 0;
+	}
+}
+
+.octopus-card__icon {
+	flex: none;
+	width: 36px;
+	height: 36px;
+	border-radius: 10px;
+	background: var(--octopus-violet-soft);
+	color: var(--octopus-violet);
+	font-size: 20px;
+	line-height: 36px;
+	text-align: center;
+}
+
+.octopus-page .octopus-card__title {
+	margin: 0 0 var(--octopus-space-1);
+	padding: 0;
+	font-family: var(--octopus-font-display);
+	font-size: var(--octopus-size-title);
+	font-weight: 500;
+	line-height: 1.4;
+}
+
+.octopus-card__description {
+	margin: 0;
+	color: var(--octopus-text-soft);
+	font-size: var(--octopus-size-body);
+}
+
+.octopus-card__body {
+	padding: var(--octopus-space-2) var(--octopus-space-5) var(--octopus-space-5);
+}
+
+.octopus-card__actions {
+	display: flex;
+	justify-content: flex-end;
+	padding: var(--octopus-space-4) var(--octopus-space-5);
+	border-top: 1px solid var(--octopus-border);
+	border-radius: 0 0 var(--octopus-radius) var(--octopus-radius);
+	background: var(--octopus-surface-soft);
+}
+
+.octopus-card__footer {
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: space-between;
+	gap: var(--octopus-space-2);
+	margin: 0;
+	padding: var(--octopus-space-4) var(--octopus-space-5);
+	border-top: 1px solid var(--octopus-border);
+	color: var(--octopus-muted);
+
+	& a {
+		font-weight: 600;
+		text-decoration: none;
+	}
+}
+
+.octopus-card__notice {
+	margin: var(--octopus-space-4) var(--octopus-space-5) var(--octopus-space-5);
+	color: var(--octopus-text-soft);
+}
+
+/* Support: at the bottom right of every tab, quiet
+   ========================================================================== */
+
+/* A line of small links under a separator, the Bitcoin address under it
+   once asked for. */
+.octopus-support {
+	margin-top: var(--octopus-space-6);
+	padding-top: var(--octopus-space-3);
+	border-top: 1px solid var(--octopus-border);
+	text-align: right;
+}
+
+.octopus-support__links {
+	margin: 0;
+	color: var(--octopus-muted);
+	font-size: var(--octopus-size-small);
+}
+
+.octopus-support__links a,
+.octopus-page .octopus-support__toggle {
+	color: var(--octopus-violet-dark);
+	font-size: inherit;
+}
+
+.octopus-support__wallet {
+	display: inline-flex;
+	flex-direction: column;
+	align-items: center;
+	gap: var(--octopus-space-2);
+	max-width: 100%;
+	margin-top: var(--octopus-space-2);
+	padding: var(--octopus-space-3);
+	border: 1px solid var(--octopus-border);
+	border-radius: var(--octopus-radius);
+	background: var(--octopus-surface);
+
+	&[hidden] {
+		display: none;
+	}
+}
+
+.octopus-support__qr img {
+	display: block;
+}
+
+.octopus-support__address {
+	max-width: 100%;
+	font-size: 11px;
+	word-break: break-all;
+}

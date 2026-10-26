@@ -19,6 +19,7 @@ namespace Octopus\Admin;
 
 use Octopus\Log\Errors;
 use Octopus\Media\Optimiser;
+use Octopus\Plugin;
 
 if (!defined('ABSPATH')) {
 	exit; // Exit if accessed directly
@@ -250,13 +251,13 @@ class Notices
 		if (!$this->is_notice_screen()) {
 			return;
 		}
-		wp_enqueue_script('octopus-notices', OCTOPUS_URL . 'assets/js/notices.js', ['jquery'], filemtime(OCTOPUS_PATH . 'assets/js/notices.js'), true);
-		wp_localize_script('octopus-notices', 'octopusNotices', [
+		$script = Plugin::enqueue_script('notices', ['jquery']);
+		wp_localize_script($script, 'octopusNotices', [
 			'action' => self::NONCE,
 			'nonce' => wp_create_nonce(self::NONCE),
 			'title' => self::title(),
 		]);
-		wp_enqueue_style('octopus-notices', OCTOPUS_URL . 'assets/css/notices.css', [], filemtime(OCTOPUS_PATH . 'assets/css/notices.css'));
+		Plugin::enqueue_style('screens/notices');
 	}
 
 	/**

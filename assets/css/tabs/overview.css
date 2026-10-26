@@ -1,0 +1,376 @@
+/**
+ * tabs/overview.css
+ *
+ * The Overview tab: the bytes saved and the button to
+ * optimise, the disk used, the counts by status and
+ * the libraries.
+ */
+
+/* Savings: the bytes saved, the button to optimise on their right
+   ========================================================================== */
+
+.octopus-savings {
+	position: relative;
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: space-between;
+	gap: var(--octopus-space-4);
+	padding: var(--octopus-space-6);
+	background: radial-gradient(circle at 100% 0%, rgba(255, 60, 172, .12) 0%, rgba(123, 47, 247, .08) 35%, transparent 70%);
+
+	@media (max-width: 782px) {
+		padding: var(--octopus-space-5);
+	}
+}
+
+.octopus-savings__value {
+	margin: 0;
+	color: var(--octopus-night);
+	font-family: var(--octopus-font-display);
+	font-size: var(--octopus-size-figure);
+	font-weight: 700;
+	line-height: 1.15;
+	letter-spacing: -.02em;
+
+	& span {
+		background: var(--octopus-gradient);
+		-webkit-background-clip: text;
+		background-clip: text;
+		color: transparent;
+	}
+
+	@media (max-width: 782px) {
+		font-size: 26px;
+	}
+}
+
+.octopus-savings__detail {
+	margin: var(--octopus-space-2) 0 0;
+	color: var(--octopus-text-soft);
+	font-size: var(--octopus-size-lead);
+}
+
+.octopus-savings__reduction {
+	color: var(--octopus-violet-dark);
+	font-weight: 700;
+}
+
+.octopus-savings__hint a {
+	font-weight: 600;
+	text-decoration: none;
+}
+
+/* Call to action: the button to optimise
+   ========================================================================== */
+
+/* In the colours of the logo: its text in violet once all images are
+   done, filled with the gradient while some wait. */
+.octopus-page .octopus-cta {
+	display: inline-flex;
+	flex: none;
+	align-items: center;
+	gap: var(--octopus-space-2);
+	padding: 10px 18px 10px 22px;
+	border: 1px solid var(--octopus-violet-line);
+	border-radius: var(--octopus-radius-pill);
+	background: rgba(255, 255, 255, .75);
+	box-shadow: var(--octopus-shadow);
+	color: var(--octopus-violet-dark);
+	font-family: var(--octopus-font-display);
+	font-size: var(--octopus-size-body);
+	font-weight: 600;
+	word-spacing: .12em;
+	text-decoration: none;
+	transition: box-shadow var(--octopus-transition), transform var(--octopus-transition), background-color var(--octopus-transition);
+
+	&:hover,
+	&:focus {
+		background: #fff;
+		box-shadow: var(--octopus-shadow-hover);
+		color: var(--octopus-violet-dark);
+		transform: translateY(-1px);
+	}
+
+	&:focus-visible {
+		outline: 2px solid var(--octopus-violet);
+		outline-offset: 2px;
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		transition: none;
+
+		&:hover {
+			transform: none;
+		}
+	}
+}
+
+.octopus-page .octopus-cta__arrow {
+	width: 18px;
+	height: 18px;
+	font-size: 18px;
+	transition: transform var(--octopus-transition);
+
+	.octopus-cta:hover & {
+		transform: translateX(3px);
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		&,
+		.octopus-cta:hover & {
+			transform: none;
+			transition: none;
+		}
+	}
+}
+
+/* Images wait. No border: the gradient would repeat under it, a seam on
+   the edges. An echo of the button grows from behind it, its edges showing
+   gradually, and spreads blurring until it fades; not while hovered. */
+.octopus-page .octopus-cta--filled {
+	position: relative;
+	isolation: isolate;
+	padding: 11px 19px 11px 23px;
+	border: 0;
+	background: var(--octopus-gradient);
+	box-shadow: 0 2px 8px rgba(255, 60, 172, .25);
+	color: #fff;
+
+	&::before {
+		content: "";
+		position: absolute;
+		z-index: -1;
+		inset: 0;
+		border-radius: inherit;
+		background: var(--octopus-gradient);
+		opacity: 0;
+		animation: octopus-cta-pulse 2.4s cubic-bezier(.25, .6, .4, 1) infinite, octopus-cta-fade 2.4s linear infinite;
+		pointer-events: none;
+
+		@media (prefers-reduced-motion: reduce) {
+			animation: none;
+		}
+	}
+
+	&:hover,
+	&:focus {
+		background: var(--octopus-gradient);
+		box-shadow: var(--octopus-glow);
+		color: #fff;
+
+		&::before {
+			animation: none;
+		}
+	}
+}
+
+/* Two tracks of the same length: the echo grows in one gliding move, its
+   opacity rises and falls in a smooth bell, so the pulse has no seam. */
+@keyframes octopus-cta-pulse {
+	from {
+		filter: blur(2px);
+		transform: scale(.9, .7);
+	}
+
+	to {
+		filter: blur(10px);
+		transform: translateY(2px) scale(1.12, 1.45);
+	}
+}
+
+@keyframes octopus-cta-fade {
+	0% {
+		opacity: 0;
+	}
+
+	10% {
+		opacity: .3;
+	}
+
+	20% {
+		opacity: .55;
+	}
+
+	30% {
+		opacity: .65;
+	}
+
+	45% {
+		opacity: .55;
+	}
+
+	60% {
+		opacity: .38;
+	}
+
+	75% {
+		opacity: .2;
+	}
+
+	90% {
+		opacity: .06;
+	}
+
+	100% {
+		opacity: 0;
+	}
+}
+
+/* Disk: the space used by OIO, two pills after a quiet label
+   ========================================================================== */
+
+.octopus-disk {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: var(--octopus-space-2);
+	margin: var(--octopus-space-5) 0 0;
+	color: var(--octopus-muted);
+	font-size: var(--octopus-size-small);
+}
+
+.octopus-disk__label {
+	display: inline-flex;
+	align-items: center;
+	gap: var(--octopus-space-1);
+	margin-right: var(--octopus-space-1);
+
+	& .dashicons {
+		width: 16px;
+		height: 16px;
+		font-size: 16px;
+	}
+}
+
+.octopus-disk__item {
+	padding: 3px var(--octopus-space-3);
+	border: 1px solid var(--octopus-border);
+	border-radius: var(--octopus-radius-pill);
+	background: rgba(255, 255, 255, .7);
+	color: var(--octopus-text-soft);
+
+	& strong {
+		color: var(--octopus-night);
+	}
+}
+
+/* Counts: the images by status, four columns, two on small screens
+   ========================================================================== */
+
+.octopus-counts {
+	display: grid;
+	grid-template-columns: repeat(4, 1fr);
+	margin: 0;
+	border-top: 1px solid var(--octopus-border);
+
+	@media (max-width: 782px) {
+		grid-template-columns: repeat(2, 1fr);
+	}
+}
+
+.octopus-counts__item {
+	--octopus-status: var(--octopus-neutral);
+	margin: 0;
+	padding: var(--octopus-space-4) var(--octopus-space-5);
+
+	& + & {
+		border-left: 1px solid var(--octopus-border);
+	}
+
+	@media (max-width: 782px) {
+		&:nth-child(3) {
+			border-left: 0;
+		}
+
+		&:nth-child(n + 3) {
+			border-top: 1px solid var(--octopus-border);
+		}
+	}
+}
+
+.octopus-counts__item--optimised {
+	--octopus-status: var(--octopus-on);
+}
+
+.octopus-counts__item--outdated {
+	--octopus-status: var(--octopus-warning-strong);
+}
+
+.octopus-counts__item--error {
+	--octopus-status: var(--octopus-off);
+}
+
+.octopus-counts__value {
+	display: block;
+	font-family: var(--octopus-font-display);
+	font-size: 22px;
+	font-weight: 600;
+	line-height: 1.3;
+	font-variant-numeric: tabular-nums;
+}
+
+.octopus-counts__label {
+	display: inline-flex;
+	align-items: center;
+	gap: var(--octopus-space-2);
+	color: var(--octopus-muted);
+
+	&::before {
+		content: "";
+		width: 8px;
+		height: 8px;
+		border-radius: 50%;
+		background: var(--octopus-status);
+	}
+}
+
+/* Libraries: one card per format, linking to its settings
+   ========================================================================== */
+
+.octopus-libraries {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+	gap: var(--octopus-space-3);
+}
+
+.octopus-page .octopus-library {
+	display: flex;
+	flex-direction: column;
+	gap: var(--octopus-space-2);
+	padding: var(--octopus-space-4);
+	border: 1px solid var(--octopus-border);
+	border-radius: var(--octopus-radius);
+	background: var(--octopus-surface);
+	box-shadow: var(--octopus-shadow);
+	color: var(--octopus-text);
+	text-decoration: none;
+	transition: transform var(--octopus-transition), box-shadow var(--octopus-transition), border-color var(--octopus-transition);
+
+	&:hover,
+	&:focus {
+		border-color: var(--octopus-violet-edge);
+		box-shadow: var(--octopus-shadow-hover);
+		color: var(--octopus-text);
+		transform: translateY(-2px);
+	}
+}
+
+.octopus-page .octopus-library--off {
+	border-color: var(--octopus-off-border);
+}
+
+.octopus-library__head {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: var(--octopus-space-2);
+	padding-bottom: var(--octopus-space-2);
+	border-bottom: 1px solid var(--octopus-border);
+}
+
+.octopus-library__format {
+	font-family: var(--octopus-font-display);
+	font-size: var(--octopus-size-title);
+	font-weight: 600;
+}

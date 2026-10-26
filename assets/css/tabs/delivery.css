@@ -1,0 +1,340 @@
+/**
+ * tabs/delivery.css
+ *
+ * The Delivery tab, in three numbered steps: the WebP
+ * and AVIF versions made, the way to serve them, then
+ * the test and its checks.
+ */
+
+/* Steps: an arrow from one to the next
+   ========================================================================== */
+
+/* Stacked, the arrows point down; side by side when the panel is wide
+   enough, they point right. */
+.octopus-steps {
+	--octopus-steps-gap: 44px;
+	display: grid;
+	gap: var(--octopus-steps-gap);
+	margin: 0 0 var(--octopus-space-6);
+	padding: 0;
+	list-style: none;
+
+	@container (min-width: 1080px) {
+		grid-template-columns: minmax(0, 1fr) minmax(0, 1.45fr) minmax(0, 1fr);
+	}
+}
+
+.octopus-step {
+	position: relative;
+	display: flex;
+	flex-direction: column;
+	margin: 0;
+	border: 1px solid var(--octopus-border);
+	border-radius: var(--octopus-radius);
+	background: var(--octopus-surface);
+	box-shadow: var(--octopus-shadow);
+
+	&:not(:last-child)::after {
+		content: "\f346"; /* Dashicon arrow-down-alt. */
+		position: absolute;
+		z-index: 1;
+		top: calc(100% + (var(--octopus-steps-gap) - 28px) / 2);
+		left: calc(50% - 14px);
+		width: 28px;
+		height: 28px;
+		border-radius: 50%;
+		background: var(--octopus-gradient);
+		box-shadow: 0 2px 8px rgba(123, 47, 247, .35);
+		color: #fff;
+		font-family: dashicons;
+		font-size: 18px;
+		line-height: 28px;
+		text-align: center;
+
+		/* Between two steps, level with their numbers. */
+		@container (min-width: 1080px) {
+			content: "\f344"; /* Dashicon arrow-right-alt. */
+			top: calc(var(--octopus-space-5) + 6px);
+			left: calc(100% + (var(--octopus-steps-gap) - 28px) / 2);
+		}
+	}
+}
+
+.octopus-step__header {
+	display: flex;
+	align-items: flex-start;
+	gap: var(--octopus-space-4);
+	padding: var(--octopus-space-5) var(--octopus-space-5) var(--octopus-space-4);
+
+	@media (max-width: 782px) {
+		padding: var(--octopus-space-4) var(--octopus-space-4) var(--octopus-space-3);
+	}
+}
+
+.octopus-step__number {
+	flex: none;
+	width: 40px;
+	height: 40px;
+	border-radius: 50%;
+	background: var(--octopus-gradient);
+	box-shadow: 0 4px 12px rgba(123, 47, 247, .3);
+	color: #fff;
+	font-family: var(--octopus-font-display);
+	font-size: var(--octopus-size-title);
+	font-weight: 600;
+	line-height: 40px;
+	text-align: center;
+}
+
+.octopus-step__heading {
+	flex: 1;
+	min-width: 0;
+}
+
+.octopus-page .octopus-step__title {
+	margin: 0;
+	padding: 0;
+	font-family: var(--octopus-font-display);
+	font-size: var(--octopus-size-heading);
+	font-weight: 500;
+	line-height: 40px;
+}
+
+.octopus-step__description {
+	margin: var(--octopus-space-1) 0 0;
+	color: var(--octopus-text-soft);
+	font-size: var(--octopus-size-lead);
+	line-height: 1.6;
+}
+
+.octopus-step__body {
+	flex: 1;
+	padding: var(--octopus-space-1) var(--octopus-space-5) var(--octopus-space-5);
+
+	@media (max-width: 782px) {
+		padding: 0 var(--octopus-space-4) var(--octopus-space-4);
+	}
+}
+
+.octopus-step__actions {
+	display: flex;
+	justify-content: flex-end;
+	padding: var(--octopus-space-4) var(--octopus-space-5);
+	border-top: 1px solid var(--octopus-border);
+	border-radius: 0 0 var(--octopus-radius) var(--octopus-radius);
+	background: var(--octopus-surface-soft);
+}
+
+/* Step 1: how many images have their WebP or AVIF version
+   ========================================================================== */
+
+.octopus-generate {
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+	gap: var(--octopus-space-4);
+}
+
+.octopus-generate__value {
+	margin: 0;
+	color: var(--octopus-text-soft);
+	font-size: var(--octopus-size-lead);
+	line-height: 1.6;
+
+	& strong {
+		color: var(--octopus-text);
+		font-family: var(--octopus-font-display);
+		font-size: var(--octopus-size-heading);
+		font-weight: 600;
+	}
+}
+
+.octopus-generate__formats {
+	display: flex;
+	flex-wrap: wrap;
+	gap: var(--octopus-space-2);
+	margin: 0;
+
+	& li {
+		margin: 0;
+	}
+}
+
+.octopus-meter {
+	display: block;
+	align-self: stretch;
+	height: 8px;
+	overflow: hidden;
+	border-radius: var(--octopus-radius-pill);
+	background: var(--octopus-violet-soft);
+}
+
+.octopus-meter__value {
+	display: block;
+	height: 100%;
+	border-radius: var(--octopus-radius-pill);
+	background: var(--octopus-gradient);
+}
+
+/* Step 2: the two ways to serve, the checked one highlighted
+   ========================================================================== */
+
+.octopus-methods {
+	display: grid;
+	align-content: start;
+	gap: var(--octopus-space-4);
+}
+
+.octopus-method {
+	padding: var(--octopus-space-4) var(--octopus-space-5);
+	border: 1px solid var(--octopus-border);
+	border-radius: var(--octopus-radius);
+	background: var(--octopus-surface-soft);
+	transition: border-color var(--octopus-transition), background-color var(--octopus-transition);
+
+	&:has(.octopus-toggle__input:checked) {
+		border-color: var(--octopus-violet-edge);
+		background: var(--octopus-violet-soft);
+	}
+
+	& .octopus-field {
+		padding: 0;
+	}
+
+	& .octopus-field__help {
+		margin-top: var(--octopus-space-2);
+		line-height: 1.6;
+	}
+}
+
+/* Step 3: the test, its button as large as it matters, its verdict below
+   ========================================================================== */
+
+.octopus-test__list {
+	margin: 0 0 var(--octopus-space-5);
+	padding-left: var(--octopus-space-5);
+	color: var(--octopus-text-soft);
+	font-size: var(--octopus-size-lead);
+	line-height: 1.6;
+	list-style: disc;
+
+	& li {
+		margin-bottom: var(--octopus-space-2);
+	}
+}
+
+.octopus-page .octopus-test__button {
+	justify-content: center;
+	width: 100%;
+	min-height: 46px;
+	font-size: var(--octopus-size-lead);
+	font-weight: 600;
+	text-align: center;
+}
+
+.octopus-test__summary {
+	display: flex;
+	align-items: center;
+	gap: var(--octopus-space-2);
+	margin: var(--octopus-space-4) 0 0;
+	padding: var(--octopus-space-3) var(--octopus-space-4);
+	border-radius: var(--octopus-radius-small);
+	font-weight: 600;
+
+	&[hidden] {
+		display: none;
+	}
+
+	&::before {
+		font-family: dashicons;
+		font-size: 20px;
+		font-weight: 400;
+		line-height: 1;
+	}
+}
+
+.octopus-test__summary--ok {
+	background: var(--octopus-on-bg);
+	color: var(--octopus-on);
+
+	&::before {
+		content: "\f12a"; /* Dashicon yes-alt. */
+	}
+}
+
+.octopus-test__summary--fail {
+	background: var(--octopus-off-bg);
+	color: var(--octopus-off);
+
+	&::before {
+		content: "\f153"; /* Dashicon dismiss. */
+	}
+}
+
+.octopus-test__sample:empty {
+	display: none;
+}
+
+/* Checks: the results of the test
+   ========================================================================== */
+
+.octopus-checks {
+	margin: 0;
+	border: 1px solid var(--octopus-border);
+	border-radius: var(--octopus-radius-small);
+}
+
+.octopus-checks__item {
+	--octopus-check-colour: var(--octopus-on);
+	--octopus-check-icon: "\f12a"; /* Dashicon yes-alt. */
+	display: grid;
+	grid-template-columns: 24px 1fr;
+	gap: 2px var(--octopus-space-3);
+	margin: 0;
+	padding: var(--octopus-space-4);
+
+	& + & {
+		border-top: 1px solid var(--octopus-border);
+	}
+}
+
+.octopus-checks__item--fail {
+	--octopus-check-colour: var(--octopus-off);
+	--octopus-check-icon: "\f153"; /* Dashicon dismiss. */
+	background: var(--octopus-off-bg);
+}
+
+.octopus-checks__item--info {
+	--octopus-check-colour: var(--octopus-neutral);
+	--octopus-check-icon: "\f14c"; /* Dashicon info-outline. */
+}
+
+.octopus-checks__icon {
+	grid-row: span 3;
+	width: 24px;
+	height: 24px;
+	color: var(--octopus-check-colour);
+	font-size: 24px;
+
+	&::before {
+		content: var(--octopus-check-icon);
+	}
+}
+
+.octopus-checks__label {
+	font-size: var(--octopus-size-lead);
+	font-weight: 600;
+}
+
+.octopus-checks__detail {
+	color: var(--octopus-muted);
+	font-size: var(--octopus-size-small);
+}
+
+.octopus-checks__advice {
+	color: var(--octopus-text-soft);
+
+	&:empty {
+		display: none;
+	}
+}

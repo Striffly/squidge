@@ -1,0 +1,379 @@
+/**
+ * base/jobs.css
+ *
+ * The jobs of the media library, in the Optimise and
+ * Maintenance tabs: their cards, the box confirming a
+ * maintenance job, and the progress of a job, above
+ * every tab, then its result with its confetti.
+ */
+
+/* Actions: one card per job, its count first
+   ========================================================================== */
+
+.octopus-actions {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
+	gap: var(--octopus-space-3);
+	padding: var(--octopus-space-4) var(--octopus-space-5) var(--octopus-space-5);
+}
+
+.octopus-action {
+	position: relative;
+	display: flex;
+	flex-direction: column;
+	overflow: hidden;
+	padding: var(--octopus-space-5) var(--octopus-space-4) var(--octopus-space-4);
+	border: 1px solid var(--octopus-border);
+	border-radius: var(--octopus-radius);
+	background: var(--octopus-surface-soft);
+}
+
+/* The everyday job: on a light glow, under the gradient of the logo. */
+.octopus-action--primary {
+	border-color: var(--octopus-violet-edge);
+	background: var(--octopus-gradient-glow);
+
+	&::before {
+		content: "";
+		position: absolute;
+		top: 0;
+		right: 0;
+		left: 0;
+		height: 3px;
+		background: var(--octopus-gradient);
+	}
+
+	& .octopus-action__icon {
+		color: var(--octopus-pink);
+		opacity: .22;
+	}
+}
+
+/* Decorative: a faint glyph in the corner, nothing like a button. */
+.octopus-action__icon {
+	position: absolute;
+	top: var(--octopus-space-4);
+	right: var(--octopus-space-4);
+	width: 44px;
+	height: 44px;
+	color: var(--octopus-violet);
+	font-size: 44px;
+	opacity: .14;
+	pointer-events: none;
+}
+
+.octopus-page .octopus-action__title {
+	margin: 0;
+	color: var(--octopus-text-soft);
+	font-size: var(--octopus-size-lead);
+	font-weight: 600;
+}
+
+.octopus-action__count {
+	margin: var(--octopus-space-1) 0 var(--octopus-space-2);
+	color: var(--octopus-night);
+	font-family: var(--octopus-font-display);
+	font-size: 28px;
+	font-weight: 600;
+	line-height: 1.2;
+	font-variant-numeric: tabular-nums;
+}
+
+.octopus-action__text {
+	flex: 1;
+	margin: 0 0 var(--octopus-space-4);
+	color: var(--octopus-muted);
+}
+
+.octopus-page .octopus-action__button {
+	justify-content: center;
+	width: 100%;
+	min-height: 36px;
+	text-align: center;
+}
+
+/* Confirm: the box to tick before a maintenance job
+   ========================================================================== */
+
+.octopus-confirm {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: space-between;
+	gap: var(--octopus-space-3) var(--octopus-space-5);
+	margin-top: var(--octopus-space-4);
+	padding: var(--octopus-space-4) var(--octopus-space-5);
+	border-top: 1px solid var(--octopus-border);
+	border-radius: 0 0 var(--octopus-radius) var(--octopus-radius);
+	background: var(--octopus-surface-soft);
+}
+
+.octopus-confirm__label {
+	display: inline-flex;
+	align-items: flex-start;
+	gap: var(--octopus-space-2);
+	max-width: 620px;
+	color: var(--octopus-text-soft);
+	line-height: 20px;
+	cursor: pointer;
+}
+
+/* A box of its own, the same on every screen: WordPress makes its
+   checkboxes bigger under 782px. Centred on the first line of the label:
+   (20px - 18px) / 2 above it. */
+.octopus-page input.octopus-confirm__input {
+	flex: none;
+	align-self: flex-start;
+	width: 18px;
+	height: 18px;
+	min-width: 0;
+	margin: 1px 0 0;
+	padding: 0;
+	border: 1.5px solid var(--octopus-muted);
+	border-radius: 5px;
+	background: var(--octopus-surface) center / 12px no-repeat;
+	box-shadow: none;
+	cursor: pointer;
+	appearance: none;
+	transition: background-color var(--octopus-transition), border-color var(--octopus-transition);
+
+	&:hover {
+		border-color: var(--octopus-violet);
+	}
+
+	&:checked {
+		border-color: var(--octopus-violet);
+		background-color: var(--octopus-violet);
+		background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M2.5 6.2 5 8.6l4.5-5' fill='none' stroke='%23fff' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+	}
+
+	&::before {
+		content: none;
+	}
+
+	&:focus-visible {
+		outline: 2px solid var(--octopus-violet);
+		outline-offset: 2px;
+	}
+}
+
+/* Confetti, thrown from the top of the message or of a result (settings.js)
+   ========================================================================== */
+
+.octopus-confetti {
+	position: absolute;
+	z-index: 2;
+	top: 0;
+	right: 0;
+	left: 0;
+	height: 0;
+	pointer-events: none;
+
+	@media (prefers-reduced-motion: reduce) {
+		display: none;
+	}
+}
+
+.octopus-confetti__piece {
+	position: absolute;
+	top: 50%;
+	left: var(--x);
+	width: 7px;
+	height: 11px;
+	border-radius: 2px;
+	background: var(--color);
+	opacity: 0;
+	will-change: transform, opacity;
+}
+
+/* Job: its progress while it runs or pauses, then its result
+   ========================================================================== */
+
+.octopus-job {
+	margin-top: var(--octopus-space-4);
+
+	&:not([data-state="running"], [data-state="paused"]) .octopus-job__progress,
+	&:not([data-result]) .octopus-result,
+	&[data-state="running"] [data-control="resume"],
+	&[data-state="paused"] [data-control="pause"] {
+		display: none;
+	}
+}
+
+.octopus-job__progress {
+	position: relative;
+	overflow: hidden;
+	padding: var(--octopus-space-4) var(--octopus-space-5);
+	border: 1px solid var(--octopus-violet-edge);
+	border-radius: var(--octopus-radius);
+	background: var(--octopus-gradient-glow);
+	box-shadow: var(--octopus-shadow);
+}
+
+.octopus-job__head {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: var(--octopus-space-3);
+	margin-bottom: var(--octopus-space-3);
+}
+
+.octopus-job__icon {
+	flex: none;
+	width: 32px;
+	height: 32px;
+	border-radius: 50%;
+	background: var(--octopus-gradient);
+	color: #fff;
+	font-size: 18px;
+	line-height: 32px;
+	text-align: center;
+
+	[data-state="running"] &::before {
+		display: inline-block;
+		animation: octopus-spin 1.6s linear infinite;
+
+		@media (prefers-reduced-motion: reduce) {
+			animation: none;
+		}
+	}
+
+	[data-state="paused"] & {
+		background: var(--octopus-neutral);
+	}
+}
+
+@keyframes octopus-spin {
+	to {
+		transform: rotate(360deg);
+	}
+}
+
+.octopus-job__label {
+	flex: 1;
+	min-width: 0;
+	margin: 0;
+	font-size: var(--octopus-size-lead);
+	font-weight: 600;
+}
+
+.octopus-job__percent {
+	color: var(--octopus-violet-dark);
+	font-family: var(--octopus-font-display);
+	font-size: var(--octopus-size-heading);
+	font-weight: 600;
+	font-variant-numeric: tabular-nums;
+}
+
+.octopus-job__controls {
+	display: flex;
+	align-items: center;
+	gap: var(--octopus-space-3);
+}
+
+.octopus-job__bar {
+	display: block;
+	width: 100%;
+	height: 10px;
+	overflow: hidden;
+	border: 0;
+	border-radius: var(--octopus-radius-pill);
+	background: var(--octopus-violet-soft);
+	-webkit-appearance: none;
+	appearance: none;
+
+	&::-webkit-progress-bar {
+		border-radius: var(--octopus-radius-pill);
+		background: var(--octopus-violet-soft);
+	}
+
+	&::-webkit-progress-value {
+		border-radius: var(--octopus-radius-pill);
+		background: var(--octopus-gradient);
+		transition: width 400ms ease;
+	}
+
+	&::-moz-progress-bar {
+		border-radius: var(--octopus-radius-pill);
+		background: var(--octopus-gradient);
+	}
+
+	[data-state="paused"] & {
+		filter: grayscale(.8);
+	}
+}
+
+/* Result: success, with errors, or cancelled
+   ========================================================================== */
+
+.octopus-result {
+	--octopus-result-colour: var(--octopus-on);
+	--octopus-result-icon: "\f12a"; /* Dashicon yes-alt. */
+	position: relative;
+	display: flex;
+	align-items: flex-start;
+	gap: var(--octopus-space-3);
+	padding: var(--octopus-space-4) var(--octopus-space-4) var(--octopus-space-4) var(--octopus-space-5);
+	border: 1px solid transparent;
+	border-left: 4px solid var(--octopus-result-colour);
+	border-radius: var(--octopus-radius);
+	background: var(--octopus-on-bg);
+
+	[data-result="warning"] & {
+		--octopus-result-colour: var(--octopus-warning-strong);
+		--octopus-result-icon: "\f534"; /* Dashicon warning. */
+		background: var(--octopus-warning-bg);
+	}
+
+	[data-result="cancelled"] & {
+		--octopus-result-colour: var(--octopus-neutral);
+		--octopus-result-icon: "\f14c"; /* Dashicon info-outline. */
+		background: var(--octopus-neutral-bg);
+
+		& .octopus-result__icon {
+			color: var(--octopus-muted);
+		}
+	}
+}
+
+.octopus-result__icon {
+	flex: none;
+	width: 24px;
+	height: 24px;
+	color: var(--octopus-result-colour);
+	font-size: 24px;
+
+	&::before {
+		content: var(--octopus-result-icon);
+	}
+}
+
+.octopus-result__body {
+	flex: 1;
+}
+
+.octopus-result__title {
+	margin: 1px 0 2px;
+	font-family: var(--octopus-font-display);
+	font-size: var(--octopus-size-lead);
+	font-weight: 500;
+}
+
+.octopus-result__detail {
+	margin: 0;
+	color: var(--octopus-text-soft);
+}
+
+.octopus-result__close {
+	flex: none;
+	padding: 2px;
+	border: 0;
+	background: none;
+	color: var(--octopus-muted);
+	cursor: pointer;
+
+	&:hover,
+	&:focus {
+		color: var(--octopus-text);
+	}
+}

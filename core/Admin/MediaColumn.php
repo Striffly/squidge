@@ -21,6 +21,7 @@ use Octopus\Media\Files;
 use Octopus\Media\Optimiser;
 use Octopus\Media\Stats;
 use Octopus\Media\Status;
+use Octopus\Plugin;
 
 if (!defined('ABSPATH')) {
 	exit; // Exit if accessed directly
@@ -303,6 +304,6 @@ class MediaColumn
 		if ($hook !== 'upload.php') {
 			return;
 		}
-		wp_enqueue_style('octopus-media', OCTOPUS_URL . 'assets/css/media.css', [], filemtime(OCTOPUS_PATH . 'assets/css/media.css'));
+		Plugin::enqueue_style('screens/media');
 	}
 }
