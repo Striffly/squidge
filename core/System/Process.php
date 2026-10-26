@@ -69,7 +69,6 @@ class Process
 	 * @param string[] $command The program, then its arguments.
 	 * @return array The exit code and the output (stdout and stderr).
 	 * @since 1.0.0
-	 * @date 25/10/2026
 	 */
 	public static function execute($command)
 	{
@@ -100,7 +99,6 @@ class Process
 	 * @param string $name
 	 * @return string|null
 	 * @since 1.0.0
-	 * @date 25/10/2026
 	 */
 	public static function binary($name)
 	{
@@ -126,7 +124,6 @@ class Process
 	 * @param string $name
 	 * @return string|false
 	 * @since 1.0.0
-	 * @date 25/10/2026
 	 */
 	private static function find_binary($name)
 	{
@@ -167,7 +164,6 @@ class Process
 	 * @param string $path
 	 * @return bool
 	 * @since 1.0.0
-	 * @date 25/10/2026
 	 */
 	private static function is_program($path)
 	{
@@ -179,7 +175,6 @@ class Process
 	 *
 	 * @return bool
 	 * @since 1.0.0
-	 * @date 25/10/2026
 	 */
 	private static function is_windows()
 	{
@@ -196,7 +191,6 @@ class Process
 	 *
 	 * @return string[]
 	 * @since 1.0.0
-	 * @date 25/10/2026
 	 */
 	public static function nice($context)
 	{
@@ -217,7 +211,6 @@ class Process
 	 *
 	 * @return bool
 	 * @since 1.0.0
-	 * @date 25/10/2026
 	 */
 	private static function can_execute()
 	{
@@ -302,7 +295,6 @@ class Process
 	 * next time, e.g. after an upgrade.
 	 *
 	 * @since 1.0.0
-	 * @date 25/10/2026
 	 */
 	public static function forget_versions()
 	{

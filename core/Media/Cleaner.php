@@ -36,7 +36,6 @@ class Cleaner
 	 *
 	 * @return int[]
 	 * @since 1.0.0
-	 * @date 25/10/2026
 	 */
 	public static function ids()
 	{
@@ -75,7 +74,6 @@ class Cleaner
 	 * @param int $id
 	 * @return true|null Null if another request is processing the image.
 	 * @since 1.0.0
-	 * @date 25/10/2026
 	 */
 	public static function remove_formats($id)
 	{
@@ -139,7 +137,6 @@ class Cleaner
 	 *                   Null if another request is processing
 	 *                   the image.
 	 * @since 1.0.0
-	 * @date 25/10/2026
 	 */
 	public static function restore($id)
 	{

@@ -67,8 +67,7 @@ class AVIF extends Encoder
 	 * @param $mime
 	 * @param $args
 	 * @return void
-	 * @since 0.1.2
-	 * @date 05/12/2021
+	 * @since 1.0.0
 	 */
 	public static function convert($filepath, $mime, $args)
 	{
@@ -135,7 +134,6 @@ class AVIF extends Encoder
 	 * @param int $quality The quality of avifenc, 0 to 100.
 	 * @return int
 	 * @since 1.0.0
-	 * @date 25/10/2026
 	 */
 	private static function editor_quality($quality)
 	{
@@ -151,7 +149,6 @@ class AVIF extends Encoder
 	 *
 	 * @return string A number, or "all".
 	 * @since 1.0.0
-	 * @date 25/10/2026
 	 */
 	private static function jobs()
 	{
@@ -165,7 +162,6 @@ class AVIF extends Encoder
 	 *
 	 * @return int
 	 * @since 1.0.0
-	 * @date 25/10/2026
 	 */
 	private static function version()
 	{
@@ -182,7 +178,6 @@ class AVIF extends Encoder
 	 *
 	 * @return string[]
 	 * @since 1.0.0
-	 * @date 25/10/2026
 	 */
 	private static function metadata_options()
 	{
@@ -211,7 +206,6 @@ class AVIF extends Encoder
 	 * @param int $default
 	 * @return int
 	 * @since 1.0.0
-	 * @date 25/10/2026
 	 */
 	private static function int_arg($args, $key, $min, $max, $default)
 	{
@@ -225,8 +219,7 @@ class AVIF extends Encoder
 	 * Returns the command name of the service.
 	 *
 	 * @return string
-	 * @since 0.1.0
-	 * @date 24/11/2021
+	 * @since 1.0.0
 	 */
 	public static function cmd_name()
 	{
@@ -238,8 +231,7 @@ class AVIF extends Encoder
 	 * photo.jpg.avif.
 	 *
 	 * @return string
-	 * @since 0.1.0
-	 * @date 24/11/2021
+	 * @since 1.0.0
 	 */
 	public static function extension()
 	{

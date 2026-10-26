@@ -29,8 +29,7 @@ class Logger
 	 * the paths of the server.
 	 *
 	 * @param $message
-	 * @since 0.1.0
-	 * @date 24/11/2021
+	 * @since 1.0.0
 	 */
 	static function info($message)
 	{
@@ -43,8 +42,7 @@ class Logger
 	 * Error logs an error message.
 	 *
 	 * @param $message
-	 * @since 0.1.0
-	 * @date 24/11/2021
+	 * @since 1.0.0
 	 */
 	static function error($message)
 	{
@@ -57,8 +55,7 @@ class Logger
 	 *
 	 * @param $message
 	 * @param $error
-	 * @since 0.1.0
-	 * @date 24/11/2021
+	 * @since 1.0.0
 	 */
 	static function log($message, $error)
 	{

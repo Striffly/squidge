@@ -100,7 +100,6 @@ class Optimiser
 	 * @param bool $enabled_only
 	 * @return array
 	 * @since 1.0.0
-	 * @date 25/10/2026
 	 */
 	public static function settings($enabled_only = true)
 	{
@@ -155,7 +154,6 @@ class Optimiser
 	 * @param bool $thumbnails_only
 	 * @return true|null Null if another request is processing the image.
 	 * @since 1.0.0
-	 * @date 25/10/2026
 	 */
 	public static function attachment($id, $metadata, $settings, $force = false, $thumbnails_only = false)
 	{
@@ -202,7 +200,6 @@ class Optimiser
 	 * @param array|null $metadata The metadata, when it is not saved yet.
 	 * @return bool
 	 * @since 1.0.0
-	 * @date 25/10/2026
 	 */
 	private static function readable($id, $metadata)
 	{
@@ -227,7 +224,6 @@ class Optimiser
 	 * @param array $metadata
 	 * @return array
 	 * @since 1.0.0
-	 * @date 25/10/2026
 	 */
 	public static function file_sizes($metadata)
 	{
@@ -257,7 +253,6 @@ class Optimiser
 	 *
 	 * @param int $id
 	 * @since 1.0.0
-	 * @date 25/10/2026
 	 */
 	public static function save_file_sizes($id)
 	{
@@ -280,7 +275,6 @@ class Optimiser
 	 * @param int $id
 	 * @param array $metadata
 	 * @since 1.0.0
-	 * @date 25/10/2026
 	 */
 	private static function drop_heavier($id, $metadata)
 	{
@@ -326,7 +320,6 @@ class Optimiser
 	 * @param int $id
 	 * @return string[]
 	 * @since 1.0.0
-	 * @date 25/10/2026
 	 */
 	public static function heavier($id)
 	{
@@ -349,7 +342,6 @@ class Optimiser
 	 * @param bool $regenerate
 	 * @return true|null Null if another request is processing the image.
 	 * @since 1.0.0
-	 * @date 25/10/2026
 	 */
 	public static function update($id, $regenerate = false)
 	{
@@ -405,7 +397,6 @@ class Optimiser
 	 * @return array|null The new metadata, null if it failed or
 	 *                    another request is processing the image.
 	 * @since 1.0.0
-	 * @date 25/10/2026
 	 */
 	public static function regenerate($id)
 	{
@@ -465,7 +456,6 @@ class Optimiser
 	 * @param string $file The former main file.
 	 * @param string $uploaded The image uploaded.
 	 * @since 1.0.0
-	 * @date 25/10/2026
 	 */
 	private static function release_main($file, $uploaded)
 	{

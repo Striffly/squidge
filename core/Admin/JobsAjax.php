@@ -52,7 +52,6 @@ class JobsAjax
 	 * Adds the AJAX requests.
 	 *
 	 * @since 1.0.0
-	 * @date 25/10/2026
 	 */
 	public function __construct()
 	{
@@ -65,7 +64,6 @@ class JobsAjax
 	 * Checks the nonce and the capability of a request.
 	 *
 	 * @since 1.0.0
-	 * @date 25/10/2026
 	 */
 	private function authorize()
 	{
@@ -79,7 +77,6 @@ class JobsAjax
 	 * Starts a job on the images of its statuses.
 	 *
 	 * @since 1.0.0
-	 * @date 25/10/2026
 	 */
 	public function start()
 	{
@@ -104,7 +101,6 @@ class JobsAjax
 	 * Pauses, resumes or cancels the job.
 	 *
 	 * @since 1.0.0
-	 * @date 25/10/2026
 	 */
 	public function control()
 	{
@@ -128,7 +124,6 @@ class JobsAjax
 	 * images by status and the bytes saved.
 	 *
 	 * @since 1.0.0
-	 * @date 25/10/2026
 	 */
 	public function status()
 	{

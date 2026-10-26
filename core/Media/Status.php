@@ -69,7 +69,6 @@ class Status
 	 *
 	 * @return string
 	 * @since 1.0.0
-	 * @date 25/10/2026
 	 */
 	public static function sizes_signature()
 	{
@@ -87,7 +86,6 @@ class Status
 	 * @param array $metadata
 	 * @return bool
 	 * @since 1.0.0
-	 * @date 25/10/2026
 	 */
 	public static function sizes_current($metadata)
 	{
@@ -114,7 +112,6 @@ class Status
 	 * @param int $id
 	 * @param array $metadata
 	 * @since 1.0.0
-	 * @date 25/10/2026
 	 */
 	public static function stamp_sizes($id, $metadata)
 	{
@@ -133,7 +130,6 @@ class Status
 	 *
 	 * @return array Signature by meta key.
 	 * @since 1.0.0
-	 * @date 25/10/2026
 	 */
 	public static function expected()
 	{
@@ -172,7 +168,6 @@ class Status
 	 * @param int $id
 	 * @return string
 	 * @since 1.0.0
-	 * @date 25/10/2026
 	 */
 	public static function of($id)
 	{
@@ -199,7 +194,6 @@ class Status
 	 *
 	 * @return array
 	 * @since 1.0.0
-	 * @date 25/10/2026
 	 */
 	public static function counts()
 	{
@@ -218,7 +212,6 @@ class Status
 	 * @param string|null $status
 	 * @return int[]
 	 * @since 1.0.0
-	 * @date 25/10/2026
 	 */
 	public static function ids($status)
 	{
@@ -237,7 +230,6 @@ class Status
 	 * @param string|null $status
 	 * @return int
 	 * @since 1.0.0
-	 * @date 25/10/2026
 	 */
 	private static function count($status)
 	{
@@ -258,7 +250,6 @@ class Status
 	 * @param array $args
 	 * @return array
 	 * @since 1.0.0
-	 * @date 25/10/2026
 	 */
 	private static function query_args($status, $args)
 	{

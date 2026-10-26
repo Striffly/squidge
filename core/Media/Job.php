@@ -73,7 +73,6 @@ class Job extends Octopus_Vendor_WP_Background_Process
 	 * would be run on another, with its image IDs.
 	 *
 	 * @since 1.0.0
-	 * @date 25/10/2026
 	 */
 	public function __construct()
 	{
@@ -88,7 +87,6 @@ class Job extends Octopus_Vendor_WP_Background_Process
 	 *
 	 * @return Job
 	 * @since 1.0.0
-	 * @date 25/10/2026
 	 */
 	public static function instance()
 	{
@@ -107,7 +105,6 @@ class Job extends Octopus_Vendor_WP_Background_Process
 	 * @param string $mode
 	 * @return bool
 	 * @since 1.0.0
-	 * @date 25/10/2026
 	 */
 	public function start($action, $ids, $mode = Optimiser::MODE_NEW)
 	{
@@ -143,7 +140,6 @@ class Job extends Octopus_Vendor_WP_Background_Process
 	 *
 	 * @return array|null
 	 * @since 1.0.0
-	 * @date 25/10/2026
 	 */
 	public function progress()
 	{
@@ -169,7 +165,6 @@ class Job extends Octopus_Vendor_WP_Background_Process
 	 * @param int $id
 	 * @return false Removes the item from the queue.
 	 * @since 1.0.0
-	 * @date 25/10/2026
 	 */
 	protected function task($id)
 	{
@@ -199,7 +194,6 @@ class Job extends Octopus_Vendor_WP_Background_Process
 	 * Marks the job as finished.
 	 *
 	 * @since 1.0.0
-	 * @date 25/10/2026
 	 */
 	protected function complete()
 	{
@@ -218,7 +212,6 @@ class Job extends Octopus_Vendor_WP_Background_Process
 	 * marked as cancelled. When OIO is deactivated.
 	 *
 	 * @since 1.0.0
-	 * @date 26/10/2026
 	 */
 	public function stop()
 	{
@@ -234,7 +227,6 @@ class Job extends Octopus_Vendor_WP_Background_Process
 	 * stays as it ended.
 	 *
 	 * @since 1.0.0
-	 * @date 25/10/2026
 	 */
 	public function cancelled_progress()
 	{

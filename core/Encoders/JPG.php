@@ -49,8 +49,7 @@ class JPG extends Encoder
 	 * @param $mime
 	 * @param $args
 	 * @return void
-	 * @since 0.1.2
-	 * @date 05/12/2021
+	 * @since 1.0.0
 	 */
 	public static function convert($filepath, $mime, $args)
 	{
@@ -82,8 +81,7 @@ class JPG extends Encoder
 	 * Returns the command name of the service.
 	 *
 	 * @return string
-	 * @since 0.1.0
-	 * @date 24/11/2021
+	 * @since 1.0.0
 	 */
 	public static function cmd_name()
 	{
@@ -95,8 +93,7 @@ class JPG extends Encoder
 	 * the JPG files are compressed in place.
 	 *
 	 * @return string
-	 * @since 0.1.0
-	 * @date 24/11/2021
+	 * @since 1.0.0
 	 */
 	public static function extension()
 	{

@@ -45,7 +45,6 @@ class PluginsScreen
 	 * Adds the script of the plugins page and its request.
 	 *
 	 * @since 1.0.0
-	 * @date 25/10/2026
 	 */
 	public function __construct()
 	{
@@ -74,7 +73,6 @@ class PluginsScreen
 	 *
 	 * @param string $hook
 	 * @since 1.0.0
-	 * @date 25/10/2026
 	 */
 	public function scripts($hook)
 	{
@@ -98,7 +96,6 @@ class PluginsScreen
 	 * deactivating OIO.
 	 *
 	 * @since 1.0.0
-	 * @date 25/10/2026
 	 */
 	public function info()
 	{
@@ -119,7 +116,6 @@ class PluginsScreen
 	 * @param string $dir
 	 * @return int
 	 * @since 1.0.0
-	 * @date 25/10/2026
 	 */
 	private function dir_size($dir)
 	{
@@ -138,7 +134,6 @@ class PluginsScreen
 	 *
 	 * @return bool
 	 * @since 1.0.0
-	 * @date 25/10/2026
 	 */
 	private function theme_calls()
 	{
@@ -164,7 +159,6 @@ class PluginsScreen
 	 * @param string $dir
 	 * @return bool
 	 * @since 1.0.0
-	 * @date 25/10/2026
 	 */
 	private function dir_calls($dir)
 	{
@@ -189,7 +183,6 @@ class PluginsScreen
 	 * Scans the new theme next time.
 	 *
 	 * @since 1.0.0
-	 * @date 25/10/2026
 	 */
 	public function forget_theme()
 	{

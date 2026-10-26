@@ -44,8 +44,7 @@ final class Plugin
 	 * static instance, once.
 	 *
 	 * @return OIO|null
-	 * @date 24/11/2021
-	 * @since 0.1.0
+	 * @since 1.0.0
 	 */
 	public static function boot()
 	{
@@ -62,8 +61,7 @@ final class Plugin
 	 *
 	 * @param void
 	 * @return void
-	 * @since 0.1.2
-	 * @date 05/12/2021
+	 * @since 1.0.0
 	 */
 	private function initialize()
 	{
@@ -93,8 +91,7 @@ final class Plugin
 	 * @param string $name The constant name.
 	 * @param mixed $value The constant value.
 	 * @return void
-	 * @since 0.1.0
-	 * @date    24/11/2021
+	 * @since 1.0.0
 	 *
 	 */
 	function define($name, $value = true)

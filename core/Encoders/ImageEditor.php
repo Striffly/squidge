@@ -62,7 +62,6 @@ class ImageEditor
 	 * @param string $mime
 	 * @return string
 	 * @since 1.0.0
-	 * @date 25/10/2026
 	 */
 	public static function readable($filepath, $mime)
 	{
@@ -100,7 +99,6 @@ class ImageEditor
 	 * @param string $source
 	 * @param string $filepath
 	 * @since 1.0.0
-	 * @date 25/10/2026
 	 */
 	public static function release($source, $filepath)
 	{
@@ -125,7 +123,6 @@ class ImageEditor
 	 * @param string $filepath The file of the attachment, never deleted.
 	 * @return true|WP_Error
 	 * @since 1.0.0
-	 * @date 25/10/2026
 	 */
 	public static function save($source, $mime, $output, $format, $quality, $filepath)
 	{
@@ -183,7 +180,6 @@ class ImageEditor
 	 * @param string $class The class of the editor.
 	 * @return bool
 	 * @since 1.0.0
-	 * @date 25/10/2026
 	 */
 	private static function fits_in_memory($source, $mime, $class)
 	{
@@ -212,7 +208,6 @@ class ImageEditor
 	 *
 	 * @param object $editor A WP_Image_Editor.
 	 * @since 1.0.0
-	 * @date 25/10/2026
 	 */
 	private static function strip_metadata($editor)
 	{
@@ -242,7 +237,6 @@ class ImageEditor
 	 * @param string $format The mime type.
 	 * @return string|null
 	 * @since 1.0.0
-	 * @date 25/10/2026
 	 */
 	private static function editor_class($format)
 	{

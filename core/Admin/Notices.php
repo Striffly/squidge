@@ -78,7 +78,6 @@ class Notices
 	 * the attachment data sent after an upload.
 	 *
 	 * @since 1.0.0
-	 * @date 25/10/2026
 	 */
 	public function __construct()
 	{
@@ -93,7 +92,6 @@ class Notices
 	 *
 	 * @return bool
 	 * @since 1.0.0
-	 * @date 25/10/2026
 	 */
 	private function is_notice_screen()
 	{
@@ -108,7 +106,6 @@ class Notices
 	 * uploads right after uploading them.
 	 *
 	 * @since 1.0.0
-	 * @date 25/10/2026
 	 */
 	public function render()
 	{
@@ -139,7 +136,6 @@ class Notices
 	 * @param array $errors
 	 * @return array
 	 * @since 1.0.0
-	 * @date 25/10/2026
 	 */
 	private function items_html($errors)
 	{
@@ -174,7 +170,6 @@ class Notices
 	 * @param string $message
 	 * @return string
 	 * @since 1.0.0
-	 * @date 25/10/2026
 	 */
 	private function reason($message)
 	{
@@ -194,7 +189,6 @@ class Notices
 	 * @param string $file
 	 * @return string
 	 * @since 1.0.0
-	 * @date 25/10/2026
 	 */
 	private function image_html($id, $file)
 	{
@@ -212,7 +206,6 @@ class Notices
 	 * after an upload and clears them on dismiss.
 	 *
 	 * @since 1.0.0
-	 * @date 25/10/2026
 	 */
 	public function scripts()
 	{
@@ -232,7 +225,6 @@ class Notices
 	 * dismissed, by an administrator.
 	 *
 	 * @since 1.0.0
-	 * @date 25/10/2026
 	 */
 	public function dismiss()
 	{
@@ -253,7 +245,6 @@ class Notices
 	 * @param \WP_Post $attachment
 	 * @return array
 	 * @since 1.0.0
-	 * @date 25/10/2026
 	 */
 	public function attachment_for_js($response, $attachment)
 	{

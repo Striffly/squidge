@@ -36,7 +36,6 @@ class Lifecycle
 	 *
 	 * @param bool $network_wide Activated on every site of the network.
 	 * @since 1.0.0
-	 * @date 26/10/2026
 	 */
 	public static function activate($network_wide = false)
 	{
@@ -114,7 +113,6 @@ class Lifecycle
 	 * @param bool $network_wide
 	 * @param callable $callback
 	 * @since 1.0.0
-	 * @date 26/10/2026
 	 */
 	private static function each_site($network_wide, $callback)
 	{

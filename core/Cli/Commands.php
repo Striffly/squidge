@@ -46,8 +46,7 @@ class Commands extends WP_CLI_Command
 	/**
 	 * Prints the version of OIO.
 	 *
-	 * @since 0.1.0
-	 * @date 24/11/2021
+	 * @since 1.0.0
 	 */
 	public function version()
 	{
@@ -61,8 +60,7 @@ class Commands extends WP_CLI_Command
 	 * Without cwebp or avifenc, tells whether GD or
 	 * Imagick makes the format instead.
 	 *
-	 * @since 0.1.0
-	 * @date 24/11/2021
+	 * @since 1.0.0
 	 */
 	public function health()
 	{
@@ -129,8 +127,7 @@ class Commands extends WP_CLI_Command
 	 *
 	 * @param $args
 	 * @param $assoc_args
-	 * @since 0.1.0
-	 * @date 24/11/2021
+	 * @since 1.0.0
 	 */
 	public function run($args, $assoc_args)
 	{
@@ -214,7 +211,6 @@ class Commands extends WP_CLI_Command
 	 * The JPG and PNG files stay compressed.
 	 *
 	 * @since 1.0.0
-	 * @date 25/10/2026
 	 */
 	public function clean()
 	{
@@ -234,7 +230,6 @@ class Commands extends WP_CLI_Command
 	 * backups) and its data on the images.
 	 *
 	 * @since 1.0.0
-	 * @date 25/10/2026
 	 */
 	public function restore()
 	{
@@ -271,7 +266,6 @@ class Commands extends WP_CLI_Command
 	 * @param $args
 	 * @param $assoc_args
 	 * @since 1.0.0
-	 * @date 25/10/2026
 	 */
 	public function stats($args, $assoc_args)
 	{
@@ -328,8 +322,7 @@ class Commands extends WP_CLI_Command
 	/**
 	 * Prints CLI welcome message.
 	 *
-	 * @since 0.1.0
-	 * @date 24/11/2021
+	 * @since 1.0.0
 	 */
 	private function print_welcome()
 	{
@@ -341,8 +334,7 @@ class Commands extends WP_CLI_Command
 	 *
 	 * @param $type
 	 * @param $active
-	 * @since 0.1.0
-	 * @date 24/11/2021
+	 * @since 1.0.0
 	 */
 	private function print_health($type, $active)
 	{
@@ -361,7 +353,6 @@ class Commands extends WP_CLI_Command
 	 * @param string $format
 	 * @param string $service
 	 * @since 1.0.0
-	 * @date 25/10/2026
 	 */
 	private function print_converter($format, $service)
 	{

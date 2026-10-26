@@ -37,7 +37,6 @@ class Display
 	 * Adds the image filters.
 	 *
 	 * @since 1.0.0
-	 * @date 25/10/2026
 	 */
 	public function __construct()
 	{
@@ -54,7 +53,6 @@ class Display
 	 * @param string $html
 	 * @return string
 	 * @since 1.0.0
-	 * @date 25/10/2026
 	 */
 	public function filter($html)
 	{

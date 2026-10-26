@@ -40,7 +40,6 @@ class Htaccess
 	 * changes.
 	 *
 	 * @since 1.0.0
-	 * @date 25/10/2026
 	 */
 	public function __construct()
 	{
@@ -54,7 +53,6 @@ class Htaccess
 	 *
 	 * @return string
 	 * @since 1.0.0
-	 * @date 25/10/2026
 	 */
 	public static function server()
 	{
@@ -71,7 +69,6 @@ class Htaccess
 	 *
 	 * @return string
 	 * @since 1.0.0
-	 * @date 25/10/2026
 	 */
 	public static function htaccess()
 	{
@@ -87,7 +84,6 @@ class Htaccess
 	 *
 	 * @return string[]
 	 * @since 1.0.0
-	 * @date 25/10/2026
 	 */
 	public static function apache_rules()
 	{
@@ -120,7 +116,6 @@ class Htaccess
 	 *
 	 * @return string
 	 * @since 1.0.0
-	 * @date 25/10/2026
 	 */
 	public static function nginx_rules()
 	{
@@ -146,7 +141,6 @@ class Htaccess
 	 * by hand.
 	 *
 	 * @since 1.0.0
-	 * @date 25/10/2026
 	 */
 	public static function sync()
 	{
@@ -174,7 +168,6 @@ class Htaccess
 	 *
 	 * @param string $path
 	 * @since 1.0.0
-	 * @date 25/10/2026
 	 */
 	public static function remove_rules($path)
 	{
@@ -198,7 +191,6 @@ class Htaccess
 	 *
 	 * @return bool
 	 * @since 1.0.0
-	 * @date 25/10/2026
 	 */
 	public static function rules_written()
 	{

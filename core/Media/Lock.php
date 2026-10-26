@@ -55,7 +55,6 @@ class Lock
 	 * @return mixed The result of the callback, or null if
 	 *               the image is locked.
 	 * @since 1.0.0
-	 * @date 25/10/2026
 	 */
 	public static function run($id, $callback)
 	{
@@ -83,7 +82,6 @@ class Lock
 	 * @param int $id
 	 * @return bool
 	 * @since 1.0.0
-	 * @date 25/10/2026
 	 */
 	private static function acquire($id)
 	{
@@ -102,7 +100,6 @@ class Lock
 	 *
 	 * @param int $id
 	 * @since 1.0.0
-	 * @date 25/10/2026
 	 */
 	private static function release($id)
 	{

@@ -56,8 +56,7 @@ class SettingsPage
 	/**
 	 * Registers the options page.
 	 *
-	 * @since 0.1.0
-	 * @date 24/11/2021
+	 * @since 1.0.0
 	 */
 	public function __construct()
 	{
@@ -70,7 +69,6 @@ class SettingsPage
 	 *
 	 * @return string
 	 * @since 1.0.0
-	 * @date 25/10/2026
 	 */
 	public static function page_url()
 	{
@@ -81,8 +79,7 @@ class SettingsPage
 	 * Registers custom admin style and script.
 	 *
 	 * @param string $hook
-	 * @since 0.1.0
-	 * @date 24/11/2021
+	 * @since 1.0.0
 	 */
 	public function styles_and_scripts($hook)
 	{
@@ -101,7 +98,6 @@ class SettingsPage
 	 * Adds the options page under Settings.
 	 *
 	 * @since 1.0.0
-	 * @date 25/10/2026
 	 */
 	public function add_page()
 	{
@@ -118,7 +114,6 @@ class SettingsPage
 	 * after another.
 	 *
 	 * @since 1.0.0
-	 * @date 25/10/2026
 	 */
 	public function render_page()
 	{
@@ -208,7 +203,6 @@ class SettingsPage
 	 * @param array $sections
 	 * @return array
 	 * @since 1.0.0
-	 * @date 25/10/2026
 	 */
 	private static function formats($sections)
 	{
@@ -240,7 +234,6 @@ class SettingsPage
 	 * @param array $formats
 	 * @param array $counts
 	 * @since 1.0.0
-	 * @date 25/10/2026
 	 */
 	private function render_overview($formats, $counts)
 	{
@@ -304,7 +297,6 @@ class SettingsPage
 	 *
 	 * @param array $format
 	 * @since 1.0.0
-	 * @date 25/10/2026
 	 */
 	private function render_engine($format)
 	{
@@ -342,7 +334,6 @@ class SettingsPage
 	 * @param array $counts
 	 * @param bool $jobs
 	 * @since 1.0.0
-	 * @date 25/10/2026
 	 */
 	private function render_optimise($counts, $jobs)
 	{
@@ -408,7 +399,6 @@ class SettingsPage
 	 * @param array $formats
 	 * @param array $counts
 	 * @since 1.0.0
-	 * @date 25/10/2026
 	 */
 	private function render_delivery($display, $formats, $counts)
 	{
@@ -552,7 +542,6 @@ class SettingsPage
 	 *
 	 * @return int
 	 * @since 1.0.0
-	 * @date 26/10/2026
 	 */
 	private static function with_formats()
 	{
@@ -577,7 +566,6 @@ class SettingsPage
 	 * @param array $general
 	 * @param array $formats
 	 * @since 1.0.0
-	 * @date 25/10/2026
 	 */
 	private function render_settings($general, $formats)
 	{
@@ -662,7 +650,6 @@ class SettingsPage
 	 *
 	 * @param bool $jobs
 	 * @since 1.0.0
-	 * @date 25/10/2026
 	 */
 	private function render_maintenance($jobs)
 	{
@@ -710,7 +697,6 @@ class SettingsPage
 	 * dependencies of composer install are missing.
 	 *
 	 * @since 1.0.0
-	 * @date 25/10/2026
 	 */
 	private function render_no_jobs()
 	{
@@ -724,7 +710,6 @@ class SettingsPage
 	 * on every tab while it runs, and its result.
 	 *
 	 * @since 1.0.0
-	 * @date 25/10/2026
 	 */
 	private function render_job()
 	{
@@ -764,7 +749,6 @@ class SettingsPage
 	 * change.
 	 *
 	 * @since 1.0.0
-	 * @date 25/10/2026
 	 */
 	private function render_theme_help()
 	{
@@ -793,7 +777,6 @@ class SettingsPage
 	 *
 	 * @return array
 	 * @since 1.0.0
-	 * @date 25/10/2026
 	 */
 	public static function savings()
 	{
@@ -821,7 +804,6 @@ class SettingsPage
 	 * @param array $format
 	 * @return string
 	 * @since 1.0.0
-	 * @date 25/10/2026
 	 */
 	private static function state($format)
 	{
@@ -837,7 +819,6 @@ class SettingsPage
 	 * @param string $variant on, off or muted.
 	 * @param string $label
 	 * @since 1.0.0
-	 * @date 25/10/2026
 	 */
 	private function render_badge($variant, $label)
 	{
@@ -851,7 +832,6 @@ class SettingsPage
 	 * @param string $name
 	 * @param array $field
 	 * @since 1.0.0
-	 * @date 25/10/2026
 	 */
 	private function render_field($name, $field)
 	{
@@ -909,7 +889,6 @@ class SettingsPage
 	 * @param string $name
 	 * @param array $field
 	 * @since 1.0.0
-	 * @date 26/10/2026
 	 */
 	private function render_switch($name, $field)
 	{
@@ -925,7 +904,6 @@ class SettingsPage
 	 *
 	 * @return array
 	 * @since 1.0.0
-	 * @date 25/10/2026
 	 */
 	private static function sections()
 	{
@@ -1044,8 +1022,7 @@ class SettingsPage
 	 *
 	 * @param $name
 	 * @return false|string
-	 * @since 0.1.0
-	 * @date 24/11/2021
+	 * @since 1.0.0
 	 */
 	private function render_template($name)
 	{

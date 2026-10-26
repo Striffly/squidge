@@ -31,8 +31,7 @@ class UploadHooks
 	 * files with the attachment, and sets the size
 	 * WordPress scales the big images down to.
 	 *
-	 * @since 0.1.0
-	 * @date 24/11/2021
+	 * @since 1.0.0
 	 */
 	public function __construct()
 	{
@@ -49,7 +48,6 @@ class UploadHooks
 	 *
 	 * @return int|false
 	 * @since 1.0.0
-	 * @date 25/10/2026
 	 */
 	public function threshold()
 	{
@@ -67,7 +65,6 @@ class UploadHooks
 	 * @param int $attachment_id
 	 * @return array
 	 * @since 1.0.0
-	 * @date 25/10/2026
 	 */
 	public function process($metadata, $attachment_id)
 	{
@@ -85,8 +82,7 @@ class UploadHooks
 	 *
 	 * @param $attachment
 	 * @return mixed
-	 * @since 0.1.0
-	 * @date 24/11/2021
+	 * @since 1.0.0
 	 */
 	public function delete_files($attachment)
 	{

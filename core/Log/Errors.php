@@ -53,7 +53,6 @@ class Errors
 	 * @param string $filepath
 	 * @param string $message
 	 * @since 1.0.0
-	 * @date 25/10/2026
 	 */
 	public static function add($id, $format, $filepath, $message)
 	{
@@ -90,7 +89,6 @@ class Errors
 	 * @param int $id
 	 * @return array
 	 * @since 1.0.0
-	 * @date 25/10/2026
 	 */
 	public static function for_attachment($id)
 	{
@@ -114,7 +112,6 @@ class Errors
 	 * @param string $format The format that failed (jpg, png, webp, avif), or Optimiser::READER.
 	 * @return bool
 	 * @since 1.0.0
-	 * @date 25/10/2026
 	 */
 	public static function has($id, $format)
 	{
@@ -129,7 +126,6 @@ class Errors
 	 * @param int $id
 	 * @param string $format The format that failed (jpg, png, webp, avif), or Optimiser::READER.
 	 * @since 1.0.0
-	 * @date 25/10/2026
 	 */
 	public static function clear_attachment($id, $format)
 	{
@@ -150,7 +146,6 @@ class Errors
 	 *
 	 * @return array
 	 * @since 1.0.0
-	 * @date 25/10/2026
 	 */
 	public static function recent()
 	{
@@ -162,7 +157,6 @@ class Errors
 	 * Clears the recent errors, once dismissed.
 	 *
 	 * @since 1.0.0
-	 * @date 25/10/2026
 	 */
 	public static function clear_recent()
 	{

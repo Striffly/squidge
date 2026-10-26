@@ -84,8 +84,7 @@ abstract class Encoder
 	 * @param $args
 	 * @return void
 	 * @throws Exception
-	 * @since 0.1.0
-	 * @date 24/11/2021
+	 * @since 1.0.0
 	 */
 	public static function process($attachment, $args)
 	{
@@ -143,7 +142,6 @@ abstract class Encoder
 	 * @param array $args
 	 * @return bool
 	 * @since 1.0.0
-	 * @date 25/10/2026
 	 */
 	protected static function run($arguments, $filepath, $args)
 	{
@@ -171,7 +169,6 @@ abstract class Encoder
 	 * @param int $quality The quality of the editor, 0 to 100.
 	 * @param array $args
 	 * @since 1.0.0
-	 * @date 25/10/2026
 	 */
 	protected static function convert_with_editor($filepath, $mime, $quality, $args)
 	{
@@ -195,7 +192,6 @@ abstract class Encoder
 	 *
 	 * @return string|null
 	 * @since 1.0.0
-	 * @date 25/10/2026
 	 */
 	public static function editor()
 	{
@@ -209,7 +205,6 @@ abstract class Encoder
 	 *
 	 * @return bool
 	 * @since 1.0.0
-	 * @date 25/10/2026
 	 */
 	public static function available()
 	{
@@ -223,7 +218,6 @@ abstract class Encoder
 	 *
 	 * @return string|null
 	 * @since 1.0.0
-	 * @date 25/10/2026
 	 */
 	public static function engine()
 	{
@@ -240,7 +234,6 @@ abstract class Encoder
 	 * @param string $filepath
 	 * @return string
 	 * @since 1.0.0
-	 * @date 25/10/2026
 	 */
 	private static function error_message($output, $code, $filepath)
 	{
@@ -264,7 +257,6 @@ abstract class Encoder
 	 * @param int $id
 	 * @return bool
 	 * @since 1.0.0
-	 * @date 25/10/2026
 	 */
 	protected static function is_done($filepath, $id = 0)
 	{
@@ -283,7 +275,6 @@ abstract class Encoder
 	 * @param string $filepath
 	 * @return string
 	 * @since 1.0.0
-	 * @date 25/10/2026
 	 */
 	protected static function original($filepath)
 	{
@@ -299,7 +290,6 @@ abstract class Encoder
 	 * @param array $args
 	 * @return bool
 	 * @since 1.0.0
-	 * @date 25/10/2026
 	 */
 	protected static function backup($filepath, $args)
 	{
@@ -326,7 +316,6 @@ abstract class Encoder
 	 * @param string $filepath
 	 * @param array $args
 	 * @since 1.0.0
-	 * @date 26/10/2026
 	 */
 	protected static function put_back($filepath, $args)
 	{
@@ -347,8 +336,7 @@ abstract class Encoder
 	 *
 	 * @param string|null $name
 	 * @return bool
-	 * @since 0.1.2
-	 * @date 05/12/2021
+	 * @since 1.0.0
 	 */
 	public static function installed($name = null)
 	{
@@ -362,7 +350,6 @@ abstract class Encoder
 	 *
 	 * @return string
 	 * @since 1.0.0
-	 * @date 25/10/2026
 	 */
 	public static function library()
 	{
@@ -379,7 +366,6 @@ abstract class Encoder
 	 *
 	 * @return string
 	 * @since 1.0.0
-	 * @date 25/10/2026
 	 */
 	public static function version_number()
 	{
@@ -391,8 +377,7 @@ abstract class Encoder
 	 *
 	 * @param $id
 	 * @return bool
-	 * @since 0.1.4
-	 * @date 21/12/2021
+	 * @since 1.0.0
 	 */
 	public static function has_compressed($id)
 	{
@@ -406,7 +391,6 @@ abstract class Encoder
 	 *
 	 * @return string
 	 * @since 1.0.0
-	 * @date 25/10/2026
 	 */
 	public static function meta_key()
 	{
@@ -421,7 +405,6 @@ abstract class Encoder
 	 * @param array $args
 	 * @return string
 	 * @since 1.0.0
-	 * @date 25/10/2026
 	 */
 	public static function signature($args)
 	{
@@ -435,8 +418,7 @@ abstract class Encoder
 	 *
 	 * @param $id
 	 * @param array $args
-	 * @since 0.1.4
-	 * @date 21/12/2021
+	 * @since 1.0.0
 	 */
 	public static function update_meta($id, $args = [])
 	{

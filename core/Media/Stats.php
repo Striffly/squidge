@@ -64,7 +64,6 @@ class Stats
 	 * @param array|null $metadata The metadata, when it is not saved yet.
 	 * @return array|null
 	 * @since 1.0.0
-	 * @date 25/10/2026
 	 */
 	public static function measure($id, $metadata = null)
 	{
@@ -105,7 +104,6 @@ class Stats
 	 * @param int $id
 	 * @param array|null $metadata The metadata, when it is not saved yet.
 	 * @since 1.0.0
-	 * @date 25/10/2026
 	 */
 	public static function save($id, $metadata = null)
 	{
@@ -127,7 +125,6 @@ class Stats
 	 * @param int $id
 	 * @return array|null
 	 * @since 1.0.0
-	 * @date 25/10/2026
 	 */
 	public static function of($id)
 	{
@@ -153,7 +150,6 @@ class Stats
 	 * @param bool $refresh
 	 * @return array
 	 * @since 1.0.0
-	 * @date 25/10/2026
 	 */
 	public static function totals($refresh = false)
 	{
@@ -191,7 +187,6 @@ class Stats
 	 *
 	 * @return string
 	 * @since 1.0.0
-	 * @date 25/10/2026
 	 */
 	public static function served()
 	{
@@ -205,7 +200,6 @@ class Stats
 	 * @param int $bytes
 	 * @return string
 	 * @since 1.0.0
-	 * @date 25/10/2026
 	 */
 	public static function size($bytes)
 	{
@@ -221,7 +215,6 @@ class Stats
 	 * @param string $name compressed or modern.
 	 * @return string|null
 	 * @since 1.0.0
-	 * @date 25/10/2026
 	 */
 	public static function reduction($bytes, $name)
 	{

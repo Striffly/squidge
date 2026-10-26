@@ -65,7 +65,6 @@ class MediaColumn
 	 * Adds the column, the action and its notice.
 	 *
 	 * @since 1.0.0
-	 * @date 25/10/2026
 	 */
 	public function __construct()
 	{
@@ -84,7 +83,6 @@ class MediaColumn
 	 * @param int $id
 	 * @return bool
 	 * @since 1.0.0
-	 * @date 25/10/2026
 	 */
 	private function is_image($id)
 	{
@@ -97,7 +95,6 @@ class MediaColumn
 	 * @param array $columns
 	 * @return array
 	 * @since 1.0.0
-	 * @date 25/10/2026
 	 */
 	public function columns($columns)
 	{
@@ -113,7 +110,6 @@ class MediaColumn
 	 * @param string $name
 	 * @param int $id
 	 * @since 1.0.0
-	 * @date 25/10/2026
 	 */
 	public function column($name, $id)
 	{
@@ -140,7 +136,6 @@ class MediaColumn
 	 * @param array $bytes See Stats::KEYS.
 	 * @return string
 	 * @since 1.0.0
-	 * @date 25/10/2026
 	 */
 	private function details($bytes)
 	{
@@ -163,7 +158,6 @@ class MediaColumn
 	 * @param \WP_Post $post
 	 * @return array
 	 * @since 1.0.0
-	 * @date 25/10/2026
 	 */
 	public function row_actions($actions, $post)
 	{
@@ -187,7 +181,6 @@ class MediaColumn
 	 * original if it is already optimised.
 	 *
 	 * @since 1.0.0
-	 * @date 25/10/2026
 	 */
 	public function optimise()
 	{
@@ -208,7 +201,6 @@ class MediaColumn
 	 * OIO files.
 	 *
 	 * @since 1.0.0
-	 * @date 25/10/2026
 	 */
 	public function restore()
 	{
@@ -234,7 +226,6 @@ class MediaColumn
 	 * if any, are shown by the errors notice.
 	 *
 	 * @since 1.0.0
-	 * @date 25/10/2026
 	 */
 	public function notice()
 	{
@@ -276,7 +267,6 @@ class MediaColumn
 	 *
 	 * @param string $hook
 	 * @since 1.0.0
-	 * @date 25/10/2026
 	 */
 	public function styles($hook)
 	{

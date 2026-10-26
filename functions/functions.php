@@ -34,8 +34,7 @@ if (!function_exists('octopus_image')) {
 	 * @param string $class
 	 * @param false $lazy
 	 * @return string
-	 * @since 0.1.0
-	 * @date 24/11/2021
+	 * @since 1.0.0
 	 */
 	function octopus_image($image_id, $class = '', $lazy = false)
 	{

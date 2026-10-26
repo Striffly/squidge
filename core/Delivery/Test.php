@@ -40,7 +40,6 @@ class Test
 	 * Answers the test.
 	 *
 	 * @since 1.0.0
-	 * @date 25/10/2026
 	 */
 	public function __construct()
 	{
@@ -55,7 +54,6 @@ class Test
 	 * originals are not public.
 	 *
 	 * @since 1.0.0
-	 * @date 25/10/2026
 	 */
 	public function test()
 	{
@@ -121,7 +119,6 @@ class Test
 	 * @param array $sample
 	 * @return array
 	 * @since 1.0.0
-	 * @date 25/10/2026
 	 */
 	private static function check_originals($sample)
 	{
@@ -151,7 +148,6 @@ class Test
 	 *
 	 * @return array|null
 	 * @since 1.0.0
-	 * @date 25/10/2026
 	 */
 	private static function sample()
 	{
@@ -194,7 +190,6 @@ class Test
 	 * @param string $accept The Accept header, if any.
 	 * @return array
 	 * @since 1.0.0
-	 * @date 25/10/2026
 	 */
 	private static function head($url, $accept = '')
 	{
@@ -223,7 +218,6 @@ class Test
 	 * @param array $response
 	 * @return string
 	 * @since 1.0.0
-	 * @date 25/10/2026
 	 */
 	private static function describe($response)
 	{

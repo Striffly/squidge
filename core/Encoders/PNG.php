@@ -61,8 +61,7 @@ class PNG extends Encoder
 	 * @param $mime
 	 * @param $args
 	 * @return void
-	 * @since 0.1.2
-	 * @date 05/12/2021
+	 * @since 1.0.0
 	 */
 	public static function convert($filepath, $mime, $args)
 	{
@@ -107,7 +106,6 @@ class PNG extends Encoder
 	 * @param array $args
 	 * @return string
 	 * @since 1.0.0
-	 * @date 25/10/2026
 	 */
 	public static function signature($args)
 	{
@@ -132,7 +130,6 @@ class PNG extends Encoder
 	 * @param array $args
 	 * @return string|null
 	 * @since 1.0.0
-	 * @date 25/10/2026
 	 */
 	private static function quantize($original, $args)
 	{
@@ -164,7 +161,6 @@ class PNG extends Encoder
 	 * @param array $args
 	 * @return int|null
 	 * @since 1.0.0
-	 * @date 25/10/2026
 	 */
 	private static function lossy_quality($args)
 	{
@@ -182,7 +178,6 @@ class PNG extends Encoder
 	 *
 	 * @return string
 	 * @since 1.0.0
-	 * @date 25/10/2026
 	 */
 	public static function library()
 	{
@@ -196,7 +191,6 @@ class PNG extends Encoder
 	 * @param string|null $name
 	 * @return bool
 	 * @since 1.0.0
-	 * @date 25/10/2026
 	 */
 	public static function installed($name = null)
 	{
@@ -211,7 +205,6 @@ class PNG extends Encoder
 	 *
 	 * @return string A number, or "all".
 	 * @since 1.0.0
-	 * @date 25/10/2026
 	 */
 	private static function threads()
 	{
@@ -226,7 +219,6 @@ class PNG extends Encoder
 	 * @param $args
 	 * @return int
 	 * @since 1.0.0
-	 * @date 25/10/2026
 	 */
 	private static function optimization_level($args)
 	{
@@ -242,8 +234,7 @@ class PNG extends Encoder
 	 * Returns the command name of the service.
 	 *
 	 * @return string
-	 * @since 0.1.0
-	 * @date 24/11/2021
+	 * @since 1.0.0
 	 */
 	public static function cmd_name()
 	{
@@ -255,8 +246,7 @@ class PNG extends Encoder
 	 * the PNG files are compressed in place.
 	 *
 	 * @return string
-	 * @since 0.1.0
-	 * @date 24/11/2021
+	 * @since 1.0.0
 	 */
 	public static function extension()
 	{

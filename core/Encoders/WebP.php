@@ -63,8 +63,7 @@ class WebP extends Encoder
 	 * @param $mime
 	 * @param $args
 	 * @return void
-	 * @since 0.1.0
-	 * @date 24/11/2021
+	 * @since 1.0.0
 	 */
 	public static function convert($filepath, $mime, $args)
 	{
@@ -112,7 +111,6 @@ class WebP extends Encoder
 	 * @param string $filepath
 	 * @param array $args
 	 * @since 1.0.0
-	 * @date 25/10/2026
 	 */
 	private static function near_lossless($options, $source, $output, $filepath, $args)
 	{
@@ -138,7 +136,6 @@ class WebP extends Encoder
 	 *
 	 * @return bool
 	 * @since 1.0.0
-	 * @date 25/10/2026
 	 */
 	private static function multithreading()
 	{
@@ -149,8 +146,7 @@ class WebP extends Encoder
 	 * Returns the command name of the service.
 	 *
 	 * @return string
-	 * @since 0.1.0
-	 * @date 24/11/2021
+	 * @since 1.0.0
 	 */
 	public static function cmd_name()
 	{
@@ -162,8 +158,7 @@ class WebP extends Encoder
 	 * photo.jpg.webp.
 	 *
 	 * @return string
-	 * @since 0.1.0
-	 * @date 24/11/2021
+	 * @since 1.0.0
 	 */
 	public static function extension()
 	{
