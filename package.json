@@ -43,7 +43,7 @@
     "fix": "eslint . --fix && stylelint \"assets/css/**/*.css\" --fix",
     "check-licenses": "wp-scripts check-licenses --prod",
     "plugin-zip": "wp-scripts plugin-zip && zip -dq octopus-image-optimizer.zip octopus-image-optimizer/README.md octopus-image-optimizer/package.json",
-    "logo": "bun tools/logo/build.js",
+    "brand": "bun tools/brand/build.js",
     "prepare": "node -e \"process.env.CI || !require('fs').existsSync('.git') || require('child_process').execSync('lefthook install', {stdio:'inherit'})\""
   },
   "devDependencies": {

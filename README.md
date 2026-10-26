@@ -314,12 +314,12 @@ composer translations   # The .pot, then the .po, .mo, .l10n.php and .json of ea
 
 ### Logo
 
-The logo is drawn by `tools/logo/build.js`: the octopus and the arms it wraps in front of the picture come from the
-pixel grids of `tools/logo/`, one letter per colour, and the script draws the rest and the animation. It writes the
-still PNGs and the floating GIFs of `assets/images/`, at 128 and 256 px.
+The logo is drawn by `tools/brand/build.js`: the octopus and the arms it wraps in front of the picture come from the
+pixel grids of `tools/brand/sprites/`, one letter per colour, and the script draws the rest and the animation. It
+writes the still PNGs and the floating GIFs of `assets/images/`, at 128 and 256 px.
 
 ```bash
-bun run logo
+bun run brand
 ```
 
 ## Support

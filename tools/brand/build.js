@@ -1,22 +1,23 @@
 /**
- * tools/logo/build.js
+ * tools/brand/build.js
  *
  * Draws the logo, a pixel-art octopus hugging a picture, and
  * writes it to assets/images: a still PNG and a floating GIF,
- * at 128 and 256 px. Run it with `bun run logo`.
+ * at 128 and 256 px. Run it with `bun run brand`.
  *
- * The octopus comes from octopus.txt, and the arms it wraps
- * in front of the picture from arms.txt: 128 rows of 128
- * pixels, one letter per colour (see SPRITE). Everything
- * else is drawn here: the glow behind, the shadow on the
- * floor, the tilted picture and its halo, the stars.
+ * The octopus comes from sprites/octopus.txt, and the arms
+ * it wraps in front of the picture from sprites/arms.txt:
+ * 128 rows of 128 pixels, one letter per colour (see
+ * SPRITE). Everything else is drawn here: the glow behind,
+ * the shadow on the floor, the tilted picture and its halo,
+ * the stars.
  */
 
 import {readFileSync, writeFileSync} from 'node:fs';
 import {crc32, deflateSync} from 'node:zlib';
 import {GIFEncoder} from 'gifenc';
 
-const HERE = new URL('./', import.meta.url);
+const SPRITES = new URL('./sprites/', import.meta.url);
 const IMAGES = new URL('../../assets/images/', import.meta.url);
 const SIZE = 128;
 
@@ -45,7 +46,7 @@ const SPRITE = {'.': null, p: 'p', l: 'pl', L: 'pll', b: 'blush', m: 'mag', v: '
  * @return {Array<Array<string|null>>}
  */
 function readSprite(name) {
-	const rows = readFileSync(new URL(name, HERE), 'utf8').split(/\r?\n/).filter(Boolean);
+	const rows = readFileSync(new URL(name, SPRITES), 'utf8').split(/\r?\n/).filter(Boolean);
 	return rows.map((row) => [...row].map((letter) => SPRITE[letter]));
 }
 
