@@ -84,7 +84,7 @@ $clean_site = function () use ($wpdb, $options, $option_prefixes) {
 	$htaccess = wp_get_upload_dir()['basedir'] . DIRECTORY_SEPARATOR . '.htaccess';
 	if (is_file($htaccess) && is_writable($htaccess)) {
 		// As Delivery::remove_rules(): the block and its markers, the file if it held only them.
-		$cleaned = preg_replace('/\n?# BEGIN OIO\n.*?# END OIO\n?/s', "\n", (string)file_get_contents($htaccess), -1, $count);
+		$cleaned = preg_replace('/\n*# BEGIN OIO\n.*?# END OIO\n?/s', "\n", (string)file_get_contents($htaccess), -1, $count);
 		if ($count && trim($cleaned) === '') {
 			unlink($htaccess);
 		} elseif ($count) {

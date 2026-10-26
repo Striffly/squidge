@@ -185,9 +185,11 @@ class Delivery
 	/**
 	 * Removes the rules of OIO from a .htaccess, with
 	 * their markers: insert_with_markers() would leave
-	 * them empty. The rest of the file stays, and the
-	 * file goes if it only held the rules. uninstall.php
-	 * does the same, without the plugin loaded.
+	 * them empty. The rest of the file stays, without
+	 * the blank lines insert_with_markers() put before
+	 * them, and the file goes if it only held the
+	 * rules. uninstall.php does the same, without the
+	 * plugin loaded.
 	 *
 	 * @param string $path
 	 * @since 1.0.0
@@ -199,7 +201,7 @@ class Delivery
 			return;
 		}
 		$content = (string)file_get_contents($path);
-		$cleaned = preg_replace('/\n?# BEGIN ' . self::MARKER . '\n.*?# END ' . self::MARKER . '\n?/s', "\n", $content, -1, $count);
+		$cleaned = preg_replace('/\n*# BEGIN ' . self::MARKER . '\n.*?# END ' . self::MARKER . '\n?/s', "\n", $content, -1, $count);
 		if (!$count) {
 			return;
 		}
