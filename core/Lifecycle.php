@@ -16,9 +16,9 @@
 
 namespace Octopus;
 
-use Octopus\Admin\Delivery;
-use Octopus\Package\Job;
-use Octopus\Package\Lock;
+use Octopus\Delivery\Htaccess;
+use Octopus\Media\Job;
+use Octopus\Media\Lock;
 
 if (!defined('ABSPATH')) {
 	exit; // Exit if accessed directly
@@ -37,7 +37,7 @@ class Lifecycle
 	 */
 	public static function activate($network_wide = false)
 	{
-		self::each_site($network_wide, [Delivery::class, 'sync']);
+		self::each_site($network_wide, [Htaccess::class, 'sync']);
 	}
 
 	/**
@@ -61,7 +61,7 @@ class Lifecycle
 				(new Job())->stop();
 			}
 			$wpdb->query($wpdb->prepare("DELETE FROM {$wpdb->options} WHERE option_name LIKE %s", $wpdb->esc_like(Lock::PREFIX) . '%'));
-			Delivery::remove_rules(Delivery::htaccess());
+			Htaccess::remove_rules(Htaccess::htaccess());
 		});
 	}
 

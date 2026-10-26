@@ -17,14 +17,15 @@
 
 namespace Octopus\Admin;
 
-use Octopus\Package\Cleaner;
-use Octopus\Package\Service;
-use Octopus\Package\Stats;
-use Octopus\Package\Status;
-use Octopus\Services\AVIF;
-use Octopus\Services\JPG;
-use Octopus\Services\PNG;
-use Octopus\Services\WebP;
+use Octopus\Delivery\Htaccess;
+use Octopus\Encoders\AVIF;
+use Octopus\Encoders\Encoder;
+use Octopus\Encoders\JPG;
+use Octopus\Encoders\PNG;
+use Octopus\Encoders\WebP;
+use Octopus\Media\Cleaner;
+use Octopus\Media\Stats;
+use Octopus\Media\Status;
 
 if (!defined('ABSPATH')) {
 	exit; // Exit if accessed directly
@@ -139,7 +140,7 @@ class Fields
 		wp_enqueue_script('octopus-admin', OCTOPUS_URL . 'assets/admin.js', [], filemtime(OCTOPUS_PATH . 'assets/admin.js'), true);
 		wp_localize_script('octopus-admin', 'octopusJob', [
 			'ajaxurl' => admin_url('admin-ajax.php'),
-			'nonce' => wp_create_nonce(Tools::NONCE),
+			'nonce' => wp_create_nonce(JobsAjax::NONCE),
 		]);
 	}
 
@@ -192,7 +193,7 @@ class Fields
 		}
 		// Saving the settings reads the versions of the libraries again, e.g. after an upgrade.
 		if (isset($_GET['settings-updated'])) {
-			Service::forget_versions();
+			Encoder::forget_versions();
 		}
 		$sections = self::sections();
 		$formats = self::formats($sections);
@@ -333,7 +334,7 @@ class Fields
 				</div>
 			</div>
 			<ul class="octopus-counts">
-				<?php foreach (Media::LABELS as $status => $label) : ?>
+				<?php foreach (MediaColumn::LABELS as $status => $label) : ?>
 					<li class="octopus-counts__item octopus-counts__item--<?php echo esc_attr($status); ?>">
 						<span class="octopus-counts__value" data-count="<?php echo esc_attr($status); ?>"><?php echo esc_html(number_format_i18n($counts[$status])); ?></span>
 						<span class="octopus-counts__label"><?php echo esc_html($label); ?></span>
@@ -477,12 +478,12 @@ class Fields
 	 */
 	private function render_delivery($display, $formats, $counts)
 	{
-		$server = Delivery::server();
+		$server = Htaccess::server();
 		$names = ['apache' => 'Apache', 'nginx' => 'nginx', 'other' => 'Your server'];
 		$made = self::with_formats();
 		$total = $counts['total'];
 		$percent = $total ? min(100, (int)round($made / $total * 100)) : 0;
-		$rewrite = $display['fields'][Delivery::OPTION];
+		$rewrite = $display['fields'][Htaccess::OPTION];
 		if ($server !== 'apache') {
 			// OIO cannot write the rules: the option tells they are in place.
 			$rewrite['note'] = sprintf('%s: add the rules below to its configuration, then tick this box.', esc_html($names[$server]));
@@ -535,7 +536,7 @@ class Fields
 						<?php $this->render_field('octopus_display_formats', $display['fields']['octopus_display_formats']); ?>
 					</div>
 					<div class="octopus-method">
-						<?php $this->render_field(Delivery::OPTION, $rewrite); ?>
+						<?php $this->render_field(Htaccess::OPTION, $rewrite); ?>
 					</div>
 				</div>
 				<footer class="octopus-step__actions">
@@ -578,7 +579,7 @@ class Fields
 
 		<h2 class="octopus-heading">Rules and code</h2>
 		<?php if ($server === 'apache') : ?>
-			<?php $written = Delivery::rules_written(); ?>
+			<?php $written = Htaccess::rules_written(); ?>
 			<details class="octopus-fold">
 				<summary class="octopus-fold__summary">
 					<span class="octopus-fold__title">Rewrite rules for Apache and LiteSpeed</span>
@@ -586,7 +587,7 @@ class Fields
 				</summary>
 				<div class="octopus-fold__content">
 					<p class="octopus-fold__text">OIO writes them in <code>uploads/.htaccess</code> when the server option is on, and removes them when it is off.</p>
-					<pre class="octopus-code"><code><?php echo esc_html(implode("\n", Delivery::apache_rules())); ?></code></pre>
+					<pre class="octopus-code"><code><?php echo esc_html(implode("\n", Htaccess::apache_rules())); ?></code></pre>
 				</div>
 			</details>
 		<?php else : ?>
@@ -595,7 +596,7 @@ class Fields
 					<summary class="octopus-fold__summary"><span class="octopus-fold__title">Rewrite rules for Apache and LiteSpeed</span></summary>
 					<div class="octopus-fold__content">
 						<p class="octopus-fold__text">In <code>uploads/.htaccess</code>, written by OIO when the server option is on.</p>
-						<pre class="octopus-code"><code><?php echo esc_html(implode("\n", Delivery::apache_rules())); ?></code></pre>
+						<pre class="octopus-code"><code><?php echo esc_html(implode("\n", Htaccess::apache_rules())); ?></code></pre>
 					</div>
 				</details>
 			<?php endif; ?>
@@ -603,7 +604,7 @@ class Fields
 				<summary class="octopus-fold__summary"><span class="octopus-fold__title">Rewrite rules for nginx</span></summary>
 				<div class="octopus-fold__content">
 					<p class="octopus-fold__text">Add them to the configuration of the site, reload nginx, then tick the server option.</p>
-					<pre class="octopus-code"><code><?php echo esc_html(Delivery::nginx_rules()); ?></code></pre>
+					<pre class="octopus-code"><code><?php echo esc_html(Htaccess::nginx_rules()); ?></code></pre>
 				</div>
 			</details>
 		<?php endif; ?>
@@ -854,7 +855,7 @@ class Fields
 	 * shown on the overview: the reduction of what the
 	 * site serves, the one it would get with the WebP
 	 * and AVIF served, and the disk used by OIO. Sent
-	 * again with the progress of a job (Tools::status()).
+	 * again with the progress of a job (JobsAjax::status()).
 	 *
 	 * @return array
 	 * @since 1.0.0
@@ -1153,7 +1154,7 @@ class Fields
 						'note' => 'Wraps the images of the content in a <code>&lt;picture&gt;</code>. Untick it if the layout breaks.',
 						'help' => 'Images of the post content, featured images and galleries are wrapped in a <code>&lt;picture&gt;</code> tag offering the AVIF and WebP versions. Works on every server. <strong>Untick this if your theme layout breaks around images.</strong>',
 					],
-					Delivery::OPTION => [
+					Htaccess::OPTION => [
 						'type' => 'checkbox',
 						'label' => 'From the server, with rewrite rules',
 						'default' => false,

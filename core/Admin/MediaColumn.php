@@ -16,16 +16,16 @@
 
 namespace Octopus\Admin;
 
-use Octopus\Package\Cleaner;
-use Octopus\Package\Optimiser;
-use Octopus\Package\Stats;
-use Octopus\Package\Status;
+use Octopus\Media\Cleaner;
+use Octopus\Media\Optimiser;
+use Octopus\Media\Stats;
+use Octopus\Media\Status;
 
 if (!defined('ABSPATH')) {
 	exit; // Exit if accessed directly
 }
 
-class Media
+class MediaColumn
 {
 	/**
 	 * Action optimising one image.

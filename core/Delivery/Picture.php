@@ -16,7 +16,7 @@
  *
  */
 
-namespace Octopus\Package;
+namespace Octopus\Delivery;
 
 if (!defined('ABSPATH')) {
 	exit; // Exit if accessed directly

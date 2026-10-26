@@ -14,10 +14,10 @@
 
 namespace Octopus\Tests\Integration;
 
-use Octopus\Admin\Delivery;
+use Octopus\Delivery\Htaccess;
 use Octopus\Lifecycle;
-use Octopus\Package\Job;
-use Octopus\Package\Lock;
+use Octopus\Media\Job;
+use Octopus\Media\Lock;
 use Octopus\Tests\TestCase;
 
 class LifecycleTest extends TestCase
@@ -28,7 +28,7 @@ class LifecycleTest extends TestCase
 		$job = $this->running_job();
 		// As another request locking an image, see Lock.
 		$wpdb->insert($wpdb->options, ['option_name' => Lock::PREFIX . 7, 'option_value' => time(), 'autoload' => 'no']);
-		self::set(Delivery::OPTION, true);
+		self::set(Htaccess::OPTION, true);
 
 		Lifecycle::deactivate();
 
@@ -38,8 +38,8 @@ class LifecycleTest extends TestCase
 		$this->assertFalse($job->is_processing());
 		$this->assertSame('cancelled', $job->progress()['state']);
 		$this->assertSame('0', $wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM {$wpdb->options} WHERE option_name = %s", Lock::PREFIX . 7)));
-		$this->assertFalse(Delivery::rules_written());
-		$this->assertTrue((bool)get_option('_' . Delivery::OPTION), 'The settings stay.');
+		$this->assertFalse(Htaccess::rules_written());
+		$this->assertTrue((bool)get_option('_' . Htaccess::OPTION), 'The settings stay.');
 	}
 
 	public function test_a_job_that_ended_stays_as_it_ended()
@@ -53,12 +53,12 @@ class LifecycleTest extends TestCase
 
 	public function test_activating_octopus_writes_its_rules_again()
 	{
-		self::set(Delivery::OPTION, true);
+		self::set(Htaccess::OPTION, true);
 		Lifecycle::deactivate();
 
 		Lifecycle::activate();
 
-		$this->assertTrue(Delivery::rules_written());
+		$this->assertTrue(Htaccess::rules_written());
 	}
 
 	public function test_deactivating_octopus_on_a_network_stops_it_on_every_site()

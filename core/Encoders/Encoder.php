@@ -14,12 +14,13 @@
  *
  */
 
-namespace Octopus\Package;
+namespace Octopus\Encoders;
 
 use Exception;
 use Imagick;
 use Octopus\Log\Errors;
 use Octopus\Log\Logger;
+use Octopus\Media\Optimiser;
 use Octopus\Types\Mimes;
 use Throwable;
 use WP_Error;
@@ -29,7 +30,7 @@ if (!defined('ABSPATH')) {
 	exit; // Exit if accessed directly
 }
 
-class Service
+class Encoder
 {
 
 	/**

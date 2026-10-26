@@ -14,7 +14,7 @@
 
 namespace Octopus\Tests\Integration;
 
-use Octopus\Package\Picture;
+use Octopus\Delivery\Picture;
 use Octopus\Tests\TestCase;
 
 class PictureTest extends TestCase

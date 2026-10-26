@@ -18,14 +18,14 @@
 
 namespace Octopus\Admin;
 
-use Octopus\Package\Cleaner;
-use Octopus\Package\Service;
+use Octopus\Encoders\Encoder;
+use Octopus\Media\Cleaner;
 
 if (!defined('ABSPATH')) {
 	exit; // Exit if accessed directly
 }
 
-class Plugins
+class PluginsScreen
 {
 	/**
 	 * Nonce action of the request.
@@ -91,7 +91,7 @@ class Plugins
 		if (!current_user_can('activate_plugins')) {
 			wp_send_json_error(null, 403);
 		}
-		$dir = Service::backup_dir();
+		$dir = Encoder::backup_dir();
 		wp_send_json_success([
 			'images' => count(Cleaner::ids()),
 			'size' => is_dir($dir) ? size_format($this->dir_size($dir)) : '',

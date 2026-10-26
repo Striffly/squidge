@@ -16,19 +16,17 @@
  *
  */
 
-namespace Octopus\Services;
+namespace Octopus\Encoders;
 
 use Octopus\Log\Logger;
-use Octopus\Package\Convertor;
-use Octopus\Package\Optimiser;
-use Octopus\Package\Service;
+use Octopus\Media\Optimiser;
 use Octopus\Types\Mimes;
 
 if (!defined('ABSPATH')) {
 	exit; // Exit if accessed directly
 }
 
-class AVIF extends Service implements Convertor
+class AVIF extends Encoder implements Convertor
 {
 
 	/**
@@ -48,7 +46,7 @@ class AVIF extends Service implements Convertor
 
 	/**
 	 * EDITOR_MIME is the format of the image editor,
-	 * without avifenc (see Service::editor()).
+	 * without avifenc (see Encoder::editor()).
 	 */
 	const EDITOR_MIME = 'image/avif';
 
@@ -58,7 +56,7 @@ class AVIF extends Service implements Convertor
 	 * its original.
 	 *
 	 * The library runs without shell, see
-	 * Service::execute().
+	 * Encoder::execute().
 	 *
 	 * @param $filepath
 	 * @param $mime

@@ -15,7 +15,7 @@
  *
  */
 
-namespace Octopus\Package;
+namespace Octopus\Media;
 
 use Octopus_Vendor_WP_Background_Process;
 

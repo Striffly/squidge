@@ -15,7 +15,16 @@
 
 namespace Octopus;
 
-use Octopus\Admin;
+use Octopus\Admin\Fields;
+use Octopus\Admin\JobsAjax;
+use Octopus\Admin\MediaColumn;
+use Octopus\Admin\Notices;
+use Octopus\Admin\PluginsScreen;
+use Octopus\Delivery\Display;
+use Octopus\Delivery\Htaccess;
+use Octopus\Delivery\Test;
+use Octopus\Media\Job;
+use Octopus\Media\UploadHooks;
 
 if (!defined('ABSPATH')) {
 	exit; // Exit if accessed directly
@@ -62,18 +71,19 @@ final class Plugin
 		$this->define('OCTOPUS_URL', plugin_dir_url($base));
 		$this->define('OCTOPUS_PATH', plugin_dir_path($base));
 		$this->define('OCTOPUS_TEMPLATE_PATH', dirname($base) . DIRECTORY_SEPARATOR . 'templates');
-		new Admin\Fields();
-		new Admin\Upload();
-		new Admin\Notices();
-		new Admin\Media();
-		new Admin\Plugins();
-		new Admin\Delivery();
+		new Fields();
+		new UploadHooks();
+		new Notices();
+		new MediaColumn();
+		new PluginsScreen();
+		new Htaccess();
+		new Test();
 		// The background jobs need the dependencies of composer install.
 		if (class_exists('Octopus_Vendor_WP_Background_Process')) {
-			Package\Job::instance();
-			new Admin\Tools();
+			Job::instance();
+			new JobsAjax();
 		}
-		new Front\Display();
+		new Display();
 	}
 
 	/**

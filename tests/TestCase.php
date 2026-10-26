@@ -16,8 +16,8 @@
 namespace Octopus\Tests;
 
 use Octopus\Admin\Fields;
-use Octopus\Package\Optimiser;
-use Octopus\Package\Service;
+use Octopus\Encoders\Encoder;
+use Octopus\Media\Optimiser;
 use ReflectionProperty;
 use WP_UnitTestCase;
 
@@ -50,7 +50,7 @@ abstract class TestCase extends WP_UnitTestCase
 	public function tear_down()
 	{
 		self::remove(dirname($this->uploads));
-		Service::forget_versions();
+		Encoder::forget_versions();
 		parent::tear_down();
 	}
 
@@ -214,7 +214,7 @@ abstract class TestCase extends WP_UnitTestCase
 	protected function require_libraries(...$names)
 	{
 		foreach ($names as $name) {
-			if (!Service::installed($name)) {
+			if (!Encoder::installed($name)) {
 				$this->markTestSkipped($name . ' is not installed.');
 			}
 		}
@@ -240,7 +240,7 @@ abstract class TestCase extends WP_UnitTestCase
 	protected static function forget_libraries()
 	{
 		foreach (['binaries' => [], 'editors' => [], 'versions' => null] as $name => $value) {
-			$property = new ReflectionProperty(Service::class, $name);
+			$property = new ReflectionProperty(Encoder::class, $name);
 			$property->setAccessible(true);
 			$property->setValue(null, $value);
 		}

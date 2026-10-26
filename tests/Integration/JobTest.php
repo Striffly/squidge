@@ -15,11 +15,11 @@
 
 namespace Octopus\Tests\Integration;
 
-use Octopus\Package\Job;
-use Octopus\Package\Optimiser;
-use Octopus\Package\Service;
-use Octopus\Package\Status;
-use Octopus\Services\WebP;
+use Octopus\Encoders\Encoder;
+use Octopus\Encoders\WebP;
+use Octopus\Media\Job;
+use Octopus\Media\Optimiser;
+use Octopus\Media\Status;
 use Octopus\Tests\TestCase;
 use ReflectionMethod;
 use ReflectionProperty;
@@ -89,7 +89,7 @@ class JobTest extends TestCase
 	{
 		$kept = $this->upload('photo.jpg');
 		$lost = $this->upload('photo.jpg');
-		unlink(Service::backup_path(get_attached_file($lost)));
+		unlink(Encoder::backup_path(get_attached_file($lost)));
 
 		$this->job->start(Job::RESTORE, [$kept, $lost]);
 		$this->run_job();

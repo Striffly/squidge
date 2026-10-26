@@ -15,16 +15,16 @@
  *
  */
 
-namespace Octopus\Admin;
+namespace Octopus\Media;
 
-use Octopus\Package\Optimiser;
-use Octopus\Package\Service;
+use Octopus\Admin\Fields;
+use Octopus\Encoders\Encoder;
 
 if (!defined('ABSPATH')) {
 	exit; // Exit if accessed directly
 }
 
-class Upload
+class UploadHooks
 {
 
 	/**
@@ -91,7 +91,7 @@ class Upload
 	 */
 	public function delete_files($attachment)
 	{
-		Service::delete($attachment);
+		Encoder::delete($attachment);
 		return $attachment;
 	}
 }

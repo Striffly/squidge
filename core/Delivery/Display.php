@@ -15,10 +15,9 @@
  *
  */
 
-namespace Octopus\Front;
+namespace Octopus\Delivery;
 
 use Octopus\Admin\Fields;
-use Octopus\Package\Picture;
 
 if (!defined('ABSPATH')) {
 	exit; // Exit if accessed directly

@@ -14,7 +14,7 @@
  *
  */
 
-namespace Octopus\Package;
+namespace Octopus\Encoders;
 
 if (!defined('ABSPATH')) {
 	exit; // Exit if accessed directly

@@ -14,9 +14,9 @@
 namespace Octopus\Tests\Integration;
 
 use Exception;
-use Octopus\Package\Cleaner;
-use Octopus\Package\Lock;
-use Octopus\Package\Optimiser;
+use Octopus\Media\Cleaner;
+use Octopus\Media\Lock;
+use Octopus\Media\Optimiser;
 use Octopus\Tests\TestCase;
 
 class LockTest extends TestCase

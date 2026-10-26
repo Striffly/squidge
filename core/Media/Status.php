@@ -14,7 +14,7 @@
  *
  */
 
-namespace Octopus\Package;
+namespace Octopus\Media;
 
 use Octopus\Admin\Fields;
 use Octopus\Log\Errors;

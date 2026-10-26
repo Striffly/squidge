@@ -16,19 +16,17 @@
  *
  */
 
-namespace Octopus\Services;
+namespace Octopus\Encoders;
 
 use Octopus\Log\Logger;
-use Octopus\Package\Convertor;
-use Octopus\Package\Optimiser;
-use Octopus\Package\Service;
+use Octopus\Media\Optimiser;
 use Octopus\Types\Mimes;
 
 if (!defined('ABSPATH')) {
 	exit; // Exit if accessed directly
 }
 
-class PNG extends Service implements Convertor
+class PNG extends Encoder implements Convertor
 {
 
 	/**
@@ -52,7 +50,7 @@ class PNG extends Service implements Convertor
 	 * backup.
 	 *
 	 * The library runs without shell, see
-	 * Service::execute().
+	 * Encoder::execute().
 	 *
 	 * @param $filepath
 	 * @param $mime

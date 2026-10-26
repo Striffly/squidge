@@ -1,10 +1,9 @@
 <?php
 
 /**
- * CLI
+ * Commands
  *
- * Command for accessing OIO compression
- * functions via the WP CLI.
+ * The wp octopus commands of WP-CLI.
  *
  * @package     OIO
  * @author      Clément Gayot
@@ -14,30 +13,33 @@
  *
  */
 
-if (!defined('WP_CLI')) {
-	return; // Exit, WP CLI is not defined.
-}
+namespace Octopus\Cli;
+
+use Octopus\Encoders\AVIF;
+use Octopus\Encoders\JPG;
+use Octopus\Encoders\PNG;
+use Octopus\Encoders\WebP;
+use Octopus\Media\Cleaner;
+use Octopus\Media\Lock;
+use Octopus\Media\Optimiser;
+use Octopus\Media\Stats;
+use Octopus\Media\Status;
+use WP_CLI;
+use WP_CLI_Command;
+use WP_Query;
 
 if (!defined('ABSPATH')) {
 	exit; // Exit if accessed directly
 }
 
-use Octopus\Package\Cleaner;
-use Octopus\Package\Lock;
-use Octopus\Package\Optimiser;
-use Octopus\Package\Stats;
-use Octopus\Package\Status;
-use Octopus\Services\JPG;
-use Octopus\Services\PNG;
-use Octopus\Services\WebP;
-use Octopus\Services\AVIF;
-
 /**
- * Optimises the images of the media library, removes
- * their WebP and AVIF files or restores their
- * originals.
+ * Optimises the images of the media library, or undoes it.
+ *
+ * Compresses the JPG and PNG images and makes their
+ * WebP and AVIF versions, removes these versions or
+ * restores the originals.
  */
-class Octopus_CLI extends WP_CLI_Command
+class Commands extends WP_CLI_Command
 {
 
 	/**
@@ -310,7 +312,7 @@ class Octopus_CLI extends WP_CLI_Command
 				'Reduction' => in_array($name, ['compressed', 'modern'], true) ? (string)Stats::reduction($totals, $name) : '',
 			];
 		}
-		WP_CLI\Utils\format_items('table', $items, ['Files', 'Bytes', 'Size', 'Reduction']);
+		\WP_CLI\Utils\format_items('table', $items, ['Files', 'Bytes', 'Size', 'Reduction']);
 
 		$served = Stats::served();
 		WP_CLI::success(sprintf(
@@ -369,8 +371,3 @@ class Octopus_CLI extends WP_CLI_Command
 		WP_CLI::success(sprintf('%s active for %s: %s not installed, recommended.', $service::editor(), $format, $service::cmd_name()));
 	}
 }
-
-/**
- * Add the main OIO command to the WP CLI.
- */
-WP_CLI::add_command('octopus', 'Octopus_CLI');

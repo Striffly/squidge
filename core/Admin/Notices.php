@@ -18,7 +18,7 @@
 namespace Octopus\Admin;
 
 use Octopus\Log\Errors;
-use Octopus\Package\Optimiser;
+use Octopus\Media\Optimiser;
 
 if (!defined('ABSPATH')) {
 	exit; // Exit if accessed directly

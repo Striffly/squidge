@@ -15,19 +15,17 @@
  *
  */
 
-namespace Octopus\Services;
+namespace Octopus\Encoders;
 
 use Octopus\Log\Errors;
 use Octopus\Log\Logger;
-use Octopus\Package\Convertor;
-use Octopus\Package\Service;
 use Octopus\Types\Mimes;
 
 if (!defined('ABSPATH')) {
 	exit; // Exit if accessed directly
 }
 
-class JPG extends Service implements Convertor
+class JPG extends Encoder implements Convertor
 {
 
 	/**
@@ -41,7 +39,7 @@ class JPG extends Service implements Convertor
 	 * from its original kept as a backup.
 	 *
 	 * The library runs without shell, see
-	 * Service::execute().
+	 * Encoder::execute().
 	 *
 	 * @param $filepath
 	 * @param $mime

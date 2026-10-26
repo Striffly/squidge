@@ -15,16 +15,16 @@
 
 namespace Octopus\Tests\Integration;
 
+use Octopus\Encoders\AVIF;
+use Octopus\Encoders\Encoder;
+use Octopus\Encoders\JPG;
+use Octopus\Encoders\PNG;
+use Octopus\Encoders\WebP;
 use Octopus\Log\Errors;
-use Octopus\Package\Cleaner;
-use Octopus\Package\Optimiser;
-use Octopus\Package\Service;
-use Octopus\Package\Stats;
-use Octopus\Package\Status;
-use Octopus\Services\AVIF;
-use Octopus\Services\JPG;
-use Octopus\Services\PNG;
-use Octopus\Services\WebP;
+use Octopus\Media\Cleaner;
+use Octopus\Media\Optimiser;
+use Octopus\Media\Stats;
+use Octopus\Media\Status;
 use Octopus\Tests\TestCase;
 
 class OptimiseTest extends TestCase
@@ -58,9 +58,9 @@ class OptimiseTest extends TestCase
 		$id = $this->upload('photo.jpg');
 
 		$main = get_attached_file($id);
-		$this->assertFileEquals(self::fixture('photo.jpg'), Service::backup_path($main));
+		$this->assertFileEquals(self::fixture('photo.jpg'), Encoder::backup_path($main));
 		foreach (self::files($id) as $file) {
-			$backup = Service::backup_path($file);
+			$backup = Encoder::backup_path($file);
 			$this->assertFileExists($backup);
 			$this->assertLessThan(filesize($backup), filesize($file), $file);
 			// jpegoptim --all-progressive: a progressive frame (SOF2).
@@ -72,7 +72,7 @@ class OptimiseTest extends TestCase
 	{
 		$this->upload('photo.jpg');
 
-		$dir = Service::backup_dir();
+		$dir = Encoder::backup_dir();
 		$this->assertStringContainsString('Require all denied', file_get_contents($dir . '/.htaccess'));
 		$this->assertFileExists($dir . '/index.php');
 	}
@@ -98,7 +98,7 @@ class OptimiseTest extends TestCase
 		clearstatcache();
 		$original = $compressed = $modern = $extra = 0;
 		foreach (self::files($id) as $file) {
-			$original += filesize(Service::backup_path($file));
+			$original += filesize(Encoder::backup_path($file));
 			$compressed += filesize($file);
 			$served = filesize($file);
 			foreach (['.webp', '.avif'] as $extension) {
@@ -121,7 +121,7 @@ class OptimiseTest extends TestCase
 	{
 		$id = $this->upload('photo.jpg');
 		$files = self::files($id);
-		$originals = self::hashes(array_map([Service::class, 'backup_path'], $files));
+		$originals = self::hashes(array_map([Encoder::class, 'backup_path'], $files));
 
 		$this->assertTrue(Cleaner::restore($id));
 
@@ -130,7 +130,7 @@ class OptimiseTest extends TestCase
 		foreach ($files as $file) {
 			$this->assertFileDoesNotExist($file . '.webp');
 			$this->assertFileDoesNotExist($file . '.avif');
-			$this->assertFileDoesNotExist(Service::backup_path($file));
+			$this->assertFileDoesNotExist(Encoder::backup_path($file));
 		}
 		$this->assertSame([], preg_grep('/^_octopus_/', array_keys(get_post_meta($id))));
 		clearstatcache();
@@ -150,7 +150,7 @@ class OptimiseTest extends TestCase
 		foreach ($files as $file) {
 			$this->assertFileDoesNotExist($file . '.webp');
 			$this->assertFileDoesNotExist($file . '.avif');
-			$this->assertFileExists(Service::backup_path($file));
+			$this->assertFileExists(Encoder::backup_path($file));
 		}
 		$this->assertSame('', get_post_meta($id, WebP::meta_key(), true));
 		$this->assertSame('quality:80', get_post_meta($id, JPG::meta_key(), true));
@@ -226,7 +226,7 @@ class OptimiseTest extends TestCase
 	public function test_new_settings_are_applied_from_the_originals()
 	{
 		$id = $this->upload('photo.jpg');
-		$originals = self::hashes(array_map([Service::class, 'backup_path'], self::files($id)));
+		$originals = self::hashes(array_map([Encoder::class, 'backup_path'], self::files($id)));
 		$webp = filesize(get_attached_file($id) . '.webp');
 
 		self::set('octopus_webp_quality', 40);
@@ -237,7 +237,7 @@ class OptimiseTest extends TestCase
 		$this->assertSame('quality:40', get_post_meta($id, WebP::meta_key(), true));
 		clearstatcache();
 		$this->assertLessThan($webp, filesize(get_attached_file($id) . '.webp'));
-		$this->assertSame($originals, self::hashes(array_map([Service::class, 'backup_path'], self::files($id))));
+		$this->assertSame($originals, self::hashes(array_map([Encoder::class, 'backup_path'], self::files($id))));
 	}
 
 	public function test_a_new_thumbnail_size_is_made_and_optimised()
@@ -272,10 +272,10 @@ class OptimiseTest extends TestCase
 		$this->assertStringEndsWith('/photo.jpg', $main);
 		$this->assertSame(640, wp_get_attachment_metadata($id)['width']);
 		$this->assertFileExists($main . '.webp');
-		foreach ([$scaled, $scaled . '.webp', $scaled . '.avif', Service::backup_path($scaled)] as $file) {
+		foreach ([$scaled, $scaled . '.webp', $scaled . '.avif', Encoder::backup_path($scaled)] as $file) {
 			$this->assertFileDoesNotExist($file);
 		}
-		$this->assertFileEquals(self::fixture('photo.jpg'), Service::backup_path($main));
+		$this->assertFileEquals(self::fixture('photo.jpg'), Encoder::backup_path($main));
 		$this->assertSame(Status::OPTIMISED, Status::of($id));
 	}
 
@@ -305,7 +305,7 @@ class OptimiseTest extends TestCase
 	{
 		clearstatcache();
 		foreach (self::files($id) as $file) {
-			$this->assertLessThan(filesize(Service::backup_path($file)), filesize($file), $file);
+			$this->assertLessThan(filesize(Encoder::backup_path($file)), filesize($file), $file);
 			$this->assertSame('image/png', wp_getimagesize($file)['mime'], $file);
 			$webp = $file . '.webp';
 			$this->assertTrue(file_exists($webp) || in_array(_wp_relative_upload_path($webp), Optimiser::heavier($id), true), $webp);

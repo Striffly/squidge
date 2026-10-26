@@ -177,7 +177,7 @@ jobs:
           # A WebP or AVIF file heavier than the image, or an AVIF heavier than
           # its WebP, is deleted by OIO and listed in the _octopus_heavier meta.
           $list = Join-Path $env:RUNNER_TEMP 'heavier.php'
-          Set-Content $list '<?php foreach (get_posts(["post_type" => "attachment", "fields" => "ids", "numberposts" => -1]) as $id) { foreach (Octopus\Package\Optimiser::heavier($id) as $file) { echo $file, PHP_EOL; } }'
+          Set-Content $list '<?php foreach (get_posts(["post_type" => "attachment", "fields" => "ids", "numberposts" => -1]) as $id) { foreach (Octopus\Media\Optimiser::heavier($id) as $file) { echo $file, PHP_EOL; } }'
           $heavier = @(wp eval-file $list)
           $missing = foreach ($image in $images) {
             foreach ($extension in '.webp', '.avif') {

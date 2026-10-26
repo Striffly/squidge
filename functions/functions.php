@@ -17,8 +17,8 @@ if (!defined('ABSPATH')) {
 	exit; // Exit if accessed directly
 }
 
-use Octopus\Front\Display;
-use Octopus\Package\Picture;
+use Octopus\Delivery\Display;
+use Octopus\Delivery\Picture;
 
 if (!function_exists('octopus_image')) {
 

@@ -14,11 +14,12 @@
 
 namespace Octopus\Tests\Integration;
 
-use Octopus\Admin\Delivery;
-use Octopus\Admin\Tools;
-use Octopus\Package\Service;
-use Octopus\Services\AVIF;
-use Octopus\Services\WebP;
+use Octopus\Admin\JobsAjax;
+use Octopus\Delivery\Htaccess;
+use Octopus\Delivery\Test;
+use Octopus\Encoders\AVIF;
+use Octopus\Encoders\Encoder;
+use Octopus\Encoders\WebP;
 use Octopus\Tests\TestCase;
 use WPAjaxDieContinueException;
 
@@ -61,49 +62,49 @@ class DeliveryTest extends TestCase
 		];
 		foreach ($servers as $software => $server) {
 			$_SERVER['SERVER_SOFTWARE'] = $software;
-			$this->assertSame($server, Delivery::server(), $software);
+			$this->assertSame($server, Htaccess::server(), $software);
 		}
 	}
 
 	public function test_the_rules_are_written_when_enabled_and_removed_when_disabled()
 	{
-		self::set(Delivery::OPTION, true);
+		self::set(Htaccess::OPTION, true);
 
-		$htaccess = file_get_contents(Delivery::htaccess());
+		$htaccess = file_get_contents(Htaccess::htaccess());
 		$this->assertStringContainsString("# BEGIN Octopus Image Optimizer\n", $htaccess);
-		foreach (Delivery::apache_rules() as $rule) {
+		foreach (Htaccess::apache_rules() as $rule) {
 			$this->assertStringContainsString($rule . "\n", $htaccess);
 		}
-		$this->assertTrue(Delivery::rules_written());
+		$this->assertTrue(Htaccess::rules_written());
 
-		self::set(Delivery::OPTION, false);
-		$this->assertFileDoesNotExist(Delivery::htaccess(), 'It held the rules only.');
-		$this->assertFalse(Delivery::rules_written());
+		self::set(Htaccess::OPTION, false);
+		$this->assertFileDoesNotExist(Htaccess::htaccess(), 'It held the rules only.');
+		$this->assertFalse(Htaccess::rules_written());
 	}
 
 	public function test_the_other_rules_of_the_file_are_kept()
 	{
 		$other = "# Another plugin\nOptions -Indexes\n";
-		file_put_contents(Delivery::htaccess(), $other);
+		file_put_contents(Htaccess::htaccess(), $other);
 
-		self::set(Delivery::OPTION, true);
-		$this->assertStringStartsWith($other, file_get_contents(Delivery::htaccess()));
+		self::set(Htaccess::OPTION, true);
+		$this->assertStringStartsWith($other, file_get_contents(Htaccess::htaccess()));
 
 		// As many times as it is switched on and off.
 		foreach ([false, true, false] as $on) {
-			self::set(Delivery::OPTION, $on);
+			self::set(Htaccess::OPTION, $on);
 		}
-		$this->assertSame($other, file_get_contents(Delivery::htaccess()));
+		$this->assertSame($other, file_get_contents(Htaccess::htaccess()));
 	}
 
 	public function test_the_rules_are_not_written_for_nginx()
 	{
 		$_SERVER['SERVER_SOFTWARE'] = 'nginx/1.28.0';
 
-		self::set(Delivery::OPTION, true);
+		self::set(Htaccess::OPTION, true);
 
-		$this->assertFileDoesNotExist(Delivery::htaccess());
-		$this->assertStringContainsString('location ~* ^/wp-content/uploads/.+\.(jpe?g|png)$ {', Delivery::nginx_rules());
+		$this->assertFileDoesNotExist(Htaccess::htaccess());
+		$this->assertStringContainsString('location ~* ^/wp-content/uploads/.+\.(jpe?g|png)$ {', Htaccess::nginx_rules());
 	}
 
 	public function test_a_working_delivery_passes_every_check()
@@ -164,8 +165,8 @@ class DeliveryTest extends TestCase
 		$id = self::factory()->attachment->create_object(['file' => '2026/10/photo.jpg', 'post_mime_type' => 'image/jpeg']);
 		$file = $this->uploads . '/2026/10/photo.jpg';
 		wp_mkdir_p(dirname($file));
-		wp_mkdir_p(dirname(Service::backup_path($file)));
-		foreach ([$file, $file . '.webp', $file . '.avif', Service::backup_path($file)] as $path) {
+		wp_mkdir_p(dirname(Encoder::backup_path($file)));
+		foreach ([$file, $file . '.webp', $file . '.avif', Encoder::backup_path($file)] as $path) {
 			touch($path);
 		}
 		update_post_meta($id, WebP::meta_key(), 'quality:80');
@@ -186,7 +187,7 @@ class DeliveryTest extends TestCase
 			$accept = isset($args['headers']['Accept']) ? $args['headers']['Accept'] : '';
 			$status = 200;
 			$vary = '';
-			if (strpos($url, '/' . Service::BACKUP_DIR . '/') !== false) {
+			if (strpos($url, '/' . Encoder::BACKUP_DIR . '/') !== false) {
 				list($status, $type) = [$server['originals'], 'image/jpeg'];
 			} elseif (substr($url, -5) === '.avif') {
 				$type = $server['avif'];
@@ -219,7 +220,7 @@ class DeliveryTest extends TestCase
 		if (is_multisite()) {
 			grant_super_admin(get_current_user_id());
 		}
-		$_REQUEST['_ajax_nonce'] = wp_create_nonce(Tools::NONCE);
+		$_REQUEST['_ajax_nonce'] = wp_create_nonce(JobsAjax::NONCE);
 		add_filter('wp_doing_ajax', '__return_true');
 		add_filter('wp_die_ajax_handler', function () {
 			return function () {
@@ -228,7 +229,7 @@ class DeliveryTest extends TestCase
 		});
 		ob_start();
 		try {
-			(new Delivery())->test();
+			(new Test())->test();
 		} catch (WPAjaxDieContinueException $e) {
 			// wp_send_json() ends the request.
 		}

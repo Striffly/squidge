@@ -16,15 +16,15 @@
 
 namespace Octopus\Admin;
 
-use Octopus\Package\Cleaner;
-use Octopus\Package\Job;
-use Octopus\Package\Status;
+use Octopus\Media\Cleaner;
+use Octopus\Media\Job;
+use Octopus\Media\Status;
 
 if (!defined('ABSPATH')) {
 	exit; // Exit if accessed directly
 }
 
-class Tools
+class JobsAjax
 {
 	/**
 	 * Nonce action of the requests.

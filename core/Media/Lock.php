@@ -15,7 +15,7 @@
  *
  */
 
-namespace Octopus\Package;
+namespace Octopus\Media;
 
 if (!defined('ABSPATH')) {
 	exit; // Exit if accessed directly

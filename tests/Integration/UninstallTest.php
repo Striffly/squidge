@@ -14,8 +14,8 @@
 
 namespace Octopus\Tests\Integration;
 
-use Octopus\Admin\Delivery;
 use Octopus\Admin\Fields;
+use Octopus\Delivery\Htaccess;
 use Octopus\Tests\TestCase;
 use ReflectionMethod;
 
@@ -42,7 +42,7 @@ class UninstallTest extends TestCase
 
 		$this->assert_site_clean($attachment);
 		$this->assert_job_clean('octopus_job');
-		$this->assertSame(self::OTHER_RULES, file_get_contents(Delivery::htaccess()));
+		$this->assertSame(self::OTHER_RULES, file_get_contents(Htaccess::htaccess()));
 	}
 
 	public function test_the_data_of_octopus_is_deleted_from_every_site_of_a_network()
@@ -98,13 +98,13 @@ class UninstallTest extends TestCase
 		update_post_meta($id, '_octopus_compressed_cwebp', 'quality:80');
 		update_post_meta($id, 'octopus_other_plugin', 'kept');
 
-		wp_mkdir_p(dirname(Delivery::htaccess()));
+		wp_mkdir_p(dirname(Htaccess::htaccess()));
 		if ($other_rules) {
-			file_put_contents(Delivery::htaccess(), self::OTHER_RULES);
+			file_put_contents(Htaccess::htaccess(), self::OTHER_RULES);
 		}
-		update_option(Fields::OPTION_PREFIX . Delivery::OPTION, 'no');
-		update_option(Fields::OPTION_PREFIX . Delivery::OPTION, Fields::CHECKBOX_ON);
-		$this->assertTrue(Delivery::rules_written());
+		update_option(Fields::OPTION_PREFIX . Htaccess::OPTION, 'no');
+		update_option(Fields::OPTION_PREFIX . Htaccess::OPTION, Fields::CHECKBOX_ON);
+		$this->assertTrue(Htaccess::rules_written());
 		return $id;
 	}
 
@@ -149,7 +149,7 @@ class UninstallTest extends TestCase
 		sort($foreign);
 		$this->assertSame($foreign, $left);
 		$this->assertSame(['octopus_other_plugin'], array_values(preg_grep('/octopus/', array_keys(get_post_meta($attachment)))));
-		$this->assertFalse(Delivery::rules_written());
+		$this->assertFalse(Htaccess::rules_written());
 	}
 
 	/**
