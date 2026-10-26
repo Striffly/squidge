@@ -19,7 +19,6 @@ namespace Octopus\Media;
 use Exception;
 use Octopus\Admin\Fields;
 use Octopus\Encoders\AVIF;
-use Octopus\Encoders\Encoder;
 use Octopus\Encoders\JPG;
 use Octopus\Encoders\PNG;
 use Octopus\Encoders\WebP;
@@ -178,7 +177,7 @@ class Optimiser
 		if (!empty($metadata['file'])) {
 			return true;
 		}
-		if (in_array(get_post_mime_type($id), Status::MIMES, true)) {
+		if (in_array(get_post_mime_type($id), Files::MIMES, true)) {
 			Errors::add($id, self::READER, (string)get_attached_file($id), 'cannot read the image, its metadata has no file');
 		}
 		return false;
@@ -203,7 +202,7 @@ class Optimiser
 		}
 		// PHP keeps the size read before a library changed the file.
 		clearstatcache();
-		$file = wp_get_upload_dir()['basedir'] . DIRECTORY_SEPARATOR . $metadata['file'];
+		$file = Files::uploads_dir() . DIRECTORY_SEPARATOR . $metadata['file'];
 		if (isset($metadata['filesize']) && file_exists($file)) {
 			$metadata['filesize'] = wp_filesize($file);
 		}
@@ -254,24 +253,15 @@ class Optimiser
 		if (empty($metadata['file'])) {
 			return;
 		}
-		$base = wp_get_upload_dir()['basedir'] . DIRECTORY_SEPARATOR;
-		$main = $base . $metadata['file'];
-		$files = [$main];
-		$sizes = isset($metadata['sizes']) ? $metadata['sizes'] : [];
-		foreach ($sizes as $size) {
-			if (!empty($size['file'])) {
-				$files[] = dirname($main) . DIRECTORY_SEPARATOR . $size['file'];
-			}
-		}
 		$heavier = self::heavier($id);
 		clearstatcache();
-		foreach (array_unique($files) as $file) {
+		foreach (Files::of($id, $metadata) as $file) {
 			foreach ([WebP::extension(), AVIF::extension()] as $extension) {
 				$variant = $file . $extension;
-				if (!file_exists($variant) || !file_exists($file) || !Encoder::contained($variant)) {
+				if (!file_exists($variant) || !file_exists($file) || !Files::contained($variant)) {
 					continue;
 				}
-				$relative = Encoder::relative_path($variant);
+				$relative = Files::relative($variant);
 				$limit = filesize($file);
 				// WebP comes first: the AVIF is compared to the WebP kept.
 				if ($extension === AVIF::extension() && file_exists($file . WebP::extension())) {
@@ -281,7 +271,7 @@ class Optimiser
 					$heavier = array_diff($heavier, [$relative]);
 					continue;
 				}
-				unlink($variant);
+				Files::delete($variant);
 				$heavier[] = $relative;
 				Logger::info("Deleted, not lighter than the image or its WebP: " . $variant);
 			}
@@ -395,8 +385,8 @@ class Optimiser
 			$source = wp_get_original_image_path($id);
 			if (!$source || $source === $file || !file_exists($source)) {
 				$source = $file;
-				$backup = Encoder::backup_path($file);
-				if (file_exists($backup) && Encoder::contained($file) && Encoder::contained($backup)) {
+				$backup = Files::backup_path($file);
+				if (file_exists($backup) && Files::contained($file) && Files::contained($backup)) {
 					copy($backup, $file);
 				}
 			}
@@ -409,7 +399,7 @@ class Optimiser
 			if (empty($metadata) || is_wp_error($metadata)) {
 				return null;
 			}
-			$main = !empty($metadata['file']) ? wp_get_upload_dir()['basedir'] . DIRECTORY_SEPARATOR . $metadata['file'] : $file;
+			$main = Files::of($id, $metadata)[0];
 			if ($main !== $file) {
 				// The maximum size changed: the image is scaled now (WordPress made it
 				// the main file), or the image uploaded is the main file again.
@@ -421,17 +411,12 @@ class Optimiser
 			wp_update_attachment_metadata($id, $metadata);
 
 			// The files made again are the new originals of the next optimisation.
-			$file = get_attached_file($id);
-			$made = $source === $file ? [] : [$file];
-			$sizes = isset($metadata['sizes']) ? $metadata['sizes'] : [];
-			foreach ($sizes as $size) {
-				$made[] = dirname($file) . DIRECTORY_SEPARATOR . $size['file'];
+			$made = Files::of($id, $metadata);
+			if ($made[0] === $source) {
+				array_shift($made);
 			}
 			foreach ($made as $path) {
-				$backup = Encoder::backup_path($path);
-				if (file_exists($backup) && Encoder::contained($backup)) {
-					unlink($backup);
-				}
+				Files::delete(Files::backup_path($path));
 			}
 			return $metadata;
 		});
@@ -450,14 +435,12 @@ class Optimiser
 	 */
 	private static function release_main($file, $uploaded)
 	{
-		$paths = [$file . WebP::extension(), $file . AVIF::extension(), Encoder::backup_path($file)];
+		$paths = [$file . WebP::extension(), $file . AVIF::extension(), Files::backup_path($file)];
 		if ($file !== $uploaded) {
 			$paths[] = $file;
 		}
 		foreach ($paths as $path) {
-			if (file_exists($path) && Encoder::contained($path)) {
-				unlink($path);
-			}
+			Files::delete($path);
 		}
 	}
 }

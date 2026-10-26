@@ -19,8 +19,8 @@
 namespace Octopus\Encoders;
 
 use Octopus\Log\Logger;
+use Octopus\Media\Files;
 use Octopus\Media\Optimiser;
-use Octopus\Types\Mimes;
 
 if (!defined('ABSPATH')) {
 	exit; // Exit if accessed directly
@@ -67,7 +67,7 @@ class AVIF extends Encoder implements Convertor
 	 */
 	public static function convert($filepath, $mime, $args)
 	{
-		if ($mime != Mimes::PNG && $mime != Mimes::JPG) {
+		if ($mime != Files::PNG && $mime != Files::JPG) {
 			return;
 		}
 		$quality = self::int_arg($args, 'quality', 0, 100, self::DEFAULT_QUALITY);
@@ -96,7 +96,7 @@ class AVIF extends Encoder implements Convertor
 		$output = $filepath . self::extension();
 		if (self::run(array_merge($options, ['--speed', $speed, '--jobs', $jobs, $source, $output]), $filepath, $args)) {
 			Logger::info("Successfully converted to AVIF file: " . $output);
-			self::remember($args, $output);
+			Files::remember(isset($args['id']) ? (int)$args['id'] : 0, $output);
 		}
 		self::release_source($source, $original);
 	}

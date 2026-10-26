@@ -15,8 +15,8 @@
 
 namespace Octopus\Tests\Integration;
 
-use Octopus\Encoders\Encoder;
 use Octopus\Media\Cleaner;
+use Octopus\Media\Files;
 use Octopus\Tests\TestCase;
 
 class FilesTest extends TestCase
@@ -41,21 +41,21 @@ class FilesTest extends TestCase
 	{
 		touch($this->uploads . '/2026/10/a.jpg');
 
-		$this->assertTrue(Encoder::contained($this->uploads . '/2026/10/a.jpg'));
-		$this->assertTrue(Encoder::contained($this->uploads . '/2026/10/a.jpg.webp'), 'A file to create.');
-		$this->assertTrue(Encoder::contained($this->uploads . '/2026/11/b.jpg'), 'In a folder to create.');
-		$this->assertTrue(Encoder::contained(Encoder::backup_dir() . '/2026/10/a.jpg'));
+		$this->assertTrue(Files::contained($this->uploads . '/2026/10/a.jpg'));
+		$this->assertTrue(Files::contained($this->uploads . '/2026/10/a.jpg.webp'), 'A file to create.');
+		$this->assertTrue(Files::contained($this->uploads . '/2026/11/b.jpg'), 'In a folder to create.');
+		$this->assertTrue(Files::contained(Files::backup_dir() . '/2026/10/a.jpg'));
 	}
 
 	public function test_the_paths_out_of_the_uploads_folder_are_not()
 	{
 		touch($this->outside . '/a.jpg');
 
-		$this->assertFalse(Encoder::contained($this->outside . '/a.jpg'));
-		$this->assertFalse(Encoder::contained($this->uploads . '/../outside/a.jpg'));
-		$this->assertFalse(Encoder::contained($this->uploads . '/2026/10/../../../outside/a.jpg'));
-		$this->assertFalse(Encoder::contained(ABSPATH . 'wp-config-sample.php'));
-		$this->assertFalse(Encoder::contained($this->uploads), 'The folder itself.');
+		$this->assertFalse(Files::contained($this->outside . '/a.jpg'));
+		$this->assertFalse(Files::contained($this->uploads . '/../outside/a.jpg'));
+		$this->assertFalse(Files::contained($this->uploads . '/2026/10/../../../outside/a.jpg'));
+		$this->assertFalse(Files::contained(ABSPATH . 'wp-config-sample.php'));
+		$this->assertFalse(Files::contained($this->uploads), 'The folder itself.');
 	}
 
 	public function test_the_links_are_followed()
@@ -66,10 +66,10 @@ class FilesTest extends TestCase
 		symlink($this->outside, $this->uploads . '/2026/10/folder-link');
 		symlink($this->outside . '/missing.jpg', $this->uploads . '/2026/10/broken-link.jpg');
 
-		$this->assertFalse(Encoder::contained($this->uploads . '/2026/10/file-link.jpg'));
-		$this->assertFalse(Encoder::contained($this->uploads . '/2026/10/folder-link/a.jpg'));
-		$this->assertFalse(Encoder::contained($this->uploads . '/2026/10/folder-link/new.jpg.webp'));
-		$this->assertFalse(Encoder::contained($this->uploads . '/2026/10/broken-link.jpg'), 'Writing it would create its target.');
+		$this->assertFalse(Files::contained($this->uploads . '/2026/10/file-link.jpg'));
+		$this->assertFalse(Files::contained($this->uploads . '/2026/10/folder-link/a.jpg'));
+		$this->assertFalse(Files::contained($this->uploads . '/2026/10/folder-link/new.jpg.webp'));
+		$this->assertFalse(Files::contained($this->uploads . '/2026/10/broken-link.jpg'), 'Writing it would create its target.');
 	}
 
 	public function test_an_uploads_folder_that_is_a_link_is_contained()
@@ -83,7 +83,7 @@ class FilesTest extends TestCase
 			return $dir;
 		}, 20);
 
-		$this->assertTrue(Encoder::contained($link . '/2026/10/a.jpg'));
+		$this->assertTrue(Files::contained($link . '/2026/10/a.jpg'));
 	}
 
 	public function test_an_image_linked_from_out_of_the_uploads_folder_is_not_touched()
@@ -102,7 +102,7 @@ class FilesTest extends TestCase
 		$this->assertFileEquals(self::fixture('photo.jpg'), $target);
 		$this->assertSame(['photo.jpg'], array_values(array_diff(scandir($this->outside), ['.', '..'])));
 		$this->assertFileDoesNotExist($link . '.webp');
-		$this->assertFileDoesNotExist(Encoder::backup_path($link));
+		$this->assertFileDoesNotExist(Files::backup_path($link));
 		// The image is left as it is, its thumbnails too.
 		$metadata = wp_get_attachment_metadata($id);
 		$this->assertFileDoesNotExist($this->uploads . '/2026/10/' . $metadata['sizes']['thumbnail']['file'] . '.webp');
@@ -128,7 +128,7 @@ class FilesTest extends TestCase
 
 		$this->assertFileExists($file . '.webp');
 		$this->assertFileExists($file . '.avif');
-		$this->assertFileEquals(self::fixture('photo.jpg'), Encoder::backup_path($file));
+		$this->assertFileEquals(self::fixture('photo.jpg'), Files::backup_path($file));
 		foreach ([getcwd(), $this->uploads, $this->uploads . '/2026/10', ABSPATH] as $dir) {
 			$this->assertFileDoesNotExist($dir . '/octopus-pwned');
 		}
@@ -145,9 +145,9 @@ class FilesTest extends TestCase
 		$id = $this->upload('photo.jpg');
 		$main = get_attached_file($id);
 		$backup = $originals . '/' . _wp_relative_upload_path($main);
-		$this->assertSame($backup, Encoder::backup_path($main));
+		$this->assertSame($backup, Files::backup_path($main));
 		$this->assertFileEquals(self::fixture('photo.jpg'), $backup);
-		$this->assertDirectoryDoesNotExist($this->uploads . '/' . Encoder::BACKUP_DIR);
+		$this->assertDirectoryDoesNotExist($this->uploads . '/' . Files::BACKUP_DIR);
 
 		$this->assertTrue(Cleaner::restore($id));
 		$this->assertFileEquals(self::fixture('photo.jpg'), $main);
@@ -168,7 +168,7 @@ class FilesTest extends TestCase
 
 		$this->assertFalse(Cleaner::restore($id));
 		$this->assertSame($compressed, md5_file($main));
-		$this->assertNotEmpty(get_post_meta($id, Encoder::FILES_KEY, true), 'The originals stay listed, to restore them once the folder is back.');
+		$this->assertNotEmpty(get_post_meta($id, Files::LIST_KEY, true), 'The originals stay listed, to restore them once the folder is back.');
 	}
 
 	/**

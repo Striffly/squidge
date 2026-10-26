@@ -19,8 +19,8 @@
 namespace Octopus\Encoders;
 
 use Octopus\Log\Logger;
+use Octopus\Media\Files;
 use Octopus\Media\Optimiser;
-use Octopus\Types\Mimes;
 
 if (!defined('ABSPATH')) {
 	exit; // Exit if accessed directly
@@ -61,14 +61,14 @@ class PNG extends Encoder implements Convertor
 	 */
 	public static function convert($filepath, $mime, $args)
 	{
-		if ($mime != Mimes::PNG) {
+		if ($mime != Files::PNG) {
 			return;
 		}
 		// The file is optimised in place from its original, kept as a backup.
 		if (!self::backup($filepath, $args)) {
 			return;
 		}
-		$original = self::backup_path($filepath);
+		$original = Files::backup_path($filepath);
 		$quantized = self::quantize($original, $args);
 		$source = $quantized ?: $original;
 		// optipng keeps a .bak of an output file it overwrites: remove it first.

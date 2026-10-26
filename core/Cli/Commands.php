@@ -20,6 +20,7 @@ use Octopus\Encoders\JPG;
 use Octopus\Encoders\PNG;
 use Octopus\Encoders\WebP;
 use Octopus\Media\Cleaner;
+use Octopus\Media\Files;
 use Octopus\Media\Lock;
 use Octopus\Media\Optimiser;
 use Octopus\Media\Stats;
@@ -280,7 +281,7 @@ class Commands extends WP_CLI_Command
 		foreach (array_chunk(Cleaner::ids(), 500) as $ids) {
 			_prime_post_caches($ids, false, true);
 			foreach ($ids as $id) {
-				if (!in_array(get_post_mime_type($id), Status::MIMES, true) || (!$rebuild && Stats::of($id) !== null)) {
+				if (!in_array(get_post_mime_type($id), Files::MIMES, true) || (!$rebuild && Stats::of($id) !== null)) {
 					continue;
 				}
 				$done = Lock::run($id, function () use ($id) {

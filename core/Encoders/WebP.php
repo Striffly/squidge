@@ -19,8 +19,8 @@
 namespace Octopus\Encoders;
 
 use Octopus\Log\Logger;
+use Octopus\Media\Files;
 use Octopus\Media\Optimiser;
-use Octopus\Types\Mimes;
 
 if (!defined('ABSPATH')) {
 	exit; // Exit if accessed directly
@@ -64,7 +64,7 @@ class WebP extends Encoder implements Convertor
 	 */
 	public static function convert($filepath, $mime, $args)
 	{
-		if ($mime != Mimes::PNG && $mime != Mimes::JPG) {
+		if ($mime != Files::PNG && $mime != Files::JPG) {
 			return;
 		}
 		if (!isset($args['quality'])) {
@@ -85,11 +85,11 @@ class WebP extends Encoder implements Convertor
 			$options[] = '-mt';
 		}
 		if (self::run(array_merge($options, [$source, '-o', $output]), $filepath, $args)) {
-			if ($mime == Mimes::PNG) {
+			if ($mime == Files::PNG) {
 				self::near_lossless($options, $source, $output, $filepath, $args);
 			}
 			Logger::info("Successfully converted to WebP file: " . $output);
-			self::remember($args, $output);
+			Files::remember(isset($args['id']) ? (int)$args['id'] : 0, $output);
 		}
 		self::release_source($source, $original);
 	}

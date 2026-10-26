@@ -18,7 +18,6 @@
 namespace Octopus\Media;
 
 use Octopus\Encoders\AVIF;
-use Octopus\Encoders\Encoder;
 use Octopus\Encoders\JPG;
 use Octopus\Encoders\PNG;
 use Octopus\Encoders\WebP;
@@ -62,18 +61,18 @@ class Cleaner
 	public static function remove_formats($id)
 	{
 		return Lock::run($id, function () use ($id) {
-			foreach (self::files($id) as $file) {
-				self::unlink($file . WebP::extension());
-				self::unlink($file . AVIF::extension());
+			foreach (Files::of($id) as $file) {
+				Files::delete($file . WebP::extension());
+				Files::delete($file . AVIF::extension());
 			}
-			$listed = self::listed($id);
+			$listed = Files::listed($id);
 			foreach ($listed as $index => $path) {
 				if (preg_match('/\.(webp|avif)$/', $path)) {
-					self::unlink($path);
+					Files::delete($path);
 					unset($listed[$index]);
 				}
 			}
-			self::save_listed($id, $listed);
+			Files::save_listed($id, $listed);
 			delete_post_meta($id, Optimiser::HEAVIER_KEY);
 			foreach ([WebP::class, AVIF::class] as $service) {
 				delete_post_meta($id, $service::meta_key());
@@ -82,6 +81,30 @@ class Cleaner
 			Stats::save($id);
 			return true;
 		});
+	}
+
+	/**
+	 * Deletes the files OIO made for an image, when it
+	 * is deleted from the media library: the WebP and
+	 * AVIF files and the backups of the original and of
+	 * every size, and the other files listed for it
+	 * (e.g. of sizes that no longer exist).
+	 *
+	 * @param int $id
+	 * @since 1.0.0
+	 */
+	public static function delete_files($id)
+	{
+		if (!in_array(get_post_mime_type($id), Files::MIMES, true)) {
+			return;
+		}
+		$paths = Files::listed($id);
+		foreach (Files::of($id) as $file) {
+			array_push($paths, $file . WebP::extension(), $file . AVIF::extension(), Files::backup_path($file));
+		}
+		foreach (array_unique($paths) as $path) {
+			Files::delete($path);
+		}
 	}
 
 	/**
@@ -104,121 +127,36 @@ class Cleaner
 		return Lock::run($id, function () use ($id) {
 			$restored = true;
 			$compressed = get_post_meta($id, JPG::meta_key(), true) !== '' || get_post_meta($id, PNG::meta_key(), true) !== '';
-			$original = get_attached_file($id);
-			foreach (self::files($id) as $file) {
-				$backup = Encoder::backup_path($file);
-				if (file_exists($backup) && Encoder::contained($file) && Encoder::contained($backup)) {
+			foreach (Files::of($id) as $index => $file) {
+				$backup = Files::backup_path($file);
+				if (file_exists($backup) && Files::contained($file) && Files::contained($backup)) {
 					copy($backup, $file);
 					unlink($backup);
-				} elseif ($file === $original && $compressed && in_array(get_post_mime_type($id), Status::MIMES, true)) {
+				} elseif ($index === 0 && $compressed && in_array(get_post_mime_type($id), Files::MIMES, true)) {
 					$restored = false;
 				}
-				self::unlink($file . WebP::extension());
-				self::unlink($file . AVIF::extension());
+				Files::delete($file . WebP::extension());
+				Files::delete($file . AVIF::extension());
 			}
 			// Without its original, e.g. the folder of the originals moved, the
 			// files kept elsewhere stay listed: they are restored once it is back.
 			$kept = [];
-			foreach (self::listed($id) as $path) {
+			foreach (Files::listed($id) as $path) {
 				if (!$restored && !preg_match('/\.(webp|avif)$/', $path)) {
 					$kept[] = $path;
 					continue;
 				}
-				self::unlink($path);
+				Files::delete($path);
 			}
 			foreach (array_keys(get_post_meta($id)) as $key) {
 				if (strpos($key, '_octopus_') === 0) {
 					delete_post_meta($id, $key);
 				}
 			}
-			self::save_listed($id, $kept);
+			Files::save_listed($id, $kept);
 			Optimiser::save_file_sizes($id);
 			return $restored;
 		});
 	}
 
-	/**
-	 * Returns the files of an image: the original and
-	 * every size.
-	 *
-	 * @param int $id
-	 * @return string[]
-	 * @since 1.0.0
-	 * @date 25/10/2026
-	 */
-	private static function files($id)
-	{
-		$original = get_attached_file($id);
-		if (!$original) {
-			return [];
-		}
-		$files = [$original];
-		$metadata = wp_get_attachment_metadata($id);
-		if (!empty($metadata['sizes'])) {
-			foreach ($metadata['sizes'] as $size) {
-				if (!empty($size['file'])) {
-					$files[] = dirname($original) . DIRECTORY_SEPARATOR . $size['file'];
-				}
-			}
-		}
-		return array_unique($files);
-	}
-
-	/**
-	 * Returns the absolute paths of the files listed for
-	 * an image (WebP, AVIF and backups, of current and
-	 * former sizes).
-	 *
-	 * @param int $id
-	 * @return string[]
-	 * @since 1.0.0
-	 * @date 25/10/2026
-	 */
-	private static function listed($id)
-	{
-		$listed = get_post_meta($id, Encoder::FILES_KEY, true);
-		if (!is_array($listed)) {
-			return [];
-		}
-		$base = wp_get_upload_dir()['basedir'];
-		return array_map(function ($relative) use ($base) {
-			return $base . DIRECTORY_SEPARATOR . $relative;
-		}, $listed);
-	}
-
-	/**
-	 * Saves the list of files of an image, from absolute
-	 * paths.
-	 *
-	 * @param int $id
-	 * @param string[] $paths
-	 * @since 1.0.0
-	 * @date 25/10/2026
-	 */
-	private static function save_listed($id, $paths)
-	{
-		$base = wp_get_upload_dir()['basedir'] . DIRECTORY_SEPARATOR;
-		$relative = array_values(array_map(function ($path) use ($base) {
-			return substr($path, strlen($base));
-		}, $paths));
-		if (empty($relative)) {
-			delete_post_meta($id, Encoder::FILES_KEY);
-		} else {
-			update_post_meta($id, Encoder::FILES_KEY, $relative);
-		}
-	}
-
-	/**
-	 * Deletes a file if it exists.
-	 *
-	 * @param string $path
-	 * @since 1.0.0
-	 * @date 25/10/2026
-	 */
-	private static function unlink($path)
-	{
-		if (file_exists($path) && Encoder::contained($path)) {
-			unlink($path);
-		}
-	}
 }

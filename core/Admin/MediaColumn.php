@@ -17,6 +17,7 @@
 namespace Octopus\Admin;
 
 use Octopus\Media\Cleaner;
+use Octopus\Media\Files;
 use Octopus\Media\Optimiser;
 use Octopus\Media\Stats;
 use Octopus\Media\Status;
@@ -87,7 +88,7 @@ class MediaColumn
 	 */
 	private function is_image($id)
 	{
-		return in_array(get_post_mime_type($id), Status::MIMES, true);
+		return in_array(get_post_mime_type($id), Files::MIMES, true);
 	}
 
 	/**

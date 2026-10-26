@@ -20,6 +20,7 @@
 namespace Octopus\Delivery;
 
 use Octopus\Admin\Fields;
+use Octopus\Media\Files;
 
 if (!defined('ABSPATH')) {
 	exit; // Exit if accessed directly
@@ -83,7 +84,7 @@ class Htaccess
 	 */
 	public static function htaccess()
 	{
-		return wp_get_upload_dir()['basedir'] . DIRECTORY_SEPARATOR . '.htaccess';
+		return Files::uploads_dir() . DIRECTORY_SEPARATOR . '.htaccess';
 	}
 
 	/**

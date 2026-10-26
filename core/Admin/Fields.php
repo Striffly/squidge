@@ -24,6 +24,7 @@ use Octopus\Encoders\JPG;
 use Octopus\Encoders\PNG;
 use Octopus\Encoders\WebP;
 use Octopus\Media\Cleaner;
+use Octopus\Media\Files;
 use Octopus\Media\Stats;
 use Octopus\Media\Status;
 
@@ -628,8 +629,8 @@ class Fields
 			INNER JOIN {$wpdb->posts} p ON p.ID = m.post_id
 			WHERE m.meta_key IN (%s, %s)
 			AND p.post_type = 'attachment' AND p.post_status = 'inherit'
-			AND p.post_mime_type IN (" . implode(', ', array_fill(0, count(Status::MIMES), '%s')) . ")",
-			array_merge([WebP::meta_key(), AVIF::meta_key()], Status::MIMES)
+			AND p.post_mime_type IN (" . implode(', ', array_fill(0, count(Files::MIMES), '%s')) . ")",
+			array_merge([WebP::meta_key(), AVIF::meta_key()], Files::MIMES)
 		));
 	}
 

@@ -19,7 +19,6 @@ namespace Octopus\Media;
 use Octopus\Admin\Fields;
 use Octopus\Delivery\Htaccess;
 use Octopus\Encoders\AVIF;
-use Octopus\Encoders\Encoder;
 use Octopus\Encoders\WebP;
 
 if (!defined('ABSPATH')) {
@@ -74,24 +73,16 @@ class Stats
 		if (empty($metadata['file'])) {
 			return null;
 		}
-		$main = wp_get_upload_dir()['basedir'] . DIRECTORY_SEPARATOR . $metadata['file'];
-		$files = [$main];
-		$sizes = isset($metadata['sizes']) && is_array($metadata['sizes']) ? $metadata['sizes'] : [];
-		foreach ($sizes as $size) {
-			if (!empty($size['file'])) {
-				$files[] = dirname($main) . DIRECTORY_SEPARATOR . $size['file'];
-			}
-		}
 		$bytes = array_fill_keys(array_keys(self::KEYS), 0);
 		$found = false;
 		clearstatcache();
-		foreach (array_unique($files) as $file) {
+		foreach (Files::of($id, $metadata) as $file) {
 			if (!file_exists($file)) {
 				continue;
 			}
 			$found = true;
 			$size = (int)filesize($file);
-			$backup = Encoder::backup_path($file);
+			$backup = Files::backup_path($file);
 			$bytes['original'] += file_exists($backup) ? (int)filesize($backup) : $size;
 			$bytes['compressed'] += $size;
 			$served = $size;
@@ -200,8 +191,8 @@ class Stats
 			INNER JOIN {$wpdb->posts} p ON p.ID = m.post_id
 			WHERE m.meta_key IN (" . implode(', ', array_fill(0, count($keys), '%s')) . ")
 			AND p.post_type = 'attachment' AND p.post_status = 'inherit'
-			AND p.post_mime_type IN (" . implode(', ', array_fill(0, count(Status::MIMES), '%s')) . ")",
-			array_merge($keys, [self::KEYS['original']], $keys, Status::MIMES)
+			AND p.post_mime_type IN (" . implode(', ', array_fill(0, count(Files::MIMES), '%s')) . ")",
+			array_merge($keys, [self::KEYS['original']], $keys, Files::MIMES)
 		), ARRAY_A);
 		$totals = [];
 		foreach (array_merge(array_keys(self::KEYS), ['images']) as $name) {

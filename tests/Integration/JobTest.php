@@ -15,8 +15,8 @@
 
 namespace Octopus\Tests\Integration;
 
-use Octopus\Encoders\Encoder;
 use Octopus\Encoders\WebP;
+use Octopus\Media\Files;
 use Octopus\Media\Job;
 use Octopus\Media\Optimiser;
 use Octopus\Media\Status;
@@ -89,7 +89,7 @@ class JobTest extends TestCase
 	{
 		$kept = $this->upload('photo.jpg');
 		$lost = $this->upload('photo.jpg');
-		unlink(Encoder::backup_path(get_attached_file($lost)));
+		unlink(Files::backup_path(get_attached_file($lost)));
 
 		$this->job->start(Job::RESTORE, [$kept, $lost]);
 		$this->run_job();

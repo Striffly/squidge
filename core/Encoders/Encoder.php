@@ -20,8 +20,8 @@ use Exception;
 use Imagick;
 use Octopus\Log\Errors;
 use Octopus\Log\Logger;
+use Octopus\Media\Files;
 use Octopus\Media\Optimiser;
-use Octopus\Types\Mimes;
 use Throwable;
 use WP_Error;
 use WP_Image_Editor_Imagick;
@@ -38,21 +38,6 @@ class Encoder
 	 * service.
 	 */
 	const META_KEY = "_octopus_compressed";
-
-	/**
-	 * BACKUP_DIR is the folder, in the uploads folder,
-	 * where the original images are kept before being
-	 * optimised in place, with the same tree as the
-	 * uploads folder (see backup_dir()).
-	 */
-	const BACKUP_DIR = 'octopus-originals';
-
-	/**
-	 * FILES_KEY is the meta key listing the files made
-	 * by OIO for an attachment (WebP, AVIF and
-	 * backups), relative to the uploads folder.
-	 */
-	const FILES_KEY = '_octopus_files';
 
 	/**
 	 * VERSIONS_TRANSIENT caches the versions of the
@@ -83,7 +68,7 @@ class Encoder
 	 * PNG (a palette is turned to true colour), plus a
 	 * margin.
 	 */
-	const EDITOR_BYTES_PER_PIXEL = [Mimes::JPG => 10, Mimes::PNG => 14];
+	const EDITOR_BYTES_PER_PIXEL = [Files::JPG => 10, Files::PNG => 14];
 
 	/**
 	 * The versions of the libraries, by name, with
@@ -122,52 +107,37 @@ class Encoder
 	 */
 	public static function process($attachment, $args)
 	{
-		// If the attachment is an ID, obtain the metadata.
-		if (is_int($attachment)) {
-			$attachment = wp_get_attachment_metadata($attachment);
-		}
 		// Return if neither the library nor the image editor can make the format.
 		if (!static::available()) {
 			return;
 		}
-
-		// Check if the file key exists.
-		if (!isset($attachment['file'])) {
+		$metadata = is_int($attachment) ? wp_get_attachment_metadata($attachment) : $attachment;
+		if (empty($metadata['file'])) {
 			throw new Exception("File attachment is not set.");
 		}
-
-		// Obtain the file and check if it exists.
-		$mainFile = self::get_file_path($attachment['file']);
-		if (!$mainFile) {
+		$id = isset($args['id']) ? (int)$args['id'] : 0;
+		$files = Files::of($id, $metadata);
+		// The main file is there, and in the uploads folder: not a link out of it.
+		if (!file_exists($files[0]) || !Files::contained($files[0])) {
 			return;
 		}
 
 		// An attachment already processed is only completed: the files not done
 		// yet (e.g. a new thumbnail size), unless forced.
-		$id = isset($args['id']) ? (int)$args['id'] : 0;
 		$complete = self::has_compressed($id) && empty($args['force']);
 		$args['id'] = $id;
 		Errors::clear_attachment($id, static::cmd_name());
 
-		$files = [];
-		if (empty($args['thumbnailsOnly'])) {
-			$files[] = $mainFile;
-		}
-		$sizes = isset($attachment['sizes']) ? $attachment['sizes'] : [];
-		$basepath = str_replace(basename($attachment['file']), "", $attachment['file']);
-		foreach ($sizes as $size) {
-			$path = isset($size['file']) ? self::get_file_path($basepath . $size['file']) : false;
-			if ($path) {
-				$files[] = $path;
-			}
+		if (!empty($args['thumbnailsOnly'])) {
+			array_shift($files);
 		}
 		foreach ($files as $file) {
-			if ($complete && static::is_done($file, $id)) {
+			if (!file_exists($file) || ($complete && static::is_done($file, $id))) {
 				continue;
 			}
 			// The library reads the original and writes the version of the file:
 			// never through a link out of the folders.
-			if (!self::contained($file . static::extension()) || !self::contained(self::backup_path($file))) {
+			if (!Files::contained($file . static::extension()) || !Files::contained(Files::backup_path($file))) {
 				continue;
 			}
 			static::convert($file, (string)wp_get_image_mime($file), $args);
@@ -373,7 +343,7 @@ class Encoder
 	 */
 	protected static function readable_source($filepath, $mime)
 	{
-		if ($mime != Mimes::JPG) {
+		if ($mime != Files::JPG) {
 			return $filepath;
 		}
 		$info = @getimagesize($filepath);
@@ -437,7 +407,7 @@ class Encoder
 		$output = $filepath . static::extension();
 		if (self::save_with_editor(self::original($filepath), $mime, $output, $quality, $filepath, $args)) {
 			Logger::info(sprintf('Successfully converted with %s: %s', static::editor(), $output));
-			self::remember($args, $output);
+			Files::remember(isset($args['id']) ? (int)$args['id'] : 0, $output);
 		}
 	}
 
@@ -498,7 +468,7 @@ class Encoder
 		// A filter of the output formats (image_editor_output_format) made
 		// another format, with another extension.
 		if (!is_wp_error($saved) && wp_normalize_path($saved['path']) !== wp_normalize_path($output)) {
-			if (file_exists($saved['path']) && !in_array($saved['path'], [$source, $filepath], true) && self::contained($saved['path'])) {
+			if (file_exists($saved['path']) && !in_array($saved['path'], [$source, $filepath], true) && Files::contained($saved['path'])) {
 				unlink($saved['path']);
 			}
 			$saved = new WP_Error('octopus_editor_error', sprintf('saved as %s instead of %s', $saved['mime-type'], static::EDITOR_MIME));
@@ -680,70 +650,9 @@ class Encoder
 	{
 		if (static::extension() !== '') {
 			$variant = $filepath . static::extension();
-			return file_exists($variant) || in_array(self::relative_path($variant), Optimiser::heavier($id), true);
+			return file_exists($variant) || in_array(Files::relative($variant), Optimiser::heavier($id), true);
 		}
-		return file_exists(self::backup_path($filepath));
-	}
-
-	/**
-	 * Returns the folder of the original images:
-	 * uploads/octopus-originals by default. The
-	 * octopus_backup_dir filter moves it, e.g. out of the
-	 * web root: the originals keep their metadata.
-	 *
-	 * @return string
-	 * @since 1.0.0
-	 * @date 25/10/2026
-	 */
-	public static function backup_dir()
-	{
-		$default = self::uploads_dir() . DIRECTORY_SEPARATOR . self::BACKUP_DIR;
-		return untrailingslashit((string)apply_filters('octopus_backup_dir', $default));
-	}
-
-	/**
-	 * Returns the path of the backup of an image of
-	 * the uploads folder: the same path, in the
-	 * folder of the original images.
-	 *
-	 * @param string $filepath
-	 * @return string
-	 * @since 1.0.0
-	 * @date 25/10/2026
-	 */
-	public static function backup_path($filepath)
-	{
-		return self::backup_dir() . DIRECTORY_SEPARATOR . self::relative_path($filepath);
-	}
-
-	/**
-	 * Denies the web access to the folder of the
-	 * original images: they keep the metadata stripped
-	 * from the optimised images (GPS position, camera),
-	 * and nothing serves them. The .htaccess works with
-	 * Apache and LiteSpeed, nginx needs a rule (see the
-	 * README). The index.php hides the files where the
-	 * folders are listed.
-	 *
-	 * @since 1.0.0
-	 * @date 25/10/2026
-	 */
-	private static function protect_backup_dir()
-	{
-		$dir = self::backup_dir();
-		if (!wp_mkdir_p($dir)) {
-			return;
-		}
-		$files = [
-			'.htaccess' => "# Written by OIO: the original images are not served.\n<IfModule mod_authz_core.c>\n\tRequire all denied\n</IfModule>\n<IfModule !mod_authz_core.c>\n\tOrder deny,allow\n\tDeny from all\n</IfModule>\n",
-			'index.php' => "<?php\n// Silence is golden.\n",
-		];
-		foreach ($files as $name => $content) {
-			$path = $dir . DIRECTORY_SEPARATOR . $name;
-			if (!file_exists($path)) {
-				file_put_contents($path, $content);
-			}
-		}
+		return file_exists(Files::backup_path($filepath));
 	}
 
 	/**
@@ -758,7 +667,7 @@ class Encoder
 	 */
 	protected static function original($filepath)
 	{
-		$backup = self::backup_path($filepath);
+		$backup = Files::backup_path($filepath);
 		return file_exists($backup) ? $backup : $filepath;
 	}
 
@@ -774,8 +683,8 @@ class Encoder
 	 */
 	protected static function backup($filepath, $args)
 	{
-		$backup = self::backup_path($filepath);
-		self::protect_backup_dir();
+		$backup = Files::backup_path($filepath);
+		Files::protect_backup_dir();
 		if (file_exists($backup)) {
 			return true;
 		}
@@ -783,7 +692,7 @@ class Encoder
 			Errors::add(isset($args['id']) ? $args['id'] : 0, static::cmd_name(), $filepath, 'cannot write the backup of the original image');
 			return false;
 		}
-		self::remember($args, $backup);
+		Files::remember(isset($args['id']) ? (int)$args['id'] : 0, $backup);
 		return true;
 	}
 
@@ -801,185 +710,12 @@ class Encoder
 	 */
 	protected static function put_back($filepath, $args)
 	{
-		$original = self::backup_path($filepath);
+		$original = Files::backup_path($filepath);
 		if (@copy($original, $filepath)) {
 			unlink($original);
 			return;
 		}
-		Errors::add(isset($args['id']) ? $args['id'] : 0, static::cmd_name(), $filepath, 'cannot put the original back, it stays in ' . self::BACKUP_DIR);
-	}
-
-	/**
-	 * Adds a file made by OIO to the list of files
-	 * of the attachment, used to delete them.
-	 *
-	 * @param array $args
-	 * @param string $path
-	 * @since 1.0.0
-	 * @date 25/10/2026
-	 */
-	protected static function remember($args, $path)
-	{
-		if (empty($args['id'])) {
-			return;
-		}
-		$files = get_post_meta($args['id'], self::FILES_KEY, true);
-		$files = is_array($files) ? $files : [];
-		$relative = self::relative_path($path);
-		if (!in_array($relative, $files, true)) {
-			$files[] = $relative;
-			update_post_meta($args['id'], self::FILES_KEY, $files);
-		}
-	}
-
-	/**
-	 * Deletes the files OIO made for an attachment:
-	 * the WebP and AVIF files and the backups of the
-	 * original and of every size, plus any other file
-	 * listed for the attachment (e.g. of sizes that no
-	 * longer exist).
-	 *
-	 * @param $id
-	 * @return void
-	 * @since 0.1.0
-	 * @date 24/11/2021
-	 */
-	public static function delete($id)
-	{
-		$original = get_attached_file($id);
-		if (!$original || !in_array(get_post_mime_type($id), [Mimes::PNG, Mimes::JPG], true)) {
-			return;
-		}
-
-		$files = [$original];
-		$meta = wp_get_attachment_metadata($id);
-		if (!empty($meta['sizes'])) {
-			foreach ($meta['sizes'] as $size) {
-				if (!empty($size['file'])) {
-					$files[] = dirname($original) . DIRECTORY_SEPARATOR . $size['file'];
-				}
-			}
-		}
-
-		$paths = [];
-		foreach (array_unique($files) as $file) {
-			$paths[] = $file . '.webp';
-			$paths[] = $file . '.avif';
-			$paths[] = self::backup_path($file);
-		}
-		$listed = get_post_meta($id, self::FILES_KEY, true);
-		if (is_array($listed)) {
-			foreach ($listed as $relative) {
-				$paths[] = self::uploads_dir() . DIRECTORY_SEPARATOR . $relative;
-			}
-		}
-
-		foreach (array_unique($paths) as $path) {
-			if (file_exists($path) && self::contained($path)) {
-				unlink($path);
-			}
-		}
-	}
-
-	/**
-	 * Determines if a path is in the uploads folder or
-	 * in the folder of the originals: the paths come
-	 * from the metadata of the attachments, OIO never
-	 * reads, writes or deletes a file elsewhere (as
-	 * WordPress with wp_delete_file_from_directory()).
-	 * The links are followed: a link in the uploads
-	 * folder to a file out of it is out of it, an
-	 * uploads folder that is a link is not.
-	 *
-	 * @param string $path
-	 * @return bool
-	 * @since 1.0.0
-	 * @date 25/10/2026
-	 */
-	public static function contained($path)
-	{
-		$path = wp_normalize_path($path);
-		if (preg_match('#(^|/)\.\.(/|$)#', $path)) {
-			return false;
-		}
-		$real = self::real_path($path);
-		if ($real === false) {
-			return false;
-		}
-		foreach ([self::uploads_dir(), self::backup_dir()] as $dir) {
-			$dir = self::real_path(wp_normalize_path($dir));
-			if ($dir !== false && strpos($real, trailingslashit($dir)) === 0) {
-				return true;
-			}
-		}
-		return false;
-	}
-
-	/**
-	 * Returns the path of a file with its links
-	 * resolved. A file to create (e.g. a WebP version)
-	 * is resolved from its closest existing folder.
-	 * False for a link to nothing: writing it would
-	 * create its target, wherever it is. The streams
-	 * (e.g. s3://) have no links, as for WordPress.
-	 *
-	 * @param string $path
-	 * @return string|false
-	 * @since 1.0.0
-	 * @date 25/10/2026
-	 */
-	private static function real_path($path)
-	{
-		if (wp_is_stream($path)) {
-			return $path;
-		}
-		$missing = '';
-		while (($real = realpath($path)) === false) {
-			$parent = dirname($path);
-			if (is_link($path) || $parent === $path) {
-				return false;
-			}
-			$missing = '/' . basename($path) . $missing;
-			$path = $parent;
-		}
-		return untrailingslashit(wp_normalize_path($real)) . $missing;
-	}
-
-	/**
-	 * Returns the uploads folder.
-	 *
-	 * @return string
-	 * @since 1.0.0
-	 * @date 25/10/2026
-	 */
-	private static function uploads_dir()
-	{
-		return wp_get_upload_dir()['basedir'];
-	}
-
-	/**
-	 * Returns the path of a file relative to the
-	 * uploads folder, as saved in the metas. On
-	 * Windows, with / only: the paths of the
-	 * thumbnails join the folder of the metadata
-	 * (2026/10) with \, and must match whatever
-	 * their separators.
-	 *
-	 * @param string $path
-	 * @return string
-	 * @since 1.0.0
-	 * @date 25/10/2026
-	 */
-	public static function relative_path($path)
-	{
-		$base = self::uploads_dir();
-		if (strpos($path, $base) === 0) {
-			$path = substr($path, strlen($base));
-		}
-		if (self::is_windows()) {
-			$path = str_replace('\\', '/', $path);
-		}
-		return ltrim($path, '/\\');
+		Errors::add(isset($args['id']) ? $args['id'] : 0, static::cmd_name(), $filepath, 'cannot put the original back, it stays in ' . Files::BACKUP_DIR);
 	}
 
 	/**
@@ -1086,26 +822,6 @@ class Encoder
 	{
 		self::$versions = null;
 		delete_transient(self::VERSIONS_TRANSIENT);
-	}
-
-	/**
-	 * Obtains the absolute filepath including the
-	 * upload directory.
-	 * If the file does not exist on the file system, the
-	 * function will return false.
-	 *
-	 * @param $path - Path of file inside uploads folder
-	 * @return string
-	 * @since 0.1.0
-	 * @date 24/11/2021
-	 */
-	private static function get_file_path($path)
-	{
-		$file = wp_get_upload_dir()['basedir'] . DIRECTORY_SEPARATOR . $path;
-		if (file_exists($file) && self::contained($file)) {
-			return $file;
-		}
-		return false;
 	}
 
 	/**
