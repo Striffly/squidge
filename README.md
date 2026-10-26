@@ -298,6 +298,16 @@ changing a text, update the template and the translations with [WP-CLI](https://
 composer translations   # The .pot, then the .po, .mo, .l10n.php and .json of each language.
 ```
 
+### Logo
+
+The logo is drawn by `tools/logo/build.js`: the octopus and the arms it wraps in front of the picture come from the
+pixel grids of `tools/logo/`, one letter per colour, and the script draws the rest and the animation. It writes the
+still PNGs and the floating GIFs of `assets/images/`, at 128 and 256 px.
+
+```bash
+bun run logo
+```
+
 ## Support
 
 OIO is free, and will stay so. If it saves you time or bytes, you can buy me a coffee ☕:
