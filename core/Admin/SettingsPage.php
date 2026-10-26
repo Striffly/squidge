@@ -547,21 +547,21 @@ class SettingsPage
 						<h3 class="octopus-action__title"><?php esc_html_e('New images', 'octopus-image-optimizer'); ?></h3>
 						<p class="octopus-action__count js-octopus-count" data-count="new"><?php echo esc_html(number_format_i18n($counts[Status::TO_OPTIMISE] + $counts[Status::ERROR])); ?></p>
 						<p class="octopus-action__text"><?php esc_html_e('Not optimised yet, or their optimisation failed.', 'octopus-image-optimizer'); ?></p>
-						<button type="button" class="button button-primary octopus-action__button js-octopus-job-start" data-job="new"><?php esc_html_e('Optimise new images', 'octopus-image-optimizer'); ?></button>
+						<button type="button" class="button button-primary octopus-action__button js-octopus-job-start" data-job="new" disabled><?php esc_html_e('Optimise new images', 'octopus-image-optimizer'); ?></button>
 					</div>
 					<div class="octopus-action">
 						<span class="octopus-action__icon dashicons dashicons-update" aria-hidden="true"></span>
 						<h3 class="octopus-action__title"><?php esc_html_e('Outdated images', 'octopus-image-optimizer'); ?></h3>
 						<p class="octopus-action__count js-octopus-count" data-count="outdated"><?php echo esc_html(number_format_i18n($counts[Status::OUTDATED])); ?></p>
 						<p class="octopus-action__text"><?php esc_html_e('Optimised before a quality, a format, the maximum size or the thumbnail sizes changed. Optimised again from their originals.', 'octopus-image-optimizer'); ?></p>
-						<button type="button" class="button octopus-action__button js-octopus-job-start" data-job="outdated"><?php esc_html_e('Re-optimise outdated images', 'octopus-image-optimizer'); ?></button>
+						<button type="button" class="button octopus-action__button js-octopus-job-start" data-job="outdated" disabled><?php esc_html_e('Re-optimise outdated images', 'octopus-image-optimizer'); ?></button>
 					</div>
 					<div class="octopus-action">
 						<span class="octopus-action__icon dashicons dashicons-images-alt" aria-hidden="true"></span>
 						<h3 class="octopus-action__title"><?php esc_html_e('All images', 'octopus-image-optimizer'); ?></h3>
 						<p class="octopus-action__count js-octopus-count" data-count="total"><?php echo esc_html(number_format_i18n($counts['total'])); ?></p>
 						<p class="octopus-action__text"><?php esc_html_e('Every image optimised again from its original, with its thumbnails made again.', 'octopus-image-optimizer'); ?></p>
-						<button type="button" class="button octopus-action__button js-octopus-job-start" data-job="all" data-confirm="<?php esc_attr_e('Re-optimise all images from their originals, with their thumbnails? This can take a while.', 'octopus-image-optimizer'); ?>"><?php esc_html_e('Re-optimise all images', 'octopus-image-optimizer'); ?></button>
+						<button type="button" class="button octopus-action__button js-octopus-job-start" data-job="all" data-confirm="<?php esc_attr_e('Re-optimise all images from their originals, with their thumbnails? This can take a while.', 'octopus-image-optimizer'); ?>" disabled><?php esc_html_e('Re-optimise all images', 'octopus-image-optimizer'); ?></button>
 					</div>
 				</div>
 			<?php else : ?>
@@ -903,7 +903,7 @@ class SettingsPage
 			<?php if ($jobs) : ?>
 				<div class="octopus-confirm">
 					<label class="octopus-confirm__label"><input type="checkbox" class="octopus-confirm__input js-octopus-job-confirm" data-confirm-for="remove_formats"> <?php esc_html_e('I understand the WebP and AVIF files will be deleted, until the images are optimised again.', 'octopus-image-optimizer'); ?></label>
-					<button type="button" class="button octopus-confirm__button js-octopus-job-start" data-job="remove_formats"><?php esc_html_e('Remove WebP and AVIF', 'octopus-image-optimizer'); ?></button>
+					<button type="button" class="button octopus-confirm__button js-octopus-job-start" data-job="remove_formats" disabled><?php esc_html_e('Remove WebP and AVIF', 'octopus-image-optimizer'); ?></button>
 				</div>
 			<?php else : ?>
 				<?php $this->render_no_jobs(); ?>
@@ -921,7 +921,7 @@ class SettingsPage
 			<?php if ($jobs) : ?>
 				<div class="octopus-confirm">
 					<label class="octopus-confirm__label"><input type="checkbox" class="octopus-confirm__input js-octopus-job-confirm" data-confirm-for="restore"> <?php esc_html_e('I understand the images will no longer be optimised, and their WebP and AVIF files will be deleted.', 'octopus-image-optimizer'); ?></label>
-					<button type="button" class="button octopus-confirm__button octopus-button--danger js-octopus-job-start" data-job="restore"><?php esc_html_e('Restore original images', 'octopus-image-optimizer'); ?></button>
+					<button type="button" class="button octopus-confirm__button octopus-button--danger js-octopus-job-start" data-job="restore" disabled><?php esc_html_e('Restore original images', 'octopus-image-optimizer'); ?></button>
 				</div>
 			<?php else : ?>
 				<?php $this->render_no_jobs(); ?>
@@ -1228,16 +1228,20 @@ class SettingsPage
 		$tags = ['strong' => [], 'code' => []];
 		$disabled = !empty($field['disabled']) ? ' disabled' : '';
 		// A field shown while another one has a value, e.g. the lossy quality (DependentField.js).
+		// Off as the page opens: hidden while the scripts load (fields.css), shown without JS.
 		$when = '';
+		$off = false;
 		if (!empty($field['when'])) {
 			$when = sprintf(' data-when="%s" data-when-value="%s"', esc_attr(Settings::OPTION . '[' . $field['when'][0] . ']'), esc_attr($field['when'][1]));
+			$off = (string)Settings::get($field['when'][0]) !== (string)$field['when'][1];
 		}
 
 		// The label names the control without being a <label>: hovering it would hover the control.
 		printf(
-			'<div class="octopus-field%s%s%s"%s><span class="octopus-field__label" id="%s-label">%s</span>',
+			'<div class="octopus-field%s%s%s%s"%s><span class="octopus-field__label" id="%s-label">%s</span>',
 			$field['type'] === 'checkbox' ? ' octopus-field--toggle' : '',
 			$disabled ? ' octopus-field--disabled' : '',
+			$off ? ' octopus-field--off' : '',
 			$when ? ' js-octopus-dependent' : '',
 			$when, // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Escaped above.
 			esc_attr($id),

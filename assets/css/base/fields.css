@@ -19,7 +19,9 @@
 	column-gap: var(--octopus-space-4);
 	padding: var(--octopus-space-4) 0;
 
-	&[hidden] {
+	/* Off as the page opens, it stays hidden while the scripts load (DependentField.js); shown without JS. */
+	&[hidden],
+	.octopus-page--js:not(.octopus-page--ready) &.octopus-field--off {
 		display: none;
 	}
 
@@ -145,6 +147,11 @@
 .octopus-help__text {
 	padding-top: var(--octopus-space-2);
 	border-top: 1px dashed var(--octopus-border);
+
+	/* Closed while the scripts load, as HelpToggle.js leaves it; open without JS. */
+	.octopus-page--js:not(.octopus-page--ready) & {
+		display: none;
+	}
 }
 
 /* Toggle: a switch, only its track is clickable

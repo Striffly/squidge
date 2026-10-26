@@ -6,6 +6,8 @@
  * set. Off while a job runs, when it has no image to
  * process, or while its box is not ticked: the
  * maintenance jobs need theirs (.js-octopus-job-confirm).
+ * Off as the page opens, until the first status of the
+ * jobs tells.
  */
 
 (() => {
@@ -48,7 +50,7 @@
 		}
 
 		update() {
-			this.el.disabled = this.busy || this.count === 0 || (this.confirmBox !== null && !this.confirmBox.checked);
+			this.el.disabled = this.count === null || this.busy || this.count === 0 || (this.confirmBox !== null && !this.confirmBox.checked);
 		}
 
 		async start() {
