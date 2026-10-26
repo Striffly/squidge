@@ -15,7 +15,7 @@
 
 namespace Octopus;
 
-use Octopus\Admin\Fields;
+use Octopus\Admin\SettingsPage;
 use Octopus\Admin\JobsAjax;
 use Octopus\Admin\MediaColumn;
 use Octopus\Admin\Notices;
@@ -72,7 +72,7 @@ final class Plugin
 		$this->define('OCTOPUS_PATH', plugin_dir_path($base));
 		$this->define('OCTOPUS_TEMPLATE_PATH', dirname($base) . DIRECTORY_SEPARATOR . 'templates');
 		add_action('init', [Settings::class, 'register']);
-		new Fields();
+		new SettingsPage();
 		new UploadHooks();
 		new Notices();
 		new MediaColumn();

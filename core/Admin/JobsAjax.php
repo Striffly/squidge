@@ -136,7 +136,7 @@ class JobsAjax
 		wp_send_json_success([
 			'job' => Job::instance()->progress(),
 			'counts' => array_merge(Status::counts(), ['processed' => count(Cleaner::ids())]),
-			'savings' => Fields::savings(),
+			'savings' => SettingsPage::savings(),
 		]);
 	}
 }

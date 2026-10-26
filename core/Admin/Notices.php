@@ -39,7 +39,7 @@ class Notices
 	 *
 	 * @var array
 	 */
-	const SCREENS = ['upload', 'media', 'attachment', 'settings_page_' . Fields::PAGE];
+	const SCREENS = ['upload', 'media', 'attachment', 'settings_page_' . SettingsPage::PAGE];
 
 	/**
 	 * What failed, by format, as shown to the user.

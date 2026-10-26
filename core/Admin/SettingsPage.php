@@ -1,11 +1,11 @@
 <?php
 
 /**
- * Fields
+ * SettingsPage
  *
- * Register the options page for the admin
- * part of the plugin, using the WordPress
- * Settings API.
+ * The page of OIO, in the Settings menu: its tabs,
+ * and the fields of the settings it saves (see
+ * Octopus\Settings).
  *
  * @package     OIO
  * @author      Clément Gayot
@@ -33,7 +33,7 @@ if (!defined('ABSPATH')) {
 	exit; // Exit if accessed directly
 }
 
-class Fields
+class SettingsPage
 {
 	/**
 	 * The options page slug.

@@ -62,7 +62,7 @@ if (!function_exists('octopus_add_settings_link')) {
 	function octopus_add_settings_link($links)
 	{
 		$links[] = '<a href="' .
-			Octopus\Admin\Fields::page_url() .
+			Octopus\Admin\SettingsPage::page_url() .
 			'">' . __('Settings') . '</a>';
 		return $links;
 	}
