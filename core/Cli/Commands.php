@@ -67,7 +67,8 @@ class Commands extends WP_CLI_Command
 		$this->print_welcome();
 		$this->print_health("jpegoptim", JPG::installed());
 		$this->print_health(PNG::library(), PNG::installed());
-		$this->print_health("pngquant (optional)", PNG::installed('pngquant'));
+		/* translators: %s: pngquant */
+		$this->print_health(sprintf(__('%s (optional)', 'octopus-image-optimizer'), 'pngquant'), PNG::installed('pngquant'));
 		$this->print_converter('WebP', WebP::class);
 		$this->print_converter('AVIF', AVIF::class);
 	}
@@ -139,7 +140,8 @@ class Commands extends WP_CLI_Command
 		foreach (array_keys($settings) as $format) {
 			$on = isset($assoc_args[$format]) ? filter_var($assoc_args[$format], FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) : isset($enabled[$format]);
 			if ($on === null) {
-				WP_CLI::error(sprintf('--%1$s is on or off: use --%1$s or --no-%1$s.', $format));
+				/* translators: %s: a format, e.g. webp. */
+				WP_CLI::error(sprintf(__('--%1$s is on or off: use --%1$s or --no-%1$s.', 'octopus-image-optimizer'), $format));
 			}
 			if (!$on) {
 				unset($settings[$format]);
@@ -165,7 +167,8 @@ class Commands extends WP_CLI_Command
 		$thumbnails_only = isset($assoc_args['thumbnails-only']) && filter_var($assoc_args['thumbnails-only'], FILTER_VALIDATE_BOOLEAN);
 		$regenerate = isset($assoc_args['regenerate']) && filter_var($assoc_args['regenerate'], FILTER_VALIDATE_BOOLEAN);
 
-		WP_CLI::log('Formats: ' . (empty($settings) ? 'none' : implode(', ', array_keys($settings))));
+		/* translators: %s: the formats, e.g. jpg, webp. */
+		WP_CLI::log(sprintf(__('Formats: %s', 'octopus-image-optimizer'), empty($settings) ? __('none', 'octopus-image-optimizer') : implode(', ', array_keys($settings))));
 
 		$counter = 0;
 		$failed = 0;
@@ -182,13 +185,14 @@ class Commands extends WP_CLI_Command
 				'order' => 'ASC',
 			]);
 			foreach ($query->posts as $id) {
-				WP_CLI::log(WP_CLI::colorize("%BProcessing image: %n") . get_the_title($id));
+				WP_CLI::log(WP_CLI::colorize('%B' . __('Processing image:', 'octopus-image-optimizer') . ' %n') . get_the_title($id));
 				$done = Lock::run($id, function () use ($id, $regenerate, $settings, $force, $thumbnails_only) {
 					$metadata = $regenerate ? Optimiser::regenerate($id) : null;
 					return Optimiser::attachment($id, $metadata, $settings, $force || $regenerate, $thumbnails_only);
 				});
 				if ($done === null) {
-					WP_CLI::warning(get_the_title($id) . ': skipped, another request is processing it.');
+					/* translators: %s: the title of an image. */
+					WP_CLI::warning(sprintf(__('%s: skipped, another request is processing it.', 'octopus-image-optimizer'), get_the_title($id)));
 					continue;
 				}
 				$counter++;
@@ -200,9 +204,11 @@ class Commands extends WP_CLI_Command
 		} while ($page <= $query->max_num_pages);
 
 		if ($failed) {
-			WP_CLI::error(sprintf('Processed %d images, %d with errors: see them in the Media library.', $counter, $failed));
+			/* translators: 1: the number of images, 2: the number of images with errors. */
+			WP_CLI::error(sprintf(_n('Processed %1$d image, %2$d with errors: see them in the Media library.', 'Processed %1$d images, %2$d with errors: see them in the Media library.', $counter, 'octopus-image-optimizer'), $counter, $failed));
 		}
-		WP_CLI::success('Successfully processed ' . $counter . ' images.');
+		/* translators: %d: the number of images. */
+		WP_CLI::success(sprintf(_n('Successfully processed %d image.', 'Successfully processed %d images.', $counter, 'octopus-image-optimizer'), $counter));
 	}
 
 	/**
@@ -220,7 +226,8 @@ class Commands extends WP_CLI_Command
 		foreach ($ids as $id) {
 			Cleaner::remove_formats($id);
 		}
-		WP_CLI::success('Removed the WebP and AVIF files of ' . count($ids) . ' images.');
+		/* translators: %d: the number of images. */
+		WP_CLI::success(sprintf(_n('Removed the WebP and AVIF files of %d image.', 'Removed the WebP and AVIF files of %d images.', count($ids), 'octopus-image-optimizer'), count($ids)));
 	}
 
 	/**
@@ -242,13 +249,26 @@ class Commands extends WP_CLI_Command
 			$restored = Cleaner::restore($id);
 			if ($restored === null) {
 				$skipped++;
-				WP_CLI::warning(get_the_title($id) . ': skipped, another request is processing it.');
+				/* translators: %s: the title of an image. */
+				WP_CLI::warning(sprintf(__('%s: skipped, another request is processing it.', 'octopus-image-optimizer'), get_the_title($id)));
 			} elseif (!$restored) {
 				$missing++;
-				WP_CLI::warning(get_the_title($id) . ': no original to restore, it stays compressed.');
+				/* translators: %s: the title of an image. */
+				WP_CLI::warning(sprintf(__('%s: no original to restore, it stays compressed.', 'octopus-image-optimizer'), get_the_title($id)));
 			}
 		}
-		WP_CLI::success('Restored ' . (count($ids) - $missing - $skipped) . ' images' . ($missing ? ', ' . $missing . ' had no original' : '') . ($skipped ? ', ' . $skipped . ' skipped' : '') . '.');
+		$done = count($ids) - $missing - $skipped;
+		/* translators: %d: the number of images. */
+		$message = sprintf(_n('Restored %d image.', 'Restored %d images.', $done, 'octopus-image-optimizer'), $done);
+		if ($missing) {
+			/* translators: %d: the number of images. */
+			$message .= ' ' . sprintf(_n('%d had no original.', '%d had no original.', $missing, 'octopus-image-optimizer'), $missing);
+		}
+		if ($skipped) {
+			/* translators: %d: the number of images. */
+			$message .= ' ' . sprintf(_n('%d skipped.', '%d skipped.', $skipped, 'octopus-image-optimizer'), $skipped);
+		}
+		WP_CLI::success($message);
 	}
 
 	/**
@@ -283,20 +303,22 @@ class Commands extends WP_CLI_Command
 					return true;
 				});
 				if ($done === null) {
-					WP_CLI::warning(get_the_title($id) . ': skipped, another request is processing it.');
+					/* translators: %s: the title of an image. */
+					WP_CLI::warning(sprintf(__('%s: skipped, another request is processing it.', 'octopus-image-optimizer'), get_the_title($id)));
 					continue;
 				}
 				$measured++;
 			}
 		}
-		WP_CLI::log('Measured ' . $measured . ' images.');
+		/* translators: %d: the number of images. */
+		WP_CLI::log(sprintf(_n('Measured %d image.', 'Measured %d images.', $measured, 'octopus-image-optimizer'), $measured));
 
 		$totals = Stats::totals(true);
 		$labels = [
-			'original' => 'Originals',
-			'compressed' => 'Compressed JPG and PNG',
-			'modern' => 'With WebP and AVIF served',
-			'extra' => 'WebP and AVIF files',
+			'original' => __('Originals', 'octopus-image-optimizer'),
+			'compressed' => __('Compressed JPG and PNG', 'octopus-image-optimizer'),
+			'modern' => __('With WebP and AVIF served', 'octopus-image-optimizer'),
+			'extra' => __('WebP and AVIF files', 'octopus-image-optimizer'),
 		];
 		$items = [];
 		foreach ($labels as $name => $label) {
@@ -310,13 +332,13 @@ class Commands extends WP_CLI_Command
 		\WP_CLI\Utils\format_items('table', $items, ['Files', 'Bytes', 'Size', 'Reduction']);
 
 		$served = Stats::served();
-		WP_CLI::success(sprintf(
-			'%s saved on %d images, %s: the site serves %s.',
-			Stats::size(max(0, $totals['original'] - $totals[$served])),
-			$totals['images'],
-			(string)Stats::reduction($totals, $served),
-			$served === 'modern' ? 'the WebP and AVIF' : 'the JPG and PNG, not the WebP and AVIF'
-		));
+		$saved = Stats::size(max(0, $totals['original'] - $totals[$served]));
+		$reduction = (string)Stats::reduction($totals, $served);
+		WP_CLI::success($served === 'modern'
+			/* translators: 1: a size, e.g. 12.5 MB, 2: the number of images, 3: a reduction, e.g. −48 %. */
+			? sprintf(_n('%1$s saved on %2$d image, %3$s: the site serves the WebP and AVIF.', '%1$s saved on %2$d images, %3$s: the site serves the WebP and AVIF.', $totals['images'], 'octopus-image-optimizer'), $saved, $totals['images'], $reduction)
+			/* translators: 1: a size, e.g. 12.5 MB, 2: the number of images, 3: a reduction, e.g. −48 %. */
+			: sprintf(_n('%1$s saved on %2$d image, %3$s: the site serves the JPG and PNG, not the WebP and AVIF.', '%1$s saved on %2$d images, %3$s: the site serves the JPG and PNG, not the WebP and AVIF.', $totals['images'], 'octopus-image-optimizer'), $saved, $totals['images'], $reduction));
 	}
 
 	/**
@@ -326,7 +348,7 @@ class Commands extends WP_CLI_Command
 	 */
 	private function print_welcome()
 	{
-		WP_CLI::line(WP_CLI::colorize('%GWelcome to the OIO CLI...%n' . PHP_EOL));
+		WP_CLI::line(WP_CLI::colorize('%G' . __('Welcome to the OIO CLI...', 'octopus-image-optimizer') . '%n' . PHP_EOL));
 	}
 
 	/**
@@ -339,10 +361,12 @@ class Commands extends WP_CLI_Command
 	private function print_health($type, $active)
 	{
 		if ($active) {
-			WP_CLI::success($type . " active.");
+			/* translators: %s: a library, e.g. cwebp. */
+			WP_CLI::success(sprintf(__('%s active.', 'octopus-image-optimizer'), $type));
 			return;
 		}
-		WP_CLI::log(WP_CLI::colorize("%RError: %n") . $type . ' not installed, visit docs.');
+		/* translators: %s: a library, e.g. cwebp. */
+		WP_CLI::log(WP_CLI::colorize('%R' . __('Error:', 'octopus-image-optimizer') . ' %n') . sprintf(__('%s not installed, see the settings page of OIO.', 'octopus-image-optimizer'), $type));
 	}
 
 	/**
@@ -360,6 +384,7 @@ class Commands extends WP_CLI_Command
 			$this->print_health($service::cmd_name(), $service::installed());
 			return;
 		}
-		WP_CLI::success(sprintf('%s active for %s: %s not installed, recommended.', $service::editor(), $format, $service::cmd_name()));
+		/* translators: 1: GD or Imagick, 2: a format, e.g. WebP, 3: a library, e.g. cwebp. */
+		WP_CLI::success(sprintf(__('%1$s active for %2$s: %3$s not installed, recommended.', 'octopus-image-optimizer'), $service::editor(), $format, $service::cmd_name()));
 	}
 }

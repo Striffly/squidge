@@ -63,7 +63,7 @@ class Test
 		}
 		$sample = self::sample();
 		if (!$sample) {
-			wp_send_json_error(['message' => 'Optimise at least one image with its WebP or AVIF version first.']);
+			wp_send_json_error(['message' => __('Optimise at least one image with its WebP or AVIF version first.', 'octopus-image-optimizer')]);
 		}
 		$checks = [];
 
@@ -76,9 +76,15 @@ class Test
 			$ok = $response['status'] === 200 && $response['type'] === $type;
 			$checks[] = [
 				'state' => $ok ? 'ok' : 'fail',
-				'label' => sprintf('The %s files are served as %s', $name, $type),
+				/* translators: 1: a format, e.g. WebP, 2: a type, e.g. image/webp. */
+				'label' => sprintf(__('The %1$s files are served as %2$s', 'octopus-image-optimizer'), $name, $type),
 				'detail' => self::describe($response),
-				'advice' => $ok ? '' : sprintf('The browsers ignore a file sent with another type. Apache: <code>AddType %1$s .%2$s</code>. nginx: add <code>%1$s %2$s;</code> to mime.types.', $type, $format),
+				'advice' => $ok ? '' : sprintf(
+					/* translators: 1: the Apache directive, 2: the nginx line. */
+					esc_html__('The browsers ignore a file sent with another type. Apache: %1$s. nginx: add %2$s to mime.types.', 'octopus-image-optimizer'),
+					'<code>AddType ' . $type . ' .' . $format . '</code>',
+					'<code>' . $type . ' ' . $format . ';</code>'
+				),
 			];
 		}
 
@@ -89,17 +95,19 @@ class Test
 		$wanted = Settings::get('serve_rewrite') || Htaccess::server() === 'nginx';
 		$checks[] = [
 			'state' => $rewritten ? 'ok' : ($wanted ? 'fail' : 'info'),
-			'label' => $rewritten ? 'The server answers the image with its ' . ($expected === 'image/avif' ? 'AVIF' : 'WebP') . ' version' : 'The server answers the image with the JPG or PNG',
+			/* translators: %s: AVIF or WebP. */
+			'label' => $rewritten ? sprintf(__('The server answers the image with its %s version', 'octopus-image-optimizer'), $expected === 'image/avif' ? 'AVIF' : 'WebP') : __('The server answers the image with the JPG or PNG', 'octopus-image-optimizer'),
 			'detail' => self::describe($rewrite),
-			'advice' => $rewritten ? '' : ($wanted ? 'The rewrite rules are not applied: check that they are in the configuration of the server, and that mod_rewrite is on (Apache).' : 'Expected while the server rewrite is off.'),
+			'advice' => $rewritten ? '' : ($wanted ? esc_html__('The rewrite rules are not applied: check that they are in the configuration of the server, and that mod_rewrite is on (Apache).', 'octopus-image-optimizer') : esc_html__('Expected while the server rewrite is off.', 'octopus-image-optimizer')),
 		];
 		if ($rewritten) {
 			$vary = stripos($rewrite['vary'], 'accept') !== false;
 			$checks[] = [
 				'state' => $vary ? 'ok' : 'fail',
-				'label' => 'Caches know the image depends on the browser (Vary: Accept)',
-				'detail' => $vary ? 'Vary: ' . $rewrite['vary'] : 'No Vary: Accept header.',
-				'advice' => $vary ? '' : 'Without it, a cache or a CDN can serve an AVIF to a browser that cannot read it. Apache: enable mod_headers (<code>a2enmod headers</code>).',
+				'label' => __('Caches know the image depends on the browser (Vary: Accept)', 'octopus-image-optimizer'),
+				'detail' => $vary ? 'Vary: ' . $rewrite['vary'] : __('No Vary: Accept header.', 'octopus-image-optimizer'),
+				/* translators: %s: a2enmod headers */
+				'advice' => $vary ? '' : sprintf(esc_html__('Without it, a cache or a CDN can serve an AVIF to a browser that cannot read it. Apache: enable mod_headers (%s).', 'octopus-image-optimizer'), '<code>a2enmod headers</code>'),
 			];
 		}
 
@@ -122,15 +130,15 @@ class Test
 	 */
 	private static function check_originals($sample)
 	{
-		$label = 'The original images are not public';
+		$label = __('The original images are not public', 'octopus-image-optimizer');
 		$uploads = wp_get_upload_dir();
 		$backup = wp_normalize_path(Files::backup_path($sample['file']));
 		$base = trailingslashit(wp_normalize_path($uploads['basedir']));
 		if (!file_exists($backup)) {
-			return ['state' => 'info', 'label' => $label, 'detail' => 'The sample image has no original kept.', 'advice' => ''];
+			return ['state' => 'info', 'label' => $label, 'detail' => __('The sample image has no original kept.', 'octopus-image-optimizer'), 'advice' => ''];
 		}
 		if (strpos($backup, $base) !== 0) {
-			return ['state' => 'ok', 'label' => $label, 'detail' => 'They are kept out of the uploads folder.', 'advice' => ''];
+			return ['state' => 'ok', 'label' => $label, 'detail' => __('They are kept out of the uploads folder.', 'octopus-image-optimizer'), 'advice' => ''];
 		}
 		$response = self::head(trailingslashit($uploads['baseurl']) . substr($backup, strlen($base)));
 		$public = $response['status'] >= 200 && $response['status'] < 300;
@@ -138,7 +146,12 @@ class Test
 			'state' => $public ? 'fail' : 'ok',
 			'label' => $label,
 			'detail' => self::describe($response),
-			'advice' => $public ? 'Anyone can download them, with their metadata (GPS position of the photos). nginx: add <code>location ^~ ' . esc_html(wp_parse_url($uploads['baseurl'], PHP_URL_PATH)) . '/' . esc_html(Files::BACKUP_DIR) . '/ { deny all; }</code> to the server block, or move them with the <code>octopus_backup_dir</code> filter.' : '',
+			'advice' => $public ? sprintf(
+				/* translators: 1: the nginx rule, 2: octopus_backup_dir */
+				esc_html__('Anyone can download them, with their metadata (GPS position of the photos). nginx: add %1$s to the server block, or move them with the %2$s filter.', 'octopus-image-optimizer'),
+				'<code>location ^~ ' . esc_html(wp_parse_url($uploads['baseurl'], PHP_URL_PATH)) . '/' . esc_html(Files::BACKUP_DIR) . '/ { deny all; }</code>',
+				'<code>octopus_backup_dir</code>'
+			) : '',
 		];
 	}
 
@@ -223,7 +236,8 @@ class Test
 	private static function describe($response)
 	{
 		if ($response['error']) {
-			return 'The site could not be reached: ' . $response['error'];
+			/* translators: %s: the error. */
+			return sprintf(__('The site could not be reached: %s', 'octopus-image-optimizer'), $response['error']);
 		}
 		return 'HTTP ' . $response['status'] . ($response['type'] ? ', ' . $response['type'] : '');
 	}

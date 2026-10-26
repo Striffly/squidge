@@ -13,6 +13,9 @@
 	if (!row) {
 		return;
 	}
+	var __ = wp.i18n.__;
+	var _n = wp.i18n._n;
+	var sprintf = wp.i18n.sprintf;
 
 	function dialog(title, html, buttons) {
 		var element = document.createElement('dialog');
@@ -81,20 +84,26 @@
 				}
 				var html = '';
 				var buttons = [];
+				var restore = __('Restore original images', 'octopus-image-optimizer');
 				if (settings.themeCalls) {
-					html += '<p><strong>Your theme calls <code>octopus_image()</code></strong>: the pages using it will break while OIO is deactivated.</p>';
+					/* translators: %s: octopus_image() */
+					var calls = '<strong>' + sprintf(__('Your theme calls %s', 'octopus-image-optimizer'), '<code>octopus_image()</code>') + '</strong>';
+					/* translators: %s: Your theme calls octopus_image() */
+					html += '<p>' + sprintf(__('%s: the pages using it will break while OIO is deactivated.', 'octopus-image-optimizer'), calls) + '</p>';
 				}
 				if (info.images) {
-					html += '<p>OIO has optimised <strong>' + Number(info.images).toLocaleString() + ' images</strong>.'
-						+ ' Deactivating or deleting OIO keeps them as they are: compressed, with their WebP and AVIF versions,'
-						+ ' and their originals in <code>uploads/octopus-originals/</code>' + (info.size ? ' (' + info.size + ')' : '') + '.</p>'
-						+ '<p>If you are going to delete OIO, run <strong>Restore original images</strong> first to get your original'
-						+ ' images back and remove every OIO file.</p>';
-					buttons.push({label: 'Restore original images', href: settings.restoreUrl, primary: true});
+					var folder = '<code>uploads/octopus-originals/</code>' + (info.size ? ' (' + info.size + ')' : '');
+					/* translators: %s: the number of images. */
+					var images = '<strong>' + sprintf(_n('%s image', '%s images', info.images, 'octopus-image-optimizer'), Number(info.images).toLocaleString()) + '</strong>';
+					/* translators: 1: the number of images, 2: the folder of the originals and its size. */
+					html += '<p>' + sprintf(__('OIO has optimised %1$s. Deactivating or deleting OIO keeps them as they are: compressed, with their WebP and AVIF versions, and their originals in %2$s.', 'octopus-image-optimizer'), images, folder) + '</p>';
+					/* translators: %s: Restore original images */
+					html += '<p>' + sprintf(__('If you are going to delete OIO, run %s first to get your original images back and remove every OIO file.', 'octopus-image-optimizer'), '<strong>' + restore + '</strong>') + '</p>';
+					buttons.push({label: restore, href: settings.restoreUrl, primary: true});
 				}
-				buttons.push({label: 'Deactivate anyway', onClick: proceed});
-				buttons.push({label: 'Cancel', primary: !info.images});
-				dialog('Before deactivating OIO', html, buttons);
+				buttons.push({label: __('Deactivate anyway', 'octopus-image-optimizer'), onClick: proceed});
+				buttons.push({label: __('Cancel', 'octopus-image-optimizer'), primary: !info.images});
+				dialog(__('Before deactivating OIO', 'octopus-image-optimizer'), html, buttons);
 			});
 	});
 })();

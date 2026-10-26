@@ -79,7 +79,8 @@ class PluginsScreen
 		if ($hook !== 'plugins.php' || !current_user_can('activate_plugins')) {
 			return;
 		}
-		wp_enqueue_script('octopus-plugins', OCTOPUS_URL . 'assets/plugins.js', [], filemtime(OCTOPUS_PATH . 'assets/plugins.js'), true);
+		wp_enqueue_script('octopus-plugins', OCTOPUS_URL . 'assets/plugins.js', ['wp-i18n'], filemtime(OCTOPUS_PATH . 'assets/plugins.js'), true);
+		wp_set_script_translations('octopus-plugins', 'octopus-image-optimizer', OCTOPUS_PATH . 'languages');
 		wp_localize_script('octopus-plugins', 'octopusPlugins', [
 			'plugin' => plugin_basename(OCTOPUS_FILE),
 			'ajaxurl' => admin_url('admin-ajax.php'),

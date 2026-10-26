@@ -26,16 +26,16 @@ if (!defined('ABSPATH')) {
 <ul class="octopus-install__list">
 	<li>
 		<span class="octopus-install__os">Linux</span>
-		Dependant on your distro, you may need to build from source.
-		<a href="https://aomediacodec.github.io/av1-avif/" target="_blank" rel="noopener">More information</a>
+		<?php esc_html_e('Depending on your distribution, you may need to build it from source.', 'octopus-image-optimizer'); ?>
+		<a href="https://aomediacodec.github.io/av1-avif/" target="_blank" rel="noopener"><?php esc_html_e('More information', 'octopus-image-optimizer'); ?></a>
 	</li>
 	<li>
 		<span class="octopus-install__os">Mac</span>
 		<code>brew install libavif</code>
-		<a href="https://formulae.brew.sh/formula/libavif" target="_blank" rel="noopener">More information</a>
+		<a href="https://formulae.brew.sh/formula/libavif" target="_blank" rel="noopener"><?php esc_html_e('More information', 'octopus-image-optimizer'); ?></a>
 	</li>
 	<li>
 		<span class="octopus-install__os">Windows</span>
-		<a href="https://github.com/AOMediaCodec/libavif/releases" target="_blank" rel="noopener">Download for Windows</a>
+		<a href="https://github.com/AOMediaCodec/libavif/releases" target="_blank" rel="noopener"><?php esc_html_e('Download for Windows', 'octopus-image-optimizer'); ?></a>
 	</li>
 </ul>

@@ -43,17 +43,6 @@ class SettingsPage
 	const PAGE = 'octopus-image-optimizer';
 
 	/**
-	 * Labels of the format states, see state().
-	 *
-	 * @var array
-	 */
-	const STATE_LABELS = [
-		'on' => 'Active',
-		'off' => 'Library missing',
-		'muted' => 'Disabled',
-	];
-
-	/**
 	 * Registers the options page.
 	 *
 	 * @since 1.0.0
@@ -86,9 +75,10 @@ class SettingsPage
 		if ($hook !== 'settings_page_' . self::PAGE) {
 			return;
 		}
-		wp_enqueue_style('octopus-admin', OCTOPUS_URL . 'assets/admin.css', [], filemtime(OCTOPUS_PATH . 'assets/admin.css'));
-		wp_enqueue_script('octopus-admin', OCTOPUS_URL . 'assets/admin.js', [], filemtime(OCTOPUS_PATH . 'assets/admin.js'), true);
-		wp_localize_script('octopus-admin', 'octopusJob', [
+		wp_enqueue_style('octopus-settings', OCTOPUS_URL . 'assets/settings.css', [], filemtime(OCTOPUS_PATH . 'assets/settings.css'));
+		wp_enqueue_script('octopus-settings', OCTOPUS_URL . 'assets/settings.js', ['wp-i18n'], filemtime(OCTOPUS_PATH . 'assets/settings.js'), true);
+		wp_set_script_translations('octopus-settings', 'octopus-image-optimizer', OCTOPUS_PATH . 'languages');
+		wp_localize_script('octopus-settings', 'octopusJob', [
 			'ajaxurl' => admin_url('admin-ajax.php'),
 			'nonce' => wp_create_nonce(JobsAjax::NONCE),
 		]);
@@ -101,7 +91,7 @@ class SettingsPage
 	 */
 	public function add_page()
 	{
-		add_options_page('OIO – Octopus Image Optimizer', 'Image Optimizer', 'manage_options', self::PAGE, [$this, 'render_page']);
+		add_options_page('OIO – Octopus Image Optimizer', __('Image Optimizer', 'octopus-image-optimizer'), 'manage_options', self::PAGE, [$this, 'render_page']);
 	}
 
 	/**
@@ -130,11 +120,11 @@ class SettingsPage
 		$counts = Status::counts();
 		$jobs = class_exists('Octopus_Vendor_WP_Background_Process');
 		$tabs = [
-			'overview' => 'Overview',
-			'optimise' => 'Optimise',
-			'delivery' => 'Delivery',
-			'settings' => 'Settings',
-			'maintenance' => 'Maintenance',
+			'overview' => __('Overview', 'octopus-image-optimizer'),
+			'optimise' => __('Optimise', 'octopus-image-optimizer'),
+			'delivery' => __('Delivery', 'octopus-image-optimizer'),
+			'settings' => __('Settings', 'octopus-image-optimizer'),
+			'maintenance' => __('Maintenance', 'octopus-image-optimizer'),
 		];
 		// The settings tab warns when a format has nothing to make it.
 		$missing = in_array('off', array_map([self::class, 'state'], $formats), true);
@@ -144,7 +134,7 @@ class SettingsPage
 				<img class="octopus-header__logo" src="<?php echo esc_url(OCTOPUS_URL . 'assets/icon-128x128.png'); ?>" alt="" width="64" height="64">
 				<div class="octopus-header__text">
 					<h1 class="octopus-header__title">OIO <span class="octopus-header__name">Octopus Image Optimizer</span></h1>
-					<p class="octopus-header__tagline">Squeezes images. Spills no ink, sends no bill.</p>
+					<p class="octopus-header__tagline"><?php esc_html_e('Squeezes images. Spills no ink, sends no bill.', 'octopus-image-optimizer'); ?></p>
 				</div>
 				<span class="octopus-header__version">v<?php echo esc_html(OCTOPUS_VERSION); ?></span>
 			</header>
@@ -156,7 +146,7 @@ class SettingsPage
 					<a href="#<?php echo esc_attr($id); ?>" class="octopus-tabs__tab" role="tab" data-tab="<?php echo esc_attr($id); ?>">
 						<?php echo esc_html($title); ?>
 						<?php if ($id === 'settings' && $missing) : ?>
-							<span class="octopus-dot octopus-dot--off" title="A format has no library"></span>
+							<span class="octopus-dot octopus-dot--off" title="<?php esc_attr_e('A format has no library', 'octopus-image-optimizer'); ?>"></span>
 						<?php endif; ?>
 					</a>
 				<?php endforeach; ?>
@@ -243,26 +233,44 @@ class SettingsPage
 		<div class="octopus-card octopus-card--hero">
 			<div class="octopus-savings">
 				<div class="octopus-savings__main"<?php echo $savings['images'] ? '' : ' hidden'; ?>>
-					<p class="octopus-savings__value"><span data-savings="saved"><?php echo esc_html($savings['saved']); ?></span> saved</p>
+					<p class="octopus-savings__value">
+						<?php
+						/* translators: %s: a size, e.g. 12.5 MB. */
+						$this->printf_html(__('%s saved', 'octopus-image-optimizer'), '<span data-savings="saved">' . esc_html($savings['saved']) . '</span>');
+						?>
+					</p>
 					<p class="octopus-savings__detail">
-						<span class="octopus-savings__reduction" data-savings="reduction"><?php echo esc_html($savings['reduction']); ?></span>
-						on what the site serves
+						<?php
+						/* translators: %s: a reduction, e.g. −48 %. */
+						$this->printf_html(__('%s on what the site serves', 'octopus-image-optimizer'), '<span class="octopus-savings__reduction" data-savings="reduction">' . esc_html($savings['reduction']) . '</span>');
+						?>
 						<span class="octopus-savings__hint"<?php echo $savings['hint'] ? '' : ' hidden'; ?>>
-							&middot; <a href="#delivery" data-tab="delivery"><span data-savings="modern"><?php echo esc_html($savings['modern']); ?></span> with WebP and AVIF served</a>
+							&middot; <a href="#delivery" data-tab="delivery">
+								<?php
+								/* translators: %s: a reduction, e.g. −62 %. */
+								$this->printf_html(__('%s with WebP and AVIF served', 'octopus-image-optimizer'), '<span data-savings="modern">' . esc_html($savings['modern']) . '</span>');
+								?>
+							</a>
 						</span>
 					</p>
 					<p class="octopus-savings__disk">
-						Disk used by OIO: originals <span data-savings="originals"><?php echo esc_html($savings['originals']); ?></span>,
-						WebP and AVIF <span data-savings="formats"><?php echo esc_html($savings['formats']); ?></span>
+						<?php
+						$this->printf_html(
+							/* translators: 1: the size of the originals, 2: the size of the WebP and AVIF files. */
+							__('Disk used by OIO: originals %1$s, WebP and AVIF %2$s', 'octopus-image-optimizer'),
+							'<span data-savings="originals">' . esc_html($savings['originals']) . '</span>',
+							'<span data-savings="formats">' . esc_html($savings['formats']) . '</span>'
+						);
+						?>
 					</p>
 				</div>
 				<div class="octopus-savings__empty"<?php echo $savings['images'] ? ' hidden' : ''; ?>>
-					<p class="octopus-savings__value">Ready to squeeze</p>
-					<p class="octopus-savings__detail">OIO optimises your images on your own server: free, unlimited, and they never leave it.</p>
+					<p class="octopus-savings__value"><?php esc_html_e('Ready to squeeze', 'octopus-image-optimizer'); ?></p>
+					<p class="octopus-savings__detail"><?php esc_html_e('OIO optimises your images on your own server: free, unlimited, and they never leave it.', 'octopus-image-optimizer'); ?></p>
 				</div>
 			</div>
 			<ul class="octopus-counts">
-				<?php foreach (MediaColumn::LABELS as $status => $label) : ?>
+				<?php foreach (self::count_labels() as $status => $label) : ?>
 					<li class="octopus-counts__item octopus-counts__item--<?php echo esc_attr($status); ?>">
 						<span class="octopus-counts__value" data-count="<?php echo esc_attr($status); ?>"><?php echo esc_html(number_format_i18n($counts[$status])); ?></span>
 						<span class="octopus-counts__label"><?php echo esc_html($label); ?></span>
@@ -274,18 +282,18 @@ class SettingsPage
 				/* translators: %s: the number of images. */
 				echo esc_html(sprintf(_n('%s JPG or PNG image in the media library.', '%s JPG and PNG images in the media library.', $counts['total'], 'octopus-image-optimizer'), number_format_i18n($counts['total'])));
 				?>
-				<a href="#optimise" data-tab="optimise">Optimise the media library</a>
+				<a href="#optimise" data-tab="optimise"><?php esc_html_e('Optimise the media library', 'octopus-image-optimizer'); ?></a>
 			</p>
 		</div>
 
-		<h2 class="octopus-heading">Formats</h2>
+		<h2 class="octopus-heading"><?php esc_html_e('Formats', 'octopus-image-optimizer'); ?></h2>
 		<div class="octopus-libraries">
 			<?php foreach ($formats as $id => $format) : ?>
 				<?php $state = self::state($format); ?>
 				<a class="octopus-library octopus-library--<?php echo esc_attr($state); ?>" href="#settings-<?php echo esc_attr($id); ?>" data-tab="settings" data-target="octopus-settings-<?php echo esc_attr($id); ?>">
 					<span class="octopus-library__head">
 						<span class="octopus-library__format"><?php echo esc_html($format['title']); ?></span>
-						<?php $this->render_badge($state, self::STATE_LABELS[$state]); ?>
+						<?php $this->render_badge($state, self::state_label($state)); ?>
 					</span>
 					<?php $this->render_engine($format); ?>
 				</a>
@@ -306,13 +314,14 @@ class SettingsPage
 	{
 		if ($format['installed']) {
 			$name = $format['library'];
-			$state = 'installed';
+			$state = __('installed', 'octopus-image-optimizer');
 		} elseif ($format['engine']) {
 			$name = $format['engine'];
-			$state = $format['library'] . ' not installed';
+			/* translators: %s: a library, e.g. cwebp. */
+			$state = sprintf(__('%s not installed', 'octopus-image-optimizer'), $format['library']);
 		} else {
 			$name = $format['library'];
-			$state = 'not installed';
+			$state = __('not installed', 'octopus-image-optimizer');
 		}
 		?>
 		<span class="octopus-engine octopus-engine--<?php echo $format['engine'] ? 'on' : 'off'; ?>">
@@ -325,7 +334,7 @@ class SettingsPage
 		<?php foreach ($format['extras'] as $extra => $installed) : ?>
 			<span class="octopus-engine octopus-engine--<?php echo $installed ? 'on' : 'off'; ?>">
 				<span class="octopus-engine__name"><?php echo esc_html($extra); ?></span>
-				<span class="octopus-engine__state"><?php echo $installed ? 'installed' : 'not installed'; ?></span>
+				<span class="octopus-engine__state"><?php echo esc_html($installed ? __('installed', 'octopus-image-optimizer') : __('not installed', 'octopus-image-optimizer')); ?></span>
 			</span>
 		<?php endforeach; ?>
 		<?php
@@ -346,8 +355,8 @@ class SettingsPage
 			<header class="octopus-card__header">
 				<span class="octopus-card__icon dashicons dashicons-images-alt2" aria-hidden="true"></span>
 				<div>
-					<h2 class="octopus-card__title">Optimise the media library</h2>
-					<p class="octopus-card__description">These jobs run in the background, page closed or not, with the lowest priority on the server.</p>
+					<h2 class="octopus-card__title"><?php esc_html_e('Optimise the media library', 'octopus-image-optimizer'); ?></h2>
+					<p class="octopus-card__description"><?php esc_html_e('These jobs run in the background, page closed or not, with the lowest priority on the server.', 'octopus-image-optimizer'); ?></p>
 				</div>
 			</header>
 			<?php if ($jobs) : ?>
@@ -355,37 +364,37 @@ class SettingsPage
 				<div class="octopus-done" data-done role="status"<?php echo $done ? '' : ' hidden'; ?>>
 					<span class="octopus-done__confetti" aria-hidden="true"></span>
 					<span class="octopus-done__icon dashicons dashicons-yes-alt" aria-hidden="true"></span>
-					<p class="octopus-done__text"><strong>All your images are optimised.</strong> Nothing left to do: the new ones are optimised on upload.</p>
+					<p class="octopus-done__text"><strong><?php esc_html_e('All your images are optimised.', 'octopus-image-optimizer'); ?></strong> <?php esc_html_e('Nothing left to do: the new ones are optimised on upload.', 'octopus-image-optimizer'); ?></p>
 				</div>
 				<div class="octopus-actions">
 					<div class="octopus-action octopus-action--primary">
 						<span class="octopus-action__icon dashicons dashicons-format-image" aria-hidden="true"></span>
-						<h3 class="octopus-action__title">New images</h3>
+						<h3 class="octopus-action__title"><?php esc_html_e('New images', 'octopus-image-optimizer'); ?></h3>
 						<p class="octopus-action__count" data-count="new"><?php echo esc_html(number_format_i18n($counts[Status::TO_OPTIMISE] + $counts[Status::ERROR])); ?></p>
-						<p class="octopus-action__text">Not optimised yet, or their optimisation failed.</p>
-						<button type="button" class="button button-primary octopus-action__button" data-job="new">Optimise new images</button>
+						<p class="octopus-action__text"><?php esc_html_e('Not optimised yet, or their optimisation failed.', 'octopus-image-optimizer'); ?></p>
+						<button type="button" class="button button-primary octopus-action__button" data-job="new"><?php esc_html_e('Optimise new images', 'octopus-image-optimizer'); ?></button>
 					</div>
 					<div class="octopus-action">
 						<span class="octopus-action__icon dashicons dashicons-update" aria-hidden="true"></span>
-						<h3 class="octopus-action__title">Outdated images</h3>
+						<h3 class="octopus-action__title"><?php esc_html_e('Outdated images', 'octopus-image-optimizer'); ?></h3>
 						<p class="octopus-action__count" data-count="outdated"><?php echo esc_html(number_format_i18n($counts[Status::OUTDATED])); ?></p>
-						<p class="octopus-action__text">Optimised before a quality, a format, the maximum size or the thumbnail sizes changed. Optimised again from their originals.</p>
-						<button type="button" class="button octopus-action__button" data-job="outdated">Re-optimise outdated images</button>
+						<p class="octopus-action__text"><?php esc_html_e('Optimised before a quality, a format, the maximum size or the thumbnail sizes changed. Optimised again from their originals.', 'octopus-image-optimizer'); ?></p>
+						<button type="button" class="button octopus-action__button" data-job="outdated"><?php esc_html_e('Re-optimise outdated images', 'octopus-image-optimizer'); ?></button>
 					</div>
 					<div class="octopus-action">
 						<span class="octopus-action__icon dashicons dashicons-images-alt" aria-hidden="true"></span>
-						<h3 class="octopus-action__title">All images</h3>
+						<h3 class="octopus-action__title"><?php esc_html_e('All images', 'octopus-image-optimizer'); ?></h3>
 						<p class="octopus-action__count" data-count="total"><?php echo esc_html(number_format_i18n($counts['total'])); ?></p>
-						<p class="octopus-action__text">Every image optimised again from its original, with its thumbnails made again.</p>
-						<button type="button" class="button octopus-action__button" data-job="all" data-confirm="Re-optimise all images from their originals, with their thumbnails? This can take a while.">Re-optimise all images</button>
+						<p class="octopus-action__text"><?php esc_html_e('Every image optimised again from its original, with its thumbnails made again.', 'octopus-image-optimizer'); ?></p>
+						<button type="button" class="button octopus-action__button" data-job="all" data-confirm="<?php esc_attr_e('Re-optimise all images from their originals, with their thumbnails? This can take a while.', 'octopus-image-optimizer'); ?>"><?php esc_html_e('Re-optimise all images', 'octopus-image-optimizer'); ?></button>
 					</div>
 				</div>
 			<?php else : ?>
 				<?php $this->render_no_jobs(); ?>
 			<?php endif; ?>
 			<p class="octopus-card__footer">
-				New uploads are optimised right away.
-				<a href="<?php echo esc_url(admin_url('upload.php?mode=list')); ?>">See each image in the Media library</a>
+				<?php esc_html_e('New uploads are optimised right away.', 'octopus-image-optimizer'); ?>
+				<a href="<?php echo esc_url(admin_url('upload.php?mode=list')); ?>"><?php esc_html_e('See each image in the Media library', 'octopus-image-optimizer'); ?></a>
 			</p>
 		</div>
 		<?php
@@ -407,15 +416,17 @@ class SettingsPage
 	private function render_delivery($display, $formats, $counts)
 	{
 		$server = Htaccess::server();
-		$names = ['apache' => 'Apache', 'nginx' => 'nginx', 'other' => 'Your server'];
+		$names = ['apache' => 'Apache', 'nginx' => 'nginx', 'other' => __('Your server', 'octopus-image-optimizer')];
 		$made = self::with_formats();
 		$total = $counts['total'];
 		$percent = $total ? min(100, (int)round($made / $total * 100)) : 0;
 		$rewrite = $display['fields']['serve_rewrite'];
 		if ($server !== 'apache') {
 			// OIO cannot write the rules: the option tells they are in place.
-			$rewrite['note'] = sprintf('%s: add the rules below to its configuration, then tick this box.', esc_html($names[$server]));
-			$rewrite['help'] = sprintf('%s does not read <code>.htaccess</code> files: add the rules below to its configuration, then tick this box so that OIO counts the bytes saved. The HTML does not change, and every image is served, CSS backgrounds and custom themes included.', esc_html($names[$server]));
+			/* translators: %s: the server, e.g. nginx. */
+			$rewrite['note'] = sprintf(__('%s: add the rules below to its configuration, then tick this box.', 'octopus-image-optimizer'), esc_html($names[$server]));
+			/* translators: 1: the server, e.g. nginx, 2: .htaccess. */
+			$rewrite['help'] = sprintf(__('%1$s does not read %2$s files: add the rules below to its configuration, then tick this box so that OIO counts the bytes saved. The HTML does not change, and every image is served, CSS backgrounds and custom themes included.', 'octopus-image-optimizer'), esc_html($names[$server]), '<code>.htaccess</code>');
 		}
 		?>
 		<ol class="octopus-steps">
@@ -423,8 +434,8 @@ class SettingsPage
 				<header class="octopus-step__header">
 					<span class="octopus-step__number" aria-hidden="true">1</span>
 					<div class="octopus-step__heading">
-						<h2 class="octopus-step__title">Generate</h2>
-						<p class="octopus-step__description">The WebP and AVIF versions are made while the images are optimised.</p>
+						<h2 class="octopus-step__title"><?php esc_html_e('Generate', 'octopus-image-optimizer'); ?></h2>
+						<p class="octopus-step__description"><?php esc_html_e('The WebP and AVIF versions are made while the images are optimised.', 'octopus-image-optimizer'); ?></p>
 					</div>
 				</header>
 				<div class="octopus-step__body octopus-generate">
@@ -443,13 +454,13 @@ class SettingsPage
 								<a class="octopus-chip" href="#settings-<?php echo esc_attr($id); ?>" data-tab="settings" data-target="octopus-settings-<?php echo esc_attr($id); ?>">
 									<span class="octopus-dot octopus-dot--<?php echo esc_attr($state); ?>" aria-hidden="true"></span>
 									<span class="octopus-chip__name"><?php echo esc_html($formats[$id]['title']); ?></span>
-									<span class="octopus-chip__state"><?php echo esc_html(self::STATE_LABELS[$state]); ?></span>
+									<span class="octopus-chip__state"><?php echo esc_html(self::state_label($state)); ?></span>
 								</a>
 							</li>
 						<?php endforeach; ?>
 					</ul>
 					<?php if ($made < $total) : ?>
-						<a class="button octopus-generate__button" href="#optimise" data-tab="optimise">Optimise the media library</a>
+						<a class="button octopus-generate__button" href="#optimise" data-tab="optimise"><?php esc_html_e('Optimise the media library', 'octopus-image-optimizer'); ?></a>
 					<?php endif; ?>
 				</div>
 			</li>
@@ -471,7 +482,7 @@ class SettingsPage
 					</div>
 				</div>
 				<footer class="octopus-step__actions">
-					<?php submit_button('Save changes', 'primary', 'submit', false, ['id' => 'octopus-save-delivery']); ?>
+					<?php submit_button(__('Save changes', 'octopus-image-optimizer'), 'primary', 'submit', false, ['id' => 'octopus-save-delivery']); ?>
 				</footer>
 			</li>
 
@@ -479,17 +490,17 @@ class SettingsPage
 				<header class="octopus-step__header">
 					<span class="octopus-step__number" aria-hidden="true">3</span>
 					<div class="octopus-step__heading">
-						<h2 class="octopus-step__title">Test</h2>
-						<p class="octopus-step__description">Requests an optimised image as a browser, after saving.</p>
+						<h2 class="octopus-step__title"><?php esc_html_e('Test', 'octopus-image-optimizer'); ?></h2>
+						<p class="octopus-step__description"><?php esc_html_e('Requests an optimised image as a browser, after saving.', 'octopus-image-optimizer'); ?></p>
 					</div>
 				</header>
 				<div class="octopus-step__body">
 					<ul class="octopus-test__list">
-						<li>Are the WebP and AVIF files served with their type?</li>
-						<li>Does the server answer the image with them?</li>
-						<li>Are the originals kept private?</li>
+						<li><?php esc_html_e('Are the WebP and AVIF files served with their type?', 'octopus-image-optimizer'); ?></li>
+						<li><?php esc_html_e('Does the server answer the image with them?', 'octopus-image-optimizer'); ?></li>
+						<li><?php esc_html_e('Are the originals kept private?', 'octopus-image-optimizer'); ?></li>
 					</ul>
-					<button type="button" class="button button-primary octopus-test__button" data-delivery-test>Run the test</button>
+					<button type="button" class="button button-primary octopus-test__button" data-delivery-test><?php esc_html_e('Run the test', 'octopus-image-optimizer'); ?></button>
 					<p class="octopus-test__summary" aria-live="polite" hidden></p>
 				</div>
 			</li>
@@ -499,7 +510,7 @@ class SettingsPage
 			<header class="octopus-card__header">
 				<span class="octopus-card__icon dashicons dashicons-yes-alt" aria-hidden="true"></span>
 				<div>
-					<h2 class="octopus-card__title">Test results</h2>
+					<h2 class="octopus-card__title"><?php esc_html_e('Test results', 'octopus-image-optimizer'); ?></h2>
 					<p class="octopus-card__description octopus-test__sample"></p>
 				</div>
 			</header>
@@ -508,33 +519,43 @@ class SettingsPage
 			</div>
 		</div>
 
-		<h2 class="octopus-heading">Rules and code</h2>
+		<h2 class="octopus-heading"><?php esc_html_e('Rules and code', 'octopus-image-optimizer'); ?></h2>
 		<?php if ($server === 'apache') : ?>
 			<?php $written = Htaccess::rules_written(); ?>
 			<details class="octopus-fold">
 				<summary class="octopus-fold__summary">
-					<span class="octopus-fold__title">Rewrite rules for Apache and LiteSpeed</span>
-					<?php $this->render_badge($written ? 'on' : 'muted', $written ? 'Written in uploads/.htaccess' : 'Not written'); ?>
+					<span class="octopus-fold__title"><?php esc_html_e('Rewrite rules for Apache and LiteSpeed', 'octopus-image-optimizer'); ?></span>
+					<?php $this->render_badge($written ? 'on' : 'muted', $written ? __('Written in uploads/.htaccess', 'octopus-image-optimizer') : __('Not written', 'octopus-image-optimizer')); ?>
 				</summary>
 				<div class="octopus-fold__content">
-					<p class="octopus-fold__text">OIO writes them in <code>uploads/.htaccess</code> when the server option is on, and removes them when it is off.</p>
+					<p class="octopus-fold__text">
+							<?php
+							/* translators: %s: uploads/.htaccess */
+							$this->printf_html(__('OIO writes them in %s when the server option is on, and removes them when it is off.', 'octopus-image-optimizer'), '<code>uploads/.htaccess</code>');
+							?>
+						</p>
 					<pre class="octopus-code"><code><?php echo esc_html(implode("\n", Htaccess::apache_rules())); ?></code></pre>
 				</div>
 			</details>
 		<?php else : ?>
 			<?php if ($server === 'other') : ?>
 				<details class="octopus-fold">
-					<summary class="octopus-fold__summary"><span class="octopus-fold__title">Rewrite rules for Apache and LiteSpeed</span></summary>
+					<summary class="octopus-fold__summary"><span class="octopus-fold__title"><?php esc_html_e('Rewrite rules for Apache and LiteSpeed', 'octopus-image-optimizer'); ?></span></summary>
 					<div class="octopus-fold__content">
-						<p class="octopus-fold__text">In <code>uploads/.htaccess</code>, written by OIO when the server option is on.</p>
+						<p class="octopus-fold__text">
+								<?php
+								/* translators: %s: uploads/.htaccess */
+								$this->printf_html(__('In %s, written by OIO when the server option is on.', 'octopus-image-optimizer'), '<code>uploads/.htaccess</code>');
+								?>
+							</p>
 						<pre class="octopus-code"><code><?php echo esc_html(implode("\n", Htaccess::apache_rules())); ?></code></pre>
 					</div>
 				</details>
 			<?php endif; ?>
 			<details class="octopus-fold">
-				<summary class="octopus-fold__summary"><span class="octopus-fold__title">Rewrite rules for nginx</span></summary>
+				<summary class="octopus-fold__summary"><span class="octopus-fold__title"><?php esc_html_e('Rewrite rules for nginx', 'octopus-image-optimizer'); ?></span></summary>
 				<div class="octopus-fold__content">
-					<p class="octopus-fold__text">Add them to the configuration of the site, reload nginx, then tick the server option.</p>
+					<p class="octopus-fold__text"><?php esc_html_e('Add them to the configuration of the site, reload nginx, then tick the server option.', 'octopus-image-optimizer'); ?></p>
 					<pre class="octopus-code"><code><?php echo esc_html(Htaccess::nginx_rules()); ?></code></pre>
 				</div>
 			</details>
@@ -604,7 +625,7 @@ class SettingsPage
 					<header class="octopus-format__header">
 						<div class="octopus-format__top">
 							<h2 class="octopus-format__title"><?php echo esc_html($format['title']); ?></h2>
-							<?php $this->render_badge($state, self::STATE_LABELS[$state]); ?>
+							<?php $this->render_badge($state, self::state_label($state)); ?>
 							<?php $this->render_switch($switch, $format['fields'][$switch]); ?>
 						</div>
 						<div class="octopus-format__engines">
@@ -614,18 +635,28 @@ class SettingsPage
 					<p class="octopus-format__description"><?php echo wp_kses($format['fields'][$switch]['help'], ['strong' => [], 'code' => []]); ?></p>
 					<?php if (!$format['installed'] && $format['engine']) : ?>
 						<details class="octopus-install octopus-install--advice">
-							<summary class="octopus-install__summary">Recommended: install <?php echo esc_html($format['library']); ?></summary>
+							<summary class="octopus-install__summary">
+								<?php
+								/* translators: %s: a library, e.g. cwebp. */
+								echo esc_html(sprintf(__('Recommended: install %s', 'octopus-image-optimizer'), $format['library']));
+								?>
+							</summary>
 							<p class="octopus-install__text"><?php echo esc_html(sprintf($format['recommendation'], $format['engine'])); ?></p>
 							<?php $this->render_template('health' . DIRECTORY_SEPARATOR . $format['template']); ?>
 						</details>
 					<?php elseif (!$format['installed']) : ?>
 						<details class="octopus-install">
-							<summary class="octopus-install__summary">How to install <?php echo esc_html($format['library']); ?></summary>
+							<summary class="octopus-install__summary">
+								<?php
+								/* translators: %s: a library, e.g. cwebp. */
+								echo esc_html(sprintf(__('How to install %s', 'octopus-image-optimizer'), $format['library']));
+								?>
+							</summary>
 							<?php $this->render_template('health' . DIRECTORY_SEPARATOR . $format['template']); ?>
 						</details>
 					<?php endif; ?>
 					<details class="octopus-format__settings">
-						<summary class="octopus-format__summary">Settings</summary>
+						<summary class="octopus-format__summary"><?php esc_html_e('Settings', 'octopus-image-optimizer'); ?></summary>
 						<div class="octopus-format__fields octopus-fields">
 							<?php foreach ($fields as $name => $field) : ?>
 								<?php $this->render_field($name, $field); ?>
@@ -633,7 +664,12 @@ class SettingsPage
 							<?php foreach ($format['optional'] as $name => $use) : ?>
 								<?php if ($format['installed'] && !$format['extras'][$name]) : ?>
 									<details class="octopus-install octopus-install--advice">
-										<summary class="octopus-install__summary">How to install <?php echo esc_html($name); ?>, for the <?php echo esc_html($use); ?></summary>
+										<summary class="octopus-install__summary">
+											<?php
+											/* translators: 1: a library, e.g. pngquant, 2: what it is for, e.g. lossy compression. */
+											echo esc_html(sprintf(__('How to install %1$s, for the %2$s', 'octopus-image-optimizer'), $name, $use));
+											?>
+										</summary>
 										<?php $this->render_template('health' . DIRECTORY_SEPARATOR . $format['template']); ?>
 									</details>
 								<?php endif; ?>
@@ -645,7 +681,7 @@ class SettingsPage
 		</div>
 
 		<div class="octopus-page__save">
-			<?php submit_button('Save changes', 'primary', 'submit', false, ['id' => 'octopus-save-settings']); ?>
+			<?php submit_button(__('Save changes', 'octopus-image-optimizer'), 'primary', 'submit', false, ['id' => 'octopus-save-settings']); ?>
 		</div>
 		<?php
 	}
@@ -665,14 +701,19 @@ class SettingsPage
 			<header class="octopus-card__header">
 				<span class="octopus-card__icon dashicons dashicons-trash" aria-hidden="true"></span>
 				<div>
-					<h2 class="octopus-card__title">Remove WebP and AVIF</h2>
-					<p class="octopus-card__description">Deletes the WebP and AVIF files of the <strong data-count="processed"><?php echo esc_html(number_format_i18n(count(Cleaner::ids()))); ?></strong> images processed. The JPG and PNG files stay compressed, and the originals kept.</p>
+					<h2 class="octopus-card__title"><?php esc_html_e('Remove WebP and AVIF', 'octopus-image-optimizer'); ?></h2>
+					<p class="octopus-card__description">
+						<?php
+						/* translators: %s: the number of images. */
+						$this->printf_html(__('Deletes the WebP and AVIF files of the %s images processed. The JPG and PNG files stay compressed, and the originals kept.', 'octopus-image-optimizer'), '<strong data-count="processed">' . esc_html(number_format_i18n(count(Cleaner::ids()))) . '</strong>');
+						?>
+					</p>
 				</div>
 			</header>
 			<?php if ($jobs) : ?>
 				<div class="octopus-confirm">
-					<label class="octopus-confirm__label"><input type="checkbox" class="octopus-confirm__input" data-confirm-for="remove_formats"> I understand the WebP and AVIF files are deleted, until the images are optimised again.</label>
-					<button type="button" class="button octopus-confirm__button" data-job="remove_formats">Remove WebP and AVIF</button>
+					<label class="octopus-confirm__label"><input type="checkbox" class="octopus-confirm__input" data-confirm-for="remove_formats"> <?php esc_html_e('I understand the WebP and AVIF files are deleted, until the images are optimised again.', 'octopus-image-optimizer'); ?></label>
+					<button type="button" class="button octopus-confirm__button" data-job="remove_formats"><?php esc_html_e('Remove WebP and AVIF', 'octopus-image-optimizer'); ?></button>
 				</div>
 			<?php else : ?>
 				<?php $this->render_no_jobs(); ?>
@@ -683,14 +724,14 @@ class SettingsPage
 			<header class="octopus-card__header">
 				<span class="octopus-card__icon dashicons dashicons-backup" aria-hidden="true"></span>
 				<div>
-					<h2 class="octopus-card__title">Restore original images</h2>
-					<p class="octopus-card__description">Puts the original images back and deletes every file made by OIO (WebP, AVIF, backups). Do it before deleting OIO: deleting it keeps the files as they are.</p>
+					<h2 class="octopus-card__title"><?php esc_html_e('Restore original images', 'octopus-image-optimizer'); ?></h2>
+					<p class="octopus-card__description"><?php esc_html_e('Puts the original images back and deletes every file made by OIO (WebP, AVIF, backups). Do it before deleting OIO: deleting it keeps the files as they are.', 'octopus-image-optimizer'); ?></p>
 				</div>
 			</header>
 			<?php if ($jobs) : ?>
 				<div class="octopus-confirm">
-					<label class="octopus-confirm__label"><input type="checkbox" class="octopus-confirm__input" data-confirm-for="restore"> I understand the images are no longer optimised, and their WebP and AVIF files are deleted.</label>
-					<button type="button" class="button octopus-confirm__button octopus-button--danger" data-job="restore">Restore original images</button>
+					<label class="octopus-confirm__label"><input type="checkbox" class="octopus-confirm__input" data-confirm-for="restore"> <?php esc_html_e('I understand the images are no longer optimised, and their WebP and AVIF files are deleted.', 'octopus-image-optimizer'); ?></label>
+					<button type="button" class="button octopus-confirm__button octopus-button--danger" data-job="restore"><?php esc_html_e('Restore original images', 'octopus-image-optimizer'); ?></button>
 				</div>
 			<?php else : ?>
 				<?php $this->render_no_jobs(); ?>
@@ -708,7 +749,12 @@ class SettingsPage
 	private function render_no_jobs()
 	{
 		?>
-		<p class="octopus-card__notice">The background jobs need the dependencies of OIO: run <code>composer install</code> in its folder. WP-CLI (<code>wp octopus run</code>) works without them.</p>
+		<p class="octopus-card__notice">
+			<?php
+			/* translators: 1: composer install, 2: wp octopus run */
+			$this->printf_html(__('The background jobs need the dependencies of OIO: run %1$s in its folder. WP-CLI (%2$s) works without them.', 'octopus-image-optimizer'), '<code>composer install</code>', '<code>wp octopus run</code>');
+			?>
+		</p>
 		<?php
 	}
 
@@ -728,9 +774,9 @@ class SettingsPage
 					<p class="octopus-job__label" aria-live="polite"></p>
 					<span class="octopus-job__percent"></span>
 					<div class="octopus-job__controls">
-						<button type="button" class="button" data-control="pause">Pause</button>
-						<button type="button" class="button" data-control="resume">Resume</button>
-						<button type="button" class="button-link button-link-delete" data-control="cancel">Cancel</button>
+						<button type="button" class="button" data-control="pause"><?php esc_html_e('Pause', 'octopus-image-optimizer'); ?></button>
+						<button type="button" class="button" data-control="resume"><?php esc_html_e('Resume', 'octopus-image-optimizer'); ?></button>
+						<button type="button" class="button-link button-link-delete" data-control="cancel"><?php esc_html_e('Cancel', 'octopus-image-optimizer'); ?></button>
 					</div>
 				</div>
 				<progress class="octopus-job__bar" max="100" value="0"></progress>
@@ -743,7 +789,7 @@ class SettingsPage
 				</div>
 				<button type="button" class="octopus-result__close" data-control="dismiss">
 					<span class="dashicons dashicons-no-alt" aria-hidden="true"></span>
-					<span class="screen-reader-text">Dismiss</span>
+					<span class="screen-reader-text"><?php esc_html_e('Dismiss', 'octopus-image-optimizer'); ?></span>
 				</button>
 			</div>
 		</div>
@@ -762,14 +808,35 @@ class SettingsPage
 		$code = "<?php\nif (function_exists('octopus_image')) {\n\techo octopus_image(\$image_id, 'my-class');\n} else {\n\techo wp_get_attachment_image(\$image_id, 'full');\n}";
 		?>
 		<details class="octopus-fold">
-			<summary class="octopus-fold__summary"><span class="octopus-fold__title">Custom themes: the <code>octopus_image()</code> helper</span></summary>
+			<summary class="octopus-fold__summary">
+				<span class="octopus-fold__title">
+					<?php
+					/* translators: %s: octopus_image() */
+					$this->printf_html(__('Custom themes: the %s helper', 'octopus-image-optimizer'), '<code>octopus_image()</code>');
+					?>
+				</span>
+			</summary>
 			<div class="octopus-fold__content">
-				<p class="octopus-fold__text">Images output with your own markup (e.g. from an ACF field) are not wrapped in a <code>&lt;picture&gt;</code> by the HTML option: serve them from the server, or use the <code>octopus_image()</code> helper, which returns their <code>&lt;picture&gt;</code> whatever the options.</p>
+				<p class="octopus-fold__text">
+					<?php
+					/* translators: 1: <picture>, 2: octopus_image() */
+					$this->printf_html(__('Images output with your own markup (e.g. from an ACF field) are not wrapped in a %1$s by the HTML option: serve them from the server, or use the %2$s helper, which returns their %1$s whatever the options.', 'octopus-image-optimizer'), '<code>&lt;picture&gt;</code>', '<code>octopus_image()</code>');
+					?>
+				</p>
 				<pre class="octopus-code"><code><?php echo esc_html($code); ?></code></pre>
-				<p class="octopus-fold__text">The second argument is the class of the <code>&lt;picture&gt;</code> element. Pass
-					<code>true</code> as third argument to output <code>data-src</code> and <code>data-srcset</code> for a
-					JavaScript lazy loader. Keep the <code>function_exists()</code> check: without it, the pages break while
-					OIO is deactivated.</p>
+				<p class="octopus-fold__text">
+					<?php
+					$this->printf_html(
+						/* translators: 1: <picture>, 2: true, 3: data-src, 4: data-srcset, 5: function_exists() */
+						__('The second argument is the class of the %1$s element. Pass %2$s as third argument to output %3$s and %4$s for a JavaScript lazy loader. Keep the %5$s check: without it, the pages break while OIO is deactivated.', 'octopus-image-optimizer'),
+						'<code>&lt;picture&gt;</code>',
+						'<code>true</code>',
+						'<code>data-src</code>',
+						'<code>data-srcset</code>',
+						'<code>function_exists()</code>'
+					);
+					?>
+				</p>
 			</div>
 		</details>
 		<?php
@@ -821,6 +888,54 @@ class SettingsPage
 	}
 
 	/**
+	 * Returns the labels of the counts of the overview,
+	 * by status: a number of images, where the media
+	 * column labels one image (MediaColumn::labels()).
+	 *
+	 * @return array
+	 * @since 1.0.0
+	 */
+	private static function count_labels()
+	{
+		return [
+			Status::OPTIMISED => _x('Optimised', 'images', 'octopus-image-optimizer'),
+			Status::TO_OPTIMISE => _x('To optimise', 'images', 'octopus-image-optimizer'),
+			Status::OUTDATED => _x('Older settings', 'images', 'octopus-image-optimizer'),
+			Status::ERROR => _x('Error', 'images', 'octopus-image-optimizer'),
+		];
+	}
+
+	/**
+	 * Returns the label of a format state, see state().
+	 *
+	 * @param string $state
+	 * @return string
+	 * @since 1.0.0
+	 */
+	private static function state_label($state)
+	{
+		$labels = [
+			'on' => __('Active', 'octopus-image-optimizer'),
+			'off' => __('Library missing', 'octopus-image-optimizer'),
+			'muted' => __('Disabled', 'octopus-image-optimizer'),
+		];
+		return $labels[$state];
+	}
+
+	/**
+	 * Prints a translated text, escaped, with HTML in
+	 * its placeholders, e.g. a <code> or a counter.
+	 *
+	 * @param string $format
+	 * @param string ...$html Escaped by the caller.
+	 * @since 1.0.0
+	 */
+	private function printf_html($format, ...$html)
+	{
+		echo sprintf(esc_html($format), ...$html); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- The text is escaped here, its placeholders by the caller.
+	}
+
+	/**
 	 * Renders a status badge.
 	 *
 	 * @param string $variant on, off or muted.
@@ -847,7 +962,7 @@ class SettingsPage
 		$value = Settings::get($name);
 		$setting = Settings::FIELDS[$name];
 		$tags = ['strong' => [], 'code' => []];
-		// A field shown while another one has a value, e.g. the lossy quality (admin.js).
+		// A field shown while another one has a value, e.g. the lossy quality (settings.js).
 		$when = '';
 		if (!empty($field['when'])) {
 			$when = sprintf(' data-when="%s" data-when-value="%s"', esc_attr(Settings::OPTION . '[' . $field['when'][0] . ']'), esc_attr($field['when'][1]));
@@ -902,10 +1017,10 @@ class SettingsPage
 			printf('<p class="octopus-field__help">%s</p></div>', wp_kses($field['help'], $tags));
 			return;
 		}
-		// A short note, the full help behind a "?" button (admin.js hides it, shown without JS).
+		// A short note, the full help behind a "?" button (settings.js hides it, shown without JS).
 		printf(
-			'<p class="octopus-field__help">%s <button type="button" class="octopus-help__toggle" aria-expanded="false" aria-controls="%s-help"><span aria-hidden="true">?</span><span class="screen-reader-text">More about: %s</span></button></p><p class="octopus-field__help octopus-help__text" id="%s-help">%s</p></div>',
-			wp_kses($field['note'], $tags), esc_attr($id), esc_html($field['label']), esc_attr($id), wp_kses($field['help'], $tags)
+			'<p class="octopus-field__help">%s <button type="button" class="octopus-help__toggle" aria-expanded="false" aria-controls="%s-help"><span aria-hidden="true">?</span><span class="screen-reader-text">%s</span></button></p><p class="octopus-field__help octopus-help__text" id="%s-help">%s</p></div>',
+			wp_kses($field['note'], $tags), esc_attr($id), /* translators: %s: the label of a setting. */ esc_html(sprintf(__('More about: %s', 'octopus-image-optimizer'), $field['label'])), esc_attr($id), wp_kses($field['help'], $tags)
 		);
 	}
 
@@ -943,13 +1058,13 @@ class SettingsPage
 				'fields' => [
 					'jpg_enable' => [
 						'type' => 'checkbox',
-						'label' => 'Compress JPG images',
-						'help' => 'Compresses the JPG images in place with jpegoptim, and makes them progressive. Their originals are kept.',
+						'label' => __('Compress JPG images', 'octopus-image-optimizer'),
+						'help' => __('Compresses the JPG images in place with jpegoptim, and makes them progressive. Their originals are kept.', 'octopus-image-optimizer'),
 					],
 					'jpg_quality' => [
 						'type' => 'number',
-						'label' => 'Quality',
-						'help' => 'From 0 to 100, 80 by default.',
+						'label' => __('Quality', 'octopus-image-optimizer'),
+						'help' => __('From 0 to 100, 80 by default.', 'octopus-image-optimizer'),
 					],
 				],
 			],
@@ -957,33 +1072,33 @@ class SettingsPage
 				'title' => 'PNG',
 				'service' => PNG::class,
 				'template' => 'png.php',
-				'optional' => ['pngquant' => 'lossy compression'],
+				'optional' => ['pngquant' => __('lossy compression', 'octopus-image-optimizer')],
 				'fields' => [
 					'png_enable' => [
 						'type' => 'checkbox',
-						'label' => 'Compress PNG images',
-						'help' => 'Compresses the PNG images in place with oxipng or optipng, after pngquant when lossy. Their originals are kept.',
+						'label' => __('Compress PNG images', 'octopus-image-optimizer'),
+						'help' => __('Compresses the PNG images in place with oxipng or optipng, after pngquant when lossy. Their originals are kept.', 'octopus-image-optimizer'),
 					],
 					'png_compression' => [
 						'type' => 'choice',
-						'label' => 'Compression',
+						'label' => __('Compression', 'octopus-image-optimizer'),
 						'options' => [
-							'lossless' => 'Lossless',
-							'lossy' => 'Lossy (pngquant)',
+							'lossless' => __('Lossless', 'octopus-image-optimizer'),
+							'lossy' => __('Lossy (pngquant)', 'octopus-image-optimizer'),
 						],
-						'help' => 'Lossy: often 60 to 80 % lighter, for graphics and screenshots. Needs pngquant.',
+						'help' => __('Lossy: often 60 to 80 % lighter, for graphics and screenshots. Needs pngquant.', 'octopus-image-optimizer'),
 					],
 					'png_level' => [
 						'type' => 'select',
-						'label' => 'Optimisation level',
+						'label' => __('Optimisation level', 'octopus-image-optimizer'),
 						'options' => ['0' => 'o0', '1' => 'o1', '2' => 'o2', '3' => 'o3', '4' => 'o4', '5' => 'o5', '6' => 'o6', '7' => 'o7'],
-						'help' => 'From o0 (fastest) to o7 (smallest files), o2 by default.',
+						'help' => __('From o0 (fastest) to o7 (smallest files), o2 by default.', 'octopus-image-optimizer'),
 					],
 					'png_lossy_quality' => [
 						'type' => 'number',
-						'label' => 'Lossy quality',
+						'label' => __('Lossy quality', 'octopus-image-optimizer'),
 						'when' => ['png_compression', 'lossy'],
-						'help' => 'The quality pngquant aims at, 80 by default.',
+						'help' => __('The quality pngquant aims at, 80 by default.', 'octopus-image-optimizer'),
 					],
 				],
 			],
@@ -991,17 +1106,18 @@ class SettingsPage
 				'title' => 'WebP',
 				'service' => WebP::class,
 				'template' => 'webp.php',
-				'recommendation' => '%s makes the WebP files for now, in the PHP process. cwebp runs apart from PHP, and makes the PNG graphics and screenshots much lighter.',
+				/* translators: %s: GD or Imagick. */
+				'recommendation' => __('%s makes the WebP files for now, in the PHP process. cwebp runs apart from PHP, and makes the PNG graphics and screenshots much lighter.', 'octopus-image-optimizer'),
 				'fields' => [
 					'webp_enable' => [
 						'type' => 'checkbox',
-						'label' => 'Make WebP versions',
-						'help' => 'Makes a WebP version of each image and thumbnail (<code>photo.jpg.webp</code>), lighter than the JPG or PNG.',
+						'label' => __('Make WebP versions', 'octopus-image-optimizer'),
+						'help' => __('Makes a WebP version of each image and thumbnail (<code>photo.jpg.webp</code>), lighter than the JPG or PNG.', 'octopus-image-optimizer'),
 					],
 					'webp_quality' => [
 						'type' => 'number',
-						'label' => 'Quality',
-						'help' => 'From 0 to 100, 80 by default.',
+						'label' => __('Quality', 'octopus-image-optimizer'),
+						'help' => __('From 0 to 100, 80 by default.', 'octopus-image-optimizer'),
 					],
 				],
 			],
@@ -1009,47 +1125,48 @@ class SettingsPage
 				'title' => 'AVIF',
 				'service' => AVIF::class,
 				'template' => 'avif.php',
-				'recommendation' => '%s makes the AVIF files for now, in the PHP process. avifenc runs apart from PHP, on several threads, and keeps the colours of the PNG images sharper.',
+				/* translators: %s: GD or Imagick. */
+				'recommendation' => __('%s makes the AVIF files for now, in the PHP process. avifenc runs apart from PHP, on several threads, and keeps the colours of the PNG images sharper.', 'octopus-image-optimizer'),
 				'fields' => [
 					'avif_enable' => [
 						'type' => 'checkbox',
-						'label' => 'Make AVIF versions',
-						'help' => 'Makes an AVIF version of each image and thumbnail (<code>photo.jpg.avif</code>), often the lightest. Kept only when lighter than the WebP and the JPG or PNG.',
+						'label' => __('Make AVIF versions', 'octopus-image-optimizer'),
+						'help' => __('Makes an AVIF version of each image and thumbnail (<code>photo.jpg.avif</code>), often the lightest. Kept only when lighter than the WebP and the JPG or PNG.', 'octopus-image-optimizer'),
 					],
 					'avif_quality' => [
 						'type' => 'number',
-						'label' => 'Quality',
-						'help' => 'From 0 to 100 (lossless), 70 by default.',
+						'label' => __('Quality', 'octopus-image-optimizer'),
+						'help' => __('From 0 to 100 (lossless), 70 by default.', 'octopus-image-optimizer'),
 					],
 				],
 			],
 			'general' => [
-				'title' => 'Image size',
-				'description' => 'WordPress scales the big images down on upload, and keeps the image uploaded as their original.',
+				'title' => __('Image size', 'octopus-image-optimizer'),
+				'description' => __('WordPress scales the big images down on upload, and keeps the image uploaded as their original.', 'octopus-image-optimizer'),
 				'fields' => [
 					'max_size' => [
 						'type' => 'number',
-						'label' => 'Maximum image size',
+						'label' => __('Maximum image size', 'octopus-image-optimizer'),
 						'unit' => 'px',
-						'help' => 'Longest side, 2560 by default. <strong>0 means no limit: huge images can exhaust the server.</strong>',
+						'help' => __('Longest side, 2560 by default. <strong>0 means no limit: huge images can exhaust the server.</strong>', 'octopus-image-optimizer'),
 					],
 				],
 			],
 			'display' => [
-				'title' => 'Serve',
-				'description' => 'Each browser gets the lightest version it reads: AVIF, then WebP, or the JPG or PNG for older ones. Choose one way, or both.',
+				'title' => __('Serve', 'octopus-image-optimizer'),
+				'description' => __('Each browser gets the lightest version it reads: AVIF, then WebP, or the JPG or PNG for older ones. Choose one way, or both.', 'octopus-image-optimizer'),
 				'fields' => [
 					'serve_picture' => [
 						'type' => 'checkbox',
-						'label' => 'In the HTML, with <picture>',
-						'note' => 'Wraps the images of the content in a <code>&lt;picture&gt;</code>. Untick it if the layout breaks.',
-						'help' => 'Images of the post content, featured images and galleries are wrapped in a <code>&lt;picture&gt;</code> tag offering the AVIF and WebP versions. Works on every server. <strong>Untick this if your theme layout breaks around images.</strong>',
+						'label' => __('In the HTML, with <picture>', 'octopus-image-optimizer'),
+						'note' => __('Wraps the images of the content in a <code>&lt;picture&gt;</code>. Untick it if the layout breaks.', 'octopus-image-optimizer'),
+						'help' => __('Images of the post content, featured images and galleries are wrapped in a <code>&lt;picture&gt;</code> tag offering the AVIF and WebP versions. Works on every server. <strong>Untick this if your theme layout breaks around images.</strong>', 'octopus-image-optimizer'),
 					],
 					'serve_rewrite' => [
 						'type' => 'checkbox',
-						'label' => 'From the server, with rewrite rules',
-						'note' => 'Every image, CSS backgrounds included, the HTML unchanged.',
-						'help' => 'The server answers <code>photo.jpg</code> with <code>photo.jpg.avif</code> or <code>.webp</code> when the browser reads them. The HTML does not change, and every image is served, CSS backgrounds and custom themes included. A CDN must vary its cache on the <code>Accept</code> header.',
+						'label' => __('From the server, with rewrite rules', 'octopus-image-optimizer'),
+						'note' => __('Every image, CSS backgrounds included, the HTML unchanged.', 'octopus-image-optimizer'),
+						'help' => __('The server answers <code>photo.jpg</code> with <code>photo.jpg.avif</code> or <code>.webp</code> when the browser reads them. The HTML does not change, and every image is served, CSS backgrounds and custom themes included. A CDN must vary its cache on the <code>Accept</code> header.', 'octopus-image-optimizer'),
 					],
 				],
 			],

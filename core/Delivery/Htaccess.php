@@ -153,7 +153,7 @@ class Htaccess
 		}
 		require_once ABSPATH . 'wp-admin/includes/misc.php';
 		if (!insert_with_markers(self::htaccess(), self::MARKER, self::apache_rules())) {
-			add_settings_error(Settings::OPTION, 'octopus_rewrite_rules', 'OIO could not write the rules in uploads/.htaccess: copy them by hand from the Delivery tab.');
+			add_settings_error(Settings::OPTION, 'octopus_rewrite_rules', __('OIO could not write the rules in uploads/.htaccess: copy them by hand from the Delivery tab.', 'octopus-image-optimizer'));
 		}
 	}
 

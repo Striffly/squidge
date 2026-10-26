@@ -12,6 +12,7 @@
     "core",
     "functions",
     "templates",
+    "languages",
     "assets/*.css",
     "assets/*.js",
     "assets/fonts",

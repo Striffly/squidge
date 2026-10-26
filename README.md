@@ -288,6 +288,16 @@ composer test:multisite   # On a network.
 A test needing a library that is not installed is skipped. The GitHub workflow runs them on PHP 8.2 and 8.4, on a
 single site and on a network, at each push and before each release.
 
+### Translations
+
+OIO is translated in French, in `languages/`. Once OIO is on WordPress.org, its translations come from
+[translate.wordpress.org](https://translate.wordpress.org/), and come before the ones of `languages/`. After changing
+a text, update the template and the translations with [WP-CLI](https://wp-cli.org/):
+
+```bash
+composer translations   # The .pot, then the .po, .mo, .l10n.php and .json of each language.
+```
+
 ## Credits
 
 OIO is developed by [Clément Gayot](https://github.com/Striffly).

@@ -1,5 +1,5 @@
 /**
- * admin.css
+ * settings.css
  *
  * Style of the OIO options page, in BEM: one block per
  * component (octopus-header, octopus-card, octopus-job...), its
@@ -1453,7 +1453,7 @@
 	color: inherit;
 }
 
-/* Copy buttons (admin.js): at the top right of a block, after a command. */
+/* Copy buttons (settings.js): at the top right of a block, after a command. */
 .octopus-code-block {
 	position: relative;
 }

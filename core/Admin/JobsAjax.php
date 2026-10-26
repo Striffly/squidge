@@ -93,7 +93,7 @@ class JobsAjax
 			$ids = array_merge($ids, Status::ids($status));
 		}
 		if (!Job::instance()->start($job['action'], $ids, $job['mode'])) {
-			wp_send_json_error(['message' => 'A job is already running, or there is no image to process.'], 409);
+			wp_send_json_error(['message' => __('A job is already running, or there is no image to process.', 'octopus-image-optimizer')], 409);
 		}
 		$this->status();
 	}

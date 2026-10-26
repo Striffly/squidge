@@ -7,6 +7,7 @@
  * Author:          Clément Gayot
  * Author URI:      https://github.com/Striffly
  * Text Domain:     octopus-image-optimizer
+ * Domain Path:     /languages
  * Version:         0.1.4
  * Requires at least: 6.0
  * Requires PHP:    8.2
@@ -30,7 +31,11 @@ require_once __DIR__ . '/autoload.php';
 // The dependencies, prefixed by Strauss, are made by composer install.
 if (!file_exists(__DIR__ . '/vendor-prefixed/autoload.php')) {
 	add_action('admin_notices', function () {
-		echo '<div class="notice notice-error"><p><strong>OIO – Octopus Image Optimizer</strong>: its dependencies are missing, run <code>composer install</code> in the plugin folder.</p></div>';
+		printf(
+			'<div class="notice notice-error"><p><strong>OIO – Octopus Image Optimizer</strong>: %s</p></div>',
+			/* translators: %s: composer install */
+			sprintf(esc_html__('its dependencies are missing, run %s in the plugin folder.', 'octopus-image-optimizer'), '<code>composer install</code>') // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Escaped, with a <code>.
+		);
 	});
 }
 

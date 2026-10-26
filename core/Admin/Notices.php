@@ -42,21 +42,6 @@ class Notices
 	const SCREENS = ['upload', 'media', 'attachment', 'settings_page_' . SettingsPage::PAGE];
 
 	/**
-	 * What failed, by format, as shown to the user.
-	 * WordPress reads the images first, see
-	 * Optimiser::readable().
-	 *
-	 * @var array
-	 */
-	const ACTIONS = [
-		Optimiser::READER => 'Optimisation',
-		'jpg' => 'JPG compression',
-		'png' => 'PNG compression',
-		'webp' => 'WebP conversion',
-		'avif' => 'AVIF conversion',
-	];
-
-	/**
 	 * The tags of an item of the notice (see
 	 * items_html()), escaped once more on output.
 	 *
@@ -72,23 +57,6 @@ class Notices
 	];
 
 	/**
-	 * Likely causes of the library errors, as shown to
-	 * the user, matched against the technical message
-	 * in this order.
-	 *
-	 * @var array
-	 */
-	const REASONS = [
-		'/unsupported color conversion/i' => 'the image uses CMYK colours (a print format) that the library cannot read.',
-		'/no space left/i' => 'the server disk is full.',
-		'/not enough PHP memory/i' => 'the image is too big for the PHP memory: install the library, or lower the maximum image size.',
-		'/permission denied|read-only|cannot (open|create|write)/i' => 'the file could not be written, check the permissions of the uploads folder.',
-		'/cannot read the image/i' => 'the image file is damaged or incomplete, WordPress cannot read it.',
-		'/premature end|corrupt|not a (jpeg|png)|recoverable errors|bad huffman|invalid|input file read error|cannot read input file/i' => 'the image file seems damaged or incomplete.',
-		'/not found|code 127/i' => 'the library does not work on the server, check its installation.',
-	];
-
-	/**
 	 * Adds the notice, its script and the errors to
 	 * the attachment data sent after an upload.
 	 *
@@ -100,6 +68,48 @@ class Notices
 		add_action('admin_enqueue_scripts', [$this, 'scripts']);
 		add_action('wp_ajax_' . self::NONCE, [$this, 'dismiss']);
 		add_filter('wp_prepare_attachment_for_js', [$this, 'attachment_for_js'], 10, 2);
+	}
+
+	/**
+	 * Returns what failed, by format, as shown to the
+	 * user. WordPress reads the images first, see
+	 * Optimiser::readable().
+	 *
+	 * @return array
+	 * @since 1.0.0
+	 */
+	private static function actions()
+	{
+		return [
+			Optimiser::READER => __('Optimisation', 'octopus-image-optimizer'),
+			'jpg' => __('JPG compression', 'octopus-image-optimizer'),
+			'png' => __('PNG compression', 'octopus-image-optimizer'),
+			'webp' => __('WebP conversion', 'octopus-image-optimizer'),
+			'avif' => __('AVIF conversion', 'octopus-image-optimizer'),
+		];
+	}
+
+	/**
+	 * Returns the likely causes of the library errors,
+	 * as shown to the user, matched against the
+	 * technical message in this order. The technical
+	 * messages stay in English, as the libraries
+	 * write them.
+	 *
+	 * @return array
+	 * @since 1.0.0
+	 */
+	private static function reasons()
+	{
+		return [
+			'/unsupported color conversion/i' => __('the image uses CMYK colours (a print format) that the library cannot read.', 'octopus-image-optimizer'),
+			'/no space left/i' => __('the server disk is full.', 'octopus-image-optimizer'),
+			'/not enough PHP memory/i' => __('the image is too big for the PHP memory: install the library, or lower the maximum image size.', 'octopus-image-optimizer'),
+			'/permission denied|read-only|cannot (open|create|write)/i' => __('the file could not be written, check the permissions of the uploads folder.', 'octopus-image-optimizer'),
+			'/cannot read the image/i' => __('the image file is damaged or incomplete, WordPress cannot read it.', 'octopus-image-optimizer'),
+			'/premature end|corrupt|not a (jpeg|png)|recoverable errors|bad huffman|invalid|input file read error|cannot read input file/i' => __('the image file seems damaged or incomplete.', 'octopus-image-optimizer'),
+			'/not found|code 127/i' => __('the library does not work on the server, check its installation.', 'octopus-image-optimizer'),
+		];
 	}
 
 	/**
@@ -133,7 +143,7 @@ class Notices
 		}
 		?>
 		<div class="notice notice-warning is-dismissible octopus-errors-notice">
-			<p><strong>Octopus Image Optimizer</strong> could not fully optimise some images:</p>
+			<p><?php echo wp_kses(self::title(), ['strong' => []]); ?></p>
 			<ul>
 				<?php foreach ($this->items_html($errors) as $html) : ?>
 					<li><?php echo wp_kses($html, self::ITEM_TAGS); ?></li>
@@ -141,6 +151,17 @@ class Notices
 			</ul>
 		</div>
 		<?php
+	}
+
+	/**
+	 * Returns the first line of the notice, escaped.
+	 *
+	 * @return string
+	 * @since 1.0.0
+	 */
+	private static function title()
+	{
+		return str_replace('Octopus Image Optimizer', '<strong>Octopus Image Optimizer</strong>', esc_html__('Octopus Image Optimizer could not fully optimise some images:', 'octopus-image-optimizer'));
 	}
 
 	/**
@@ -155,13 +176,14 @@ class Notices
 	private function items_html($errors)
 	{
 		$groups = [];
+		$actions = self::actions();
 		foreach ($errors as $error) {
 			$reason = $this->reason($error['message']);
 			$key = $error['id'] . '|' . ($error['id'] ? '' : $error['file']) . '|' . $reason;
 			if (!isset($groups[$key])) {
 				$groups[$key] = ['id' => $error['id'], 'file' => $error['file'], 'reason' => $reason, 'actions' => [], 'details' => []];
 			}
-			$action = array_key_exists($error['format'], self::ACTIONS) ? self::ACTIONS[$error['format']] : $error['format'];
+			$action = array_key_exists($error['format'], $actions) ? $actions[$error['format']] : $error['format'];
 			$groups[$key]['actions'][$action] = $action;
 			$groups[$key]['details'][] = sprintf('%s: %s', $error['file'], $error['message']);
 		}
@@ -169,10 +191,11 @@ class Notices
 		$items = [];
 		foreach ($groups as $group) {
 			$items[] = sprintf(
-				'%s &mdash; %s failed: %s <details class="octopus-error-details"><summary>Technical details</summary><code>%s</code></details>',
+				'%s &mdash; %s <details class="octopus-error-details"><summary>%s</summary><code>%s</code></details>',
 				$this->image_html($group['id'], $group['file']),
-				esc_html(implode(' and ', $group['actions'])),
-				esc_html($group['reason']),
+				/* translators: 1: what failed, e.g. WebP conversion and AVIF conversion, 2: why. */
+				esc_html(sprintf(__('%1$s failed: %2$s', 'octopus-image-optimizer'), wp_sprintf('%l', array_values($group['actions'])), $group['reason'])),
+				esc_html__('Technical details', 'octopus-image-optimizer'),
 				implode('<br>', array_map('esc_html', array_unique($group['details'])))
 			);
 		}
@@ -188,12 +211,12 @@ class Notices
 	 */
 	private function reason($message)
 	{
-		foreach (self::REASONS as $pattern => $reason) {
+		foreach (self::reasons() as $pattern => $reason) {
 			if (preg_match($pattern, $message)) {
 				return $reason;
 			}
 		}
-		return 'an unexpected error occurred, see the technical details.';
+		return __('an unexpected error occurred, see the technical details.', 'octopus-image-optimizer');
 	}
 
 	/**
@@ -231,6 +254,7 @@ class Notices
 		wp_localize_script('octopus-notices', 'octopusNotices', [
 			'action' => self::NONCE,
 			'nonce' => wp_create_nonce(self::NONCE),
+			'title' => self::title(),
 		]);
 		wp_enqueue_style('octopus-notices', OCTOPUS_URL . 'assets/notices.css', [], filemtime(OCTOPUS_PATH . 'assets/notices.css'));
 	}

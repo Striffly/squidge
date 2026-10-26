@@ -50,18 +50,6 @@ class MediaColumn
 	const NOTICES = ['octopus_optimised', 'octopus_restored', 'octopus_busy'];
 
 	/**
-	 * Labels of the statuses, as shown to the user.
-	 *
-	 * @var array
-	 */
-	const LABELS = [
-		Status::OPTIMISED => 'Optimised',
-		Status::TO_OPTIMISE => 'To optimise',
-		Status::OUTDATED => 'Older settings',
-		Status::ERROR => 'Error',
-	];
-
-	/**
 	 * Adds the column, the action and its notice.
 	 *
 	 * @since 1.0.0
@@ -75,6 +63,23 @@ class MediaColumn
 		add_action('admin_post_' . self::RESTORE, [$this, 'restore']);
 		add_action('admin_notices', [$this, 'notice']);
 		add_action('admin_enqueue_scripts', [$this, 'styles']);
+	}
+
+	/**
+	 * Returns the labels of the statuses, as shown to
+	 * the user.
+	 *
+	 * @return array
+	 * @since 1.0.0
+	 */
+	public static function labels()
+	{
+		return [
+			Status::OPTIMISED => __('Optimised', 'octopus-image-optimizer'),
+			Status::TO_OPTIMISE => __('To optimise', 'octopus-image-optimizer'),
+			Status::OUTDATED => __('Older settings', 'octopus-image-optimizer'),
+			Status::ERROR => __('Error', 'octopus-image-optimizer'),
+		];
 	}
 
 	/**
@@ -98,7 +103,7 @@ class MediaColumn
 	 */
 	public function columns($columns)
 	{
-		$columns['octopus'] = 'Optimisation';
+		$columns['octopus'] = __('Optimisation', 'octopus-image-optimizer');
 		return $columns;
 	}
 
@@ -121,7 +126,7 @@ class MediaColumn
 			return;
 		}
 		$status = Status::of($id);
-		printf('<span class="octopus-status-label octopus-status-label--%s">%s</span>', esc_attr($status), esc_html(self::LABELS[$status]));
+		printf('<span class="octopus-status-label octopus-status-label--%s">%s</span>', esc_attr($status), esc_html(self::labels()[$status]));
 		$bytes = Stats::of($id);
 		$reduction = $bytes ? Stats::reduction($bytes, Stats::served()) : null;
 		if ($reduction !== null) {
@@ -140,14 +145,18 @@ class MediaColumn
 	private function details($bytes)
 	{
 		$lines = [
-			'Original: ' . Stats::size($bytes['original']),
-			'Compressed: ' . Stats::size($bytes['compressed']) . ' (' . Stats::reduction($bytes, 'compressed') . ')',
+			/* translators: %s: a size, e.g. 1.2 MB. */
+			sprintf(__('Original: %s', 'octopus-image-optimizer'), Stats::size($bytes['original'])),
+			/* translators: 1: a size, e.g. 640 KB, 2: its reduction, e.g. −48 %. */
+			sprintf(__('Compressed: %1$s (%2$s)', 'octopus-image-optimizer'), Stats::size($bytes['compressed']), Stats::reduction($bytes, 'compressed')),
 		];
 		if ($bytes['extra']) {
-			$lines[] = 'With WebP and AVIF: ' . Stats::size($bytes['modern']) . ' (' . Stats::reduction($bytes, 'modern') . ')';
-			$lines[] = 'WebP and AVIF files: ' . Stats::size($bytes['extra']);
+			/* translators: 1: a size, e.g. 420 KB, 2: its reduction, e.g. −65 %. */
+			$lines[] = sprintf(__('With WebP and AVIF: %1$s (%2$s)', 'octopus-image-optimizer'), Stats::size($bytes['modern']), Stats::reduction($bytes, 'modern'));
+			/* translators: %s: a size, e.g. 900 KB. */
+			$lines[] = sprintf(__('WebP and AVIF files: %s', 'octopus-image-optimizer'), Stats::size($bytes['extra']));
 		}
-		$lines[] = Stats::served() === 'modern' ? 'The site serves the WebP and AVIF.' : 'The site serves the JPG or PNG.';
+		$lines[] = Stats::served() === 'modern' ? __('The site serves the WebP and AVIF.', 'octopus-image-optimizer') : __('The site serves the JPG or PNG.', 'octopus-image-optimizer');
 		return implode("\n", $lines);
 	}
 
@@ -165,11 +174,11 @@ class MediaColumn
 			return $actions;
 		}
 		$url = wp_nonce_url(admin_url('admin-post.php?action=' . self::ACTION . '&id=' . $post->ID), self::ACTION . '_' . $post->ID);
-		$label = Status::of($post->ID) === Status::OPTIMISED ? 'Optimise again' : 'Optimise';
+		$label = Status::of($post->ID) === Status::OPTIMISED ? __('Optimise again', 'octopus-image-optimizer') : __('Optimise', 'octopus-image-optimizer');
 		$actions[self::ACTION] = sprintf('<a href="%s">%s</a>', esc_url($url), esc_html($label));
 		if (Cleaner::has_data($post->ID)) {
 			$url = wp_nonce_url(admin_url('admin-post.php?action=' . self::RESTORE . '&id=' . $post->ID), self::RESTORE . '_' . $post->ID);
-			$actions[self::RESTORE] = sprintf('<a href="%s">%s</a>', esc_url($url), 'Restore original');
+			$actions[self::RESTORE] = sprintf('<a href="%s">%s</a>', esc_url($url), esc_html__('Restore original', 'octopus-image-optimizer'));
 		}
 		return $actions;
 	}
@@ -187,7 +196,7 @@ class MediaColumn
 		$id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 		check_admin_referer(self::ACTION . '_' . $id);
 		if (!$id || !$this->is_image($id) || !current_user_can('edit_post', $id)) {
-			wp_die('You cannot optimise this image.', 403);
+			wp_die(esc_html__('You cannot optimise this image.', 'octopus-image-optimizer'), 403);
 		}
 		$done = Optimiser::optimise($id);
 
@@ -207,7 +216,7 @@ class MediaColumn
 		$id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 		check_admin_referer(self::RESTORE . '_' . $id);
 		if (!$id || !$this->is_image($id) || !current_user_can('edit_post', $id)) {
-			wp_die('You cannot restore this image.', 403);
+			wp_die(esc_html__('You cannot restore this image.', 'octopus-image-optimizer'), 403);
 		}
 		$restored = Cleaner::restore($id);
 
@@ -236,7 +245,8 @@ class MediaColumn
 		if (!empty($_GET['octopus_busy'])) {
 			$id = (int)$_GET['octopus_busy'];
 			if (current_user_can('edit_post', $id)) {
-				printf('<div class="notice notice-warning is-dismissible"><p><strong>Octopus Image Optimizer</strong> is already processing %s, try again in a moment.</p></div>', esc_html(get_the_title($id)));
+				/* translators: %s: the title of an image. */
+				$this->notice_html('warning', __('Octopus Image Optimizer is already processing %s, try again in a moment.', 'octopus-image-optimizer'), get_the_title($id));
 			}
 			return;
 		}
@@ -246,9 +256,11 @@ class MediaColumn
 				return;
 			}
 			if ($id > 0) {
-				printf('<div class="notice notice-success is-dismissible"><p><strong>Octopus Image Optimizer</strong> restored the original of %s.</p></div>', esc_html(get_the_title($id)));
+				/* translators: %s: the title of an image. */
+				$this->notice_html('success', __('Octopus Image Optimizer restored the original of %s.', 'octopus-image-optimizer'), get_the_title($id));
 			} else {
-				printf('<div class="notice notice-warning is-dismissible"><p><strong>Octopus Image Optimizer</strong> removed its files of %s, but its original is missing: it stays compressed.</p></div>', esc_html(get_the_title(-$id)));
+				/* translators: %s: the title of an image. */
+				$this->notice_html('warning', __('Octopus Image Optimizer removed its files of %s, but its original is missing: it stays compressed.', 'octopus-image-optimizer'), get_the_title(-$id));
 			}
 			return;
 		}
@@ -259,8 +271,24 @@ class MediaColumn
 		if (!current_user_can('edit_post', $id) || Status::of($id) === Status::ERROR) {
 			return;
 		}
-		printf('<div class="notice notice-success is-dismissible"><p><strong>Octopus Image Optimizer</strong> optimised %s.</p></div>', esc_html(get_the_title($id)));
+		/* translators: %s: the title of an image. */
+		$this->notice_html('success', __('Octopus Image Optimizer optimised %s.', 'octopus-image-optimizer'), get_the_title($id));
 		// phpcs:enable WordPress.Security.NonceVerification.Recommended
+	}
+
+	/**
+	 * Renders a notice about an image, its title in
+	 * place of %s. The name of OIO is in bold.
+	 *
+	 * @param string $type success or warning.
+	 * @param string $text
+	 * @param string $title
+	 * @since 1.0.0
+	 */
+	private function notice_html($type, $text, $title)
+	{
+		$text = str_replace('Octopus Image Optimizer', '<strong>Octopus Image Optimizer</strong>', esc_html($text));
+		printf('<div class="notice notice-%s is-dismissible"><p>%s</p></div>', esc_attr($type), sprintf($text, esc_html($title))); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Escaped above.
 	}
 
 	/**

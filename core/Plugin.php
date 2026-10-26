@@ -69,6 +69,7 @@ final class Plugin
 		define('OCTOPUS_URL', plugin_dir_url($base));
 		define('OCTOPUS_PATH', plugin_dir_path($base));
 		define('OCTOPUS_TEMPLATE_PATH', dirname($base) . DIRECTORY_SEPARATOR . 'templates');
+		add_action('init', [$this, 'load_translations']);
 		add_action('init', [Settings::class, 'register']);
 		new SettingsPage();
 		new UploadHooks();
@@ -83,5 +84,18 @@ final class Plugin
 			new JobsAjax();
 		}
 		new Display();
+	}
+
+	/**
+	 * Loads the translations shipped in /languages,
+	 * e.g. French. Those of translate.wordpress.org,
+	 * in wp-content/languages, come first.
+	 *
+	 * @since 1.0.0
+	 */
+	public function load_translations()
+	{
+		// phpcs:ignore PluginCheck.CodeAnalysis.DiscouragedFunctions.load_plugin_textdomainFound -- Loads the translations shipped with OIO, also installed from GitHub.
+		load_plugin_textdomain('octopus-image-optimizer', false, dirname(plugin_basename(OCTOPUS_FILE)) . '/languages');
 	}
 }
