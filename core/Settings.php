@@ -124,10 +124,12 @@ class Settings
 	}
 
 	/**
-	 * Cleans the settings sent by the settings page
-	 * before they are saved: every setting is there,
-	 * of its type, within its bounds. A checkbox left
-	 * unticked is not sent: it is off.
+	 * Cleans the settings before they are saved: every
+	 * setting is there, of its type, within its bounds.
+	 * A setting not sent keeps its value, so that saving
+	 * a few of them (WP-CLI, REST, code) leaves the
+	 * others as they are. The settings page sends 0 for
+	 * a box left unticked.
 	 *
 	 * @param mixed $input
 	 * @return array
@@ -136,12 +138,10 @@ class Settings
 	public static function sanitize($input)
 	{
 		$input = is_array($input) ? $input : [];
-		$values = [];
-		foreach (self::FIELDS as $name => $field) {
-			if ($field['type'] === 'bool') {
-				$values[$name] = !empty($input[$name]);
-			} else {
-				$values[$name] = self::clean($name, isset($input[$name]) ? $input[$name] : null);
+		$values = self::all();
+		foreach (array_keys(self::FIELDS) as $name) {
+			if (array_key_exists($name, $input)) {
+				$values[$name] = self::clean($name, $input[$name]);
 			}
 		}
 		return $values;
@@ -161,7 +161,7 @@ class Settings
 		$field = self::FIELDS[$name];
 		switch ($field['type']) {
 			case 'bool':
-				return (bool)$value;
+				return filter_var($value, FILTER_VALIDATE_BOOLEAN);
 			case 'int':
 				// An emptied number field falls back to its default, not to 0.
 				return is_numeric($value) ? max($field['min'], min($field['max'], (int)$value)) : $field['default'];

@@ -34,7 +34,8 @@ class SettingsTest extends TestCase
 	public function test_the_form_is_saved_cleaned()
 	{
 		update_option(Settings::OPTION, [
-			// webp_enable is unticked: not sent.
+			// webp_enable is unticked: the form sends 0.
+			'webp_enable' => '0',
 			'jpg_enable' => '1',
 			'jpg_quality' => '150',
 			'avif_quality' => '',
@@ -51,6 +52,17 @@ class SettingsTest extends TestCase
 		$this->assertSame(70, Settings::get('avif_quality'), 'An emptied field gets its default.');
 		$this->assertSame('lossless', Settings::get('png_compression'), 'One of its values.');
 		$this->assertSame(1200, Settings::get('max_size'));
+	}
+
+	public function test_saving_a_few_settings_keeps_the_others()
+	{
+		self::set('webp_quality', 60);
+
+		update_option(Settings::OPTION, ['avif_quality' => '50']);
+
+		$this->assertSame(50, Settings::get('avif_quality'));
+		$this->assertSame(60, Settings::get('webp_quality'));
+		$this->assertTrue(Settings::get('jpg_enable'), 'A box not sent keeps its value.');
 	}
 
 	public function test_the_png_level_and_lossy_quality_reach_pngquant_and_oxipng()
