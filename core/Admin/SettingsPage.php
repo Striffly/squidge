@@ -493,7 +493,11 @@ class SettingsPage
 		$total = $counts['total'];
 		$percent = $total ? min(100, (int)round($made / $total * 100)) : 0;
 		$rewrite = $display['fields']['serve_rewrite'];
-		if ($server !== 'apache') {
+		if ($server === 'apache') {
+			// OIO writes the rules: the box says so.
+			/* translators: %s: uploads/.htaccess */
+			$rewrite['note'] = sprintf(__('Apache: ticking it writes the rules below in %s, unticking it removes them.', 'octopus-image-optimizer'), '<code>uploads/.htaccess</code>');
+		} else {
 			// OIO cannot write the rules: the option tells they are in place.
 			/* translators: %s: the server, e.g. nginx. */
 			$rewrite['note'] = sprintf(__('%s: add the rules below to its configuration, then tick this box.', 'octopus-image-optimizer'), esc_html($names[$server]));
