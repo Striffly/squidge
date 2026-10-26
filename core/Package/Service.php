@@ -958,18 +958,25 @@ class Service
 
 	/**
 	 * Returns the path of a file relative to the
-	 * uploads folder.
+	 * uploads folder, as saved in the metas. On
+	 * Windows, with / only: the paths of the
+	 * thumbnails join the folder of the metadata
+	 * (2026/10) with \, and must match whatever
+	 * their separators.
 	 *
 	 * @param string $path
 	 * @return string
 	 * @since 1.0.0
 	 * @date 25/10/2026
 	 */
-	private static function relative_path($path)
+	public static function relative_path($path)
 	{
 		$base = self::uploads_dir();
 		if (strpos($path, $base) === 0) {
 			$path = substr($path, strlen($base));
+		}
+		if (self::is_windows()) {
+			$path = str_replace('\\', '/', $path);
 		}
 		return ltrim($path, '/\\');
 	}

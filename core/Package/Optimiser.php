@@ -270,7 +270,7 @@ class Optimiser
 				if (!file_exists($variant) || !file_exists($file) || !Service::contained($variant)) {
 					continue;
 				}
-				$relative = substr($variant, strlen($base));
+				$relative = Service::relative_path($variant);
 				$limit = filesize($file);
 				// WebP comes first: the AVIF is compared to the WebP kept.
 				if ($extension === AVIF::extension() && file_exists($file . WebP::extension())) {
