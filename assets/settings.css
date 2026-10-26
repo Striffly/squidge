@@ -373,8 +373,14 @@
 	overflow: hidden;
 }
 
+/* The bytes saved, the button to optimise on their right, centred. */
 .octopus-savings {
 	position: relative;
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: space-between;
+	gap: var(--octopus-space-4);
 	padding: var(--octopus-space-6);
 	background: radial-gradient(circle at 100% 0%, rgba(255, 60, 172, .12) 0%, rgba(123, 47, 247, .08) 35%, transparent 70%);
 }
@@ -412,9 +418,194 @@
 	text-decoration: none;
 }
 
-.octopus-savings__disk {
-	margin: var(--octopus-space-4) 0 0;
+/* The button to optimise, in the colours of the logo: filled with the
+   gradient while images wait, its text in the gradient once all are done. */
+.octopus-page .octopus-cta {
+	display: inline-flex;
+	flex: none;
+	align-items: center;
+	gap: var(--octopus-space-2);
+	padding: 10px 18px 10px 22px;
+	border: 1px solid rgba(123, 47, 247, .25);
+	border-radius: 999px;
+	background: rgba(255, 255, 255, .75);
+	color: var(--octopus-violet-dark);
+	font-family: var(--octopus-font-display);
+	font-size: var(--octopus-size-body);
+	font-weight: 600;
+	word-spacing: .12em;
+	text-decoration: none;
+	box-shadow: var(--octopus-shadow);
+	transition: box-shadow var(--octopus-transition), transform var(--octopus-transition), background-color var(--octopus-transition);
+}
+
+.octopus-page .octopus-cta:hover,
+.octopus-page .octopus-cta:focus {
+	background: #fff;
+	color: var(--octopus-violet-dark);
+	box-shadow: var(--octopus-shadow-hover);
+	transform: translateY(-1px);
+}
+
+.octopus-page .octopus-cta:focus-visible {
+	outline: 2px solid var(--octopus-violet);
+	outline-offset: 2px;
+}
+
+.octopus-page .octopus-cta__arrow {
+	width: 18px;
+	height: 18px;
+	font-size: 18px;
+	transition: transform var(--octopus-transition);
+}
+
+.octopus-page .octopus-cta:hover .octopus-cta__arrow {
+	transform: translateX(3px);
+}
+
+/* No border: the gradient would repeat under it, a seam on the edges. */
+.octopus-page .octopus-cta--filled,
+.octopus-page .octopus-cta--filled:hover,
+.octopus-page .octopus-cta--filled:focus {
+	padding: 11px 19px 11px 23px;
+	border: 0;
+	background: var(--octopus-gradient);
+	color: #fff;
+}
+
+.octopus-page .octopus-cta--filled {
+	position: relative;
+	isolation: isolate;
+	box-shadow: 0 2px 8px rgba(255, 60, 172, .25);
+}
+
+/* Images wait: an echo of the button grows from behind it, its edges
+   showing gradually, and spreads blurring until it fades. Not while it is
+   hovered. */
+.octopus-page .octopus-cta--filled::before {
+	content: "";
+	position: absolute;
+	z-index: -1;
+	inset: 0;
+	border-radius: inherit;
+	background: var(--octopus-gradient);
+	opacity: 0;
+	animation: octopus-cta-pulse 2.4s cubic-bezier(.25, .6, .4, 1) infinite, octopus-cta-fade 2.4s linear infinite;
+	pointer-events: none;
+}
+
+/* Two tracks of the same length: the echo grows in one gliding move, its
+   opacity rises and falls in a smooth bell, so the pulse has no seam. */
+@keyframes octopus-cta-pulse {
+	from {
+		filter: blur(2px);
+		transform: scale(.9, .7);
+	}
+
+	to {
+		filter: blur(10px);
+		transform: translateY(2px) scale(1.12, 1.45);
+	}
+}
+
+@keyframes octopus-cta-fade {
+	0% {
+		opacity: 0;
+	}
+
+	10% {
+		opacity: .3;
+	}
+
+	20% {
+		opacity: .55;
+	}
+
+	30% {
+		opacity: .65;
+	}
+
+	45% {
+		opacity: .55;
+	}
+
+	60% {
+		opacity: .38;
+	}
+
+	75% {
+		opacity: .2;
+	}
+
+	90% {
+		opacity: .06;
+	}
+
+	100% {
+		opacity: 0;
+	}
+}
+
+.octopus-page .octopus-cta--filled:hover,
+.octopus-page .octopus-cta--filled:focus {
+	box-shadow: var(--octopus-glow);
+}
+
+.octopus-page .octopus-cta--filled:hover::before,
+.octopus-page .octopus-cta--filled:focus::before {
+	animation: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.octopus-page .octopus-cta,
+	.octopus-page .octopus-cta__arrow {
+		transition: none;
+	}
+
+	.octopus-page .octopus-cta--filled::before {
+		animation: none;
+	}
+
+	.octopus-page .octopus-cta:hover,
+	.octopus-page .octopus-cta:hover .octopus-cta__arrow {
+		transform: none;
+	}
+}
+
+/* The disk used by OIO: two pills, after a quiet label. */
+.octopus-disk {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: var(--octopus-space-2);
+	margin: var(--octopus-space-5) 0 0;
 	color: var(--octopus-muted);
+	font-size: var(--octopus-size-small);
+}
+
+.octopus-disk__label {
+	display: inline-flex;
+	align-items: center;
+	gap: var(--octopus-space-1);
+	margin-right: var(--octopus-space-1);
+}
+
+.octopus-disk__label .dashicons {
+	width: 16px;
+	height: 16px;
+	font-size: 16px;
+}
+
+.octopus-disk__item {
+	padding: 3px var(--octopus-space-3);
+	border: 1px solid var(--octopus-border);
+	border-radius: 999px;
+	background: rgba(255, 255, 255, .7);
+	color: var(--octopus-text-soft);
+}
+
+.octopus-disk__item strong {
+	color: var(--octopus-night);
 }
 
 .octopus-counts {

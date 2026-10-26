@@ -314,21 +314,34 @@ class SettingsPage
 							</a>
 						</span>
 					</p>
-					<p class="octopus-savings__disk">
-						<?php
-						$this->printf_html(
-							/* translators: 1: the size of the originals, 2: the size of the WebP and AVIF files. */
-							__('Disk used by OIO: originals %1$s, WebP and AVIF %2$s', 'octopus-image-optimizer'),
-							'<span data-savings="originals">' . esc_html($savings['originals']) . '</span>',
-							'<span data-savings="formats">' . esc_html($savings['formats']) . '</span>'
-						);
-						?>
+					<p class="octopus-disk">
+						<span class="octopus-disk__label">
+							<span class="dashicons dashicons-database" aria-hidden="true"></span>
+							<?php esc_html_e('On the disk', 'octopus-image-optimizer'); ?>
+						</span>
+						<span class="octopus-disk__item">
+							<?php
+							/* translators: %s: the size of the original images, e.g. 4.2 MB. */
+							$this->printf_html(__('%s of originals kept', 'octopus-image-optimizer'), '<strong data-savings="originals">' . esc_html($savings['originals']) . '</strong>');
+							?>
+						</span>
+						<span class="octopus-disk__item">
+							<?php
+							/* translators: %s: the size of the WebP and AVIF files, e.g. 916.6 KB. */
+							$this->printf_html(__('%s of WebP and AVIF', 'octopus-image-optimizer'), '<strong data-savings="formats">' . esc_html($savings['formats']) . '</strong>');
+							?>
+						</span>
 					</p>
 				</div>
 				<div class="octopus-savings__empty"<?php echo $savings['images'] ? ' hidden' : ''; ?>>
 					<p class="octopus-savings__value"><?php esc_html_e('Ready to squeeze', 'octopus-image-optimizer'); ?></p>
 					<p class="octopus-savings__detail"><?php esc_html_e('OIO optimises your images on your own server: free, unlimited, and they never leave it.', 'octopus-image-optimizer'); ?></p>
 				</div>
+				<?php // Filled while images wait for an optimisation. ?>
+				<a class="octopus-cta<?php echo $counts[Status::TO_OPTIMISE] + $counts[Status::ERROR] + $counts[Status::OUTDATED] ? ' octopus-cta--filled' : ''; ?>" href="#optimise" data-tab="optimise">
+					<?php esc_html_e('Optimise the media library', 'octopus-image-optimizer'); ?>
+					<span class="octopus-cta__arrow dashicons dashicons-arrow-right-alt" aria-hidden="true"></span>
+				</a>
 			</div>
 			<ul class="octopus-counts">
 				<?php foreach (self::count_labels() as $status => $label) : ?>
@@ -338,13 +351,6 @@ class SettingsPage
 					</li>
 				<?php endforeach; ?>
 			</ul>
-			<p class="octopus-card__footer">
-				<?php
-				/* translators: %s: the number of images. */
-				echo esc_html(sprintf(_n('%s JPG or PNG image in the media library.', '%s JPG and PNG images in the media library.', $counts['total'], 'octopus-image-optimizer'), number_format_i18n($counts['total'])));
-				?>
-				<a href="#optimise" data-tab="optimise"><?php esc_html_e('Optimise the media library', 'octopus-image-optimizer'); ?></a>
-			</p>
 		</div>
 
 		<h2 class="octopus-heading"><?php esc_html_e('Formats', 'octopus-image-optimizer'); ?></h2>
