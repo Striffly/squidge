@@ -18,6 +18,7 @@ namespace Octopus\Admin;
 
 use Octopus\Media\Cleaner;
 use Octopus\Media\Job;
+use Octopus\Media\Optimiser;
 use Octopus\Media\Status;
 
 if (!defined('ABSPATH')) {
@@ -40,9 +41,9 @@ class JobsAjax
 	 * @var array
 	 */
 	const JOBS = [
-		'new' => ['action' => Job::OPTIMISE, 'mode' => Job::MODE_NEW, 'statuses' => [Status::TO_OPTIMISE, Status::ERROR]],
-		'outdated' => ['action' => Job::OPTIMISE, 'mode' => Job::MODE_OUTDATED, 'statuses' => [Status::OUTDATED]],
-		'all' => ['action' => Job::OPTIMISE, 'mode' => Job::MODE_ALL, 'statuses' => [null]],
+		'new' => ['action' => Job::OPTIMISE, 'mode' => Optimiser::MODE_NEW, 'statuses' => [Status::TO_OPTIMISE, Status::ERROR]],
+		'outdated' => ['action' => Job::OPTIMISE, 'mode' => Optimiser::MODE_OUTDATED, 'statuses' => [Status::OUTDATED]],
+		'all' => ['action' => Job::OPTIMISE, 'mode' => Optimiser::MODE_ALL, 'statuses' => [null]],
 		'remove_formats' => ['action' => Job::REMOVE_FORMATS, 'mode' => null, 'statuses' => []],
 		'restore' => ['action' => Job::RESTORE, 'mode' => null, 'statuses' => []],
 	];

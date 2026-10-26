@@ -279,6 +279,19 @@ class OptimiseTest extends TestCase
 		$this->assertSame(Status::OPTIMISED, Status::of($id));
 	}
 
+	public function test_optimise_picks_its_mode_from_the_status()
+	{
+		$id = $this->upload_unoptimised('photo.jpg');
+
+		$this->assertTrue(Optimiser::optimise($id));
+		$this->assertSame(Status::OPTIMISED, Status::of($id));
+
+		self::set('webp_quality', 40);
+		$this->assertTrue(Optimiser::optimise($id));
+		$this->assertSame('quality:40', get_post_meta($id, WebP::meta_key(), true));
+		$this->assertSame(Status::OPTIMISED, Status::of($id));
+	}
+
 	public function test_the_images_are_counted_by_status()
 	{
 		$optimised = $this->upload('photo.jpg');

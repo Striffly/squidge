@@ -196,12 +196,7 @@ class MediaColumn
 		if (!$id || !$this->is_image($id) || !current_user_can('edit_post', $id)) {
 			wp_die('You cannot optimise this image.', 403);
 		}
-		$status = Status::of($id);
-		if (in_array($status, [Status::OPTIMISED, Status::OUTDATED], true)) {
-			$done = Optimiser::update($id, $status === Status::OPTIMISED);
-		} else {
-			$done = Optimiser::attachment($id, null, Optimiser::settings());
-		}
+		$done = Optimiser::optimise($id);
 
 		$redirect = remove_query_arg(self::NOTICES, wp_get_referer() ?: admin_url('upload.php?mode=list'));
 		wp_safe_redirect(add_query_arg($done === null ? 'octopus_busy' : 'octopus_optimised', $id, $redirect));

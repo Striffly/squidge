@@ -78,7 +78,7 @@ class JobTest extends TestCase
 		$id = $this->upload('photo.jpg');
 		self::set('webp_quality', 40);
 
-		$this->job->start(Job::OPTIMISE, [$id], Job::MODE_OUTDATED);
+		$this->job->start(Job::OPTIMISE, [$id], Optimiser::MODE_OUTDATED);
 		$this->run_job();
 
 		$this->assertSame('quality:40', get_post_meta($id, WebP::meta_key(), true));

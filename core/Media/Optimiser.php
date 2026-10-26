@@ -46,6 +46,17 @@ class Optimiser
 	];
 
 	/**
+	 * How to optimise an image: the new images only
+	 * (and the files missing, e.g. of a new size), the
+	 * images with older settings brought up to date,
+	 * or everything again from the originals,
+	 * thumbnails included.
+	 */
+	const MODE_NEW = 'new';
+	const MODE_OUTDATED = 'outdated';
+	const MODE_ALL = 'all';
+
+	/**
 	 * The key of the errors of the images WordPress
 	 * cannot read, next to the formats of the
 	 * libraries (see Errors).
@@ -105,6 +116,32 @@ class Optimiser
 			}
 		}
 		return $settings;
+	}
+
+	/**
+	 * Optimises an image with the settings, in a mode:
+	 * the one place deciding how, for the media
+	 * library and the background jobs. Without mode,
+	 * from its status: a new image is optimised, an
+	 * outdated one brought up to date, an optimised
+	 * one made again from its original.
+	 *
+	 * @param int $id
+	 * @param string|null $mode See the MODE_ constants.
+	 * @return true|null Null if another request is processing the image.
+	 * @since 1.0.0
+	 */
+	public static function optimise($id, $mode = null)
+	{
+		if ($mode === null) {
+			$modes = [Status::OPTIMISED => self::MODE_ALL, Status::OUTDATED => self::MODE_OUTDATED];
+			$status = Status::of($id);
+			$mode = isset($modes[$status]) ? $modes[$status] : self::MODE_NEW;
+		}
+		if ($mode === self::MODE_NEW) {
+			return self::attachment($id, null, self::settings());
+		}
+		return self::update($id, $mode === self::MODE_ALL);
 	}
 
 	/**

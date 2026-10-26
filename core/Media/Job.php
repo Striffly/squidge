@@ -41,16 +41,6 @@ class Job extends Octopus_Vendor_WP_Background_Process
 	const RESTORE = 'restore';
 
 	/**
-	 * Modes of the optimisation: the missing formats
-	 * only, the images with older settings brought up
-	 * to date, or everything again from the originals
-	 * (thumbnails included).
-	 */
-	const MODE_NEW = 'new';
-	const MODE_OUTDATED = 'outdated';
-	const MODE_ALL = 'all';
-
-	/**
 	 * Option keeping the progress of the last job.
 	 *
 	 * @var string
@@ -119,7 +109,7 @@ class Job extends Octopus_Vendor_WP_Background_Process
 	 * @since 1.0.0
 	 * @date 25/10/2026
 	 */
-	public function start($action, $ids, $mode = self::MODE_NEW)
+	public function start($action, $ids, $mode = Optimiser::MODE_NEW)
 	{
 		if ($this->is_active() || empty($ids)) {
 			return false;
@@ -190,11 +180,7 @@ class Job extends Octopus_Vendor_WP_Background_Process
 		Optimiser::$context = 'background';
 		if (get_post($id)) {
 			if ($progress['action'] === self::OPTIMISE) {
-				if ($progress['mode'] === self::MODE_NEW) {
-					Optimiser::attachment($id, null, Optimiser::settings());
-				} else {
-					Optimiser::update($id, $progress['mode'] === self::MODE_ALL);
-				}
+				Optimiser::optimise($id, $progress['mode']);
 				if (Status::of($id) === Status::ERROR) {
 					$progress['failed']++;
 				}
