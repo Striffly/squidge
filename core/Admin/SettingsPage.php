@@ -143,7 +143,8 @@ class SettingsPage
 				<img class="octopus-header__logo" src="<?php echo esc_url(OCTOPUS_URL . 'assets/icon-128x128.png'); ?>" alt="" width="64" height="64">
 				<div class="octopus-header__text">
 					<h1 class="octopus-header__title">OIO <span class="octopus-header__name">Octopus Image Optimizer</span></h1>
-					<p class="octopus-header__tagline"><?php esc_html_e('Squeezes images. Spills no ink, sends no bill.', 'octopus-image-optimizer'); ?></p>
+					<?php // The tagline stays in English, as the name of OIO. ?>
+					<p class="octopus-header__tagline">Squeezes images. Spills no ink, sends no bill.</p>
 				</div>
 				<span class="octopus-header__version">v<?php echo esc_html(OCTOPUS_VERSION); ?></span>
 			</header>
