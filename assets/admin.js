@@ -1,7 +1,9 @@
 /**
  * admin.js
  *
- * Tabs for the OIO options page. Every panel stays
+ * Tabs for the OIO options page, the "?" of the
+ * fields opening their full help, and the sub-options
+ * shown with their checkbox. Every panel stays
  * in the same form, tabs only toggle their visibility.
  * Without JS, all panels are shown one after another.
  */
@@ -28,6 +30,11 @@
 			var active = tab.getAttribute('data-tab') === name;
 			tab.classList.toggle('oio-tabs__tab--active', active);
 			tab.setAttribute('aria-selected', active ? 'true' : 'false');
+			// On small screens the tabs scroll sideways: the active one comes into view.
+			var bar = tab.parentNode;
+			if (active && bar.scrollWidth > bar.clientWidth) {
+				bar.scrollLeft = tab.offsetLeft - (bar.clientWidth - tab.offsetWidth) / 2;
+			}
 		});
 		panels.forEach(function (panel) {
 			panel.hidden = panel.getAttribute('data-panel') !== name;
@@ -50,6 +57,10 @@
 		// A link to a part of a tab, e.g. the settings of a format.
 		var target = link.getAttribute('data-target') && document.getElementById(link.getAttribute('data-target'));
 		if (target) {
+			// Its folded settings open with it.
+			target.querySelectorAll('.oio-format__settings').forEach(function (fold) {
+				fold.open = true;
+			});
 			target.scrollIntoView({behavior: 'smooth', block: 'start'});
 		}
 	});
@@ -63,6 +74,50 @@
 	}
 	page.classList.add('oio-page--js');
 	show(initial || 'overview');
+
+	// The full help of a field, behind its "?" button.
+	page.querySelectorAll('.oio-help__text').forEach(function (text) {
+		text.hidden = true;
+	});
+	page.addEventListener('click', function (event) {
+		var toggle = event.target.closest('.oio-help__toggle');
+		if (!toggle) {
+			return;
+		}
+		var open = toggle.getAttribute('aria-expanded') !== 'true';
+		toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+		document.getElementById(toggle.getAttribute('aria-controls')).hidden = !open;
+	});
+
+	// A sub-option shows while its checkbox is ticked, e.g. the lossy quality.
+	function showSubOptions() {
+		page.querySelectorAll('[data-parent]').forEach(function (field) {
+			var parent = document.getElementById(field.getAttribute('data-parent'));
+			field.hidden = !!parent && !parent.checked;
+		});
+	}
+	page.addEventListener('change', function (event) {
+		if (event.target.matches('.oio-toggle__input')) {
+			showSubOptions();
+		}
+	});
+	showSubOptions();
+
+	// A field the browser refuses on saving is shown: its tab, its folded settings.
+	page.addEventListener('invalid', function (event) {
+		var panel = event.target.closest('[data-panel]');
+		if (panel && panel.hidden) {
+			show(panel.getAttribute('data-panel'));
+		}
+		var fold = event.target.closest('details');
+		if (fold) {
+			fold.open = true;
+		}
+		var sub = event.target.closest('[data-parent]');
+		if (sub) {
+			sub.hidden = false;
+		}
+	}, true);
 })();
 
 /**
@@ -83,6 +138,7 @@
 
 	var label = box.querySelector('.oio-job__label');
 	var bar = box.querySelector('.oio-job__bar');
+	var percentLabel = box.querySelector('.oio-job__percent');
 	var resultTitle = box.querySelector('.oio-result__title');
 	var resultDetail = box.querySelector('.oio-result__detail');
 	var counts = null;
@@ -197,6 +253,7 @@
 			following = true;
 			var percent = job.total ? Math.round(job.done / job.total * 100) : 0;
 			bar.value = percent;
+			percentLabel.textContent = percent + ' %';
 			label.textContent = (state === 'paused' ? 'Paused: ' : (LABELS[job.action] || 'Processing') + '… ')
 				+ number(job.done) + ' / ' + number(job.total) + ' images'
 				+ (job.failed ? ', ' + number(job.failed) + ' with errors' : '');
@@ -279,6 +336,17 @@
 	var result = document.querySelector('.oio-test__result');
 	var sample = result.querySelector('.oio-test__sample');
 	var list = result.querySelector('.oio-checks');
+	var summary = document.querySelector('.oio-test__summary');
+
+	// The verdict, next to the button: the results may be below the fold.
+	function showSummary(text, state) {
+		if (!summary) {
+			return;
+		}
+		summary.textContent = text;
+		summary.className = 'oio-test__summary oio-test__summary--' + state;
+		summary.hidden = false;
+	}
 
 	button.addEventListener('click', function () {
 		button.disabled = true;
@@ -293,8 +361,16 @@
 				result.hidden = false;
 				if (!response.success) {
 					sample.textContent = response.data && response.data.message ? response.data.message : 'The test failed.';
+					showSummary(sample.textContent, 'fail');
 					return;
 				}
+				var failed = response.data.checks.filter(function (check) {
+					return check.state === 'fail';
+				}).length;
+				var total = response.data.checks.length;
+				showSummary(failed
+					? failed + ' of ' + total + ' checks failed: see the results below.'
+					: 'All ' + total + ' checks passed.', failed ? 'fail' : 'ok');
 				sample.textContent = 'Tested on ' + response.data.sample + '.';
 				response.data.checks.forEach(function (check) {
 					var item = document.createElement('li');

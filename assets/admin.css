@@ -5,7 +5,8 @@
  * component (oio-header, oio-card, oio-job...), its
  * elements (oio-card__title) and modifiers
  * (oio-card--danger). Every colour, size and shadow
- * comes from the tokens below.
+ * comes from the tokens below. Only what can be clicked
+ * (buttons, links, tabs, folds) reacts on hover.
  *
  * Sections:
  * 1. Tokens
@@ -15,14 +16,15 @@
  * 5. Tabs
  * 6. Cards
  * 7. Overview: savings, counts, formats
- * 8. Badges, dots, engines
- * 9. Actions and confirmations
+ * 8. Badges, dots, chips, engines
+ * 9. Actions (the jobs) and confirmations
  * 10. Background job and its result
  * 11. Fields and toggles
- * 12. Install instructions, code
- * 13. Delivery: rules and test
- * 14. WordPress components
- * 15. Small screens
+ * 12. Settings: format cards
+ * 13. Install instructions, code
+ * 14. Delivery: steps, methods, folds and test
+ * 15. WordPress components
+ * 16. Small screens
  *
  * @author Clément Gayot
  * @author Ainsley Clark (Squidge, original author)
@@ -120,7 +122,7 @@
    ========================================================================== */
 
 .oio-page {
-	max-width: 1040px;
+	max-width: 1160px;
 	color: var(--oio-text);
 }
 
@@ -303,10 +305,6 @@
 	font-size: 20px;
 	line-height: 36px;
 	text-align: center;
-}
-
-.oio-card__header > .oio-dot {
-	margin-top: 9px;
 }
 
 .oio-page .oio-card__title {
@@ -516,7 +514,7 @@
 	font-weight: 600;
 }
 
-/* 8. Badges, dots, engines
+/* 8. Badges, dots, chips, engines
    ========================================================================== */
 
 .oio-badge {
@@ -573,17 +571,55 @@
 	box-shadow: 0 0 0 3px var(--oio-off-bg);
 }
 
+/* A format and its state, linking to its settings. */
+.oio-page .oio-chip {
+	display: inline-flex;
+	align-items: center;
+	gap: var(--oio-space-2);
+	padding: 5px var(--oio-space-3);
+	border: 1px solid var(--oio-border);
+	border-radius: 999px;
+	background: var(--oio-surface);
+	color: var(--oio-text);
+	text-decoration: none;
+	transition: border-color var(--oio-transition), box-shadow var(--oio-transition);
+}
+
+.oio-page .oio-chip:hover,
+.oio-page .oio-chip:focus {
+	border-color: rgba(123, 47, 247, .4);
+	box-shadow: var(--oio-shadow-hover);
+	color: var(--oio-text);
+}
+
+.oio-chip .oio-dot {
+	width: 8px;
+	height: 8px;
+}
+
+.oio-chip__name {
+	font-weight: 600;
+}
+
+.oio-chip__state {
+	color: var(--oio-muted);
+	font-size: var(--oio-size-small);
+}
+
+/* The name of the library, its state and version share the body font, on one baseline. */
 .oio-engine {
 	display: flex;
 	flex-wrap: wrap;
-	align-items: center;
-	gap: var(--oio-space-2);
+	align-items: baseline;
+	gap: var(--oio-space-1) var(--oio-space-2);
 	color: var(--oio-text-soft);
 	font-size: var(--oio-size-small);
+	line-height: 20px;
 }
 
 .oio-engine::before {
 	content: "\f147"; /* Dashicon yes. */
+	align-self: center;
 	font-family: dashicons;
 	font-size: 16px;
 	line-height: 1;
@@ -595,10 +631,9 @@
 	color: var(--oio-off);
 }
 
-.oio-page .oio-engine__name {
-	padding: 0;
-	background: none;
+.oio-engine__name {
 	color: var(--oio-text);
+	font-size: var(--oio-size-body);
 	font-weight: 600;
 }
 
@@ -608,36 +643,94 @@
 	border-radius: 999px;
 	background: var(--oio-surface-soft);
 	color: var(--oio-muted);
+	font-variant-numeric: tabular-nums;
+	line-height: 18px;
 }
 
-/* 9. Actions and confirmations
+/* 9. Actions (the jobs) and confirmations
    ========================================================================== */
 
+/* The jobs of the Optimise tab: one card each, its count first. */
 .oio-actions {
-	padding: var(--oio-space-3) var(--oio-space-5) var(--oio-space-5);
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
+	gap: var(--oio-space-3);
+	padding: var(--oio-space-4) var(--oio-space-5) var(--oio-space-5);
 }
 
 .oio-action {
-	display: grid;
-	grid-template-columns: 230px 1fr;
-	align-items: center;
-	gap: var(--oio-space-4);
-	padding: var(--oio-space-3) 0;
+	position: relative;
+	display: flex;
+	flex-direction: column;
+	overflow: hidden;
+	padding: var(--oio-space-5) var(--oio-space-4) var(--oio-space-4);
+	border: 1px solid var(--oio-border);
+	border-radius: var(--oio-radius);
+	background: var(--oio-surface-soft);
 }
 
-.oio-action + .oio-action {
-	border-top: 1px solid var(--oio-border);
+/* The everyday job: on a light glow, under the gradient of the logo. */
+.oio-action--primary {
+	border-color: rgba(123, 47, 247, .35);
+	background: radial-gradient(circle at 100% 0%, rgba(255, 60, 172, .1) 0%, rgba(123, 47, 247, .08) 45%, var(--oio-surface) 80%);
+}
+
+.oio-action--primary::before {
+	content: "";
+	position: absolute;
+	top: 0;
+	right: 0;
+	left: 0;
+	height: 3px;
+	background: var(--oio-gradient);
+}
+
+/* Decorative: a faint glyph in the corner, nothing like a button. */
+.oio-action__icon {
+	position: absolute;
+	top: var(--oio-space-4);
+	right: var(--oio-space-4);
+	width: 44px;
+	height: 44px;
+	color: var(--oio-violet);
+	font-size: 44px;
+	opacity: .14;
+	pointer-events: none;
+}
+
+.oio-action--primary .oio-action__icon {
+	color: var(--oio-pink);
+	opacity: .22;
+}
+
+.oio-page .oio-action__title {
+	margin: 0;
+	color: var(--oio-text-soft);
+	font-size: var(--oio-size-lead);
+	font-weight: 600;
+}
+
+.oio-action__count {
+	margin: var(--oio-space-1) 0 var(--oio-space-2);
+	color: var(--oio-night);
+	font-family: var(--oio-font-display);
+	font-size: 28px;
+	font-weight: 600;
+	line-height: 1.2;
+	font-variant-numeric: tabular-nums;
+}
+
+.oio-action__text {
+	flex: 1;
+	margin: 0 0 var(--oio-space-4);
+	color: var(--oio-muted);
 }
 
 .oio-page .oio-action__button {
 	justify-content: center;
 	width: 100%;
+	min-height: 36px;
 	text-align: center;
-}
-
-.oio-action__text {
-	margin: 0;
-	color: var(--oio-text-soft);
 }
 
 .oio-confirm {
@@ -661,8 +754,49 @@
 	color: var(--oio-text-soft);
 }
 
-.oio-page .oio-confirm__input {
-	margin-top: 2px;
+/* A box of its own, the same on every screen: WordPress makes its
+   checkboxes bigger under 782px. Centred on the first line of the label,
+   whose lines are 20px high. */
+.oio-page input.oio-confirm__input {
+	flex: none;
+	align-self: flex-start;
+	width: 18px;
+	height: 18px;
+	min-width: 0;
+	/* (20px line of the label - 18px) / 2. */
+	margin: 1px 0 0;
+	padding: 0;
+	border: 1.5px solid var(--oio-muted);
+	border-radius: 5px;
+	background: var(--oio-surface) center / 12px no-repeat;
+	box-shadow: none;
+	cursor: pointer;
+	appearance: none;
+	transition: background-color 0.15s, border-color 0.15s;
+}
+
+.oio-page input.oio-confirm__input:hover {
+	border-color: var(--oio-violet);
+}
+
+.oio-page input.oio-confirm__input:checked {
+	border-color: var(--oio-violet);
+	background-color: var(--oio-violet);
+	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M2.5 6.2 5 8.6l4.5-5' fill='none' stroke='%23fff' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+}
+
+.oio-page input.oio-confirm__input::before {
+	content: none;
+}
+
+.oio-page input.oio-confirm__input:focus-visible {
+	outline: 2px solid var(--oio-violet);
+	outline-offset: 2px;
+}
+
+.oio-confirm__label {
+	line-height: 20px;
+	cursor: pointer;
 }
 
 /* 10. Background job and its result
@@ -683,10 +817,12 @@
 }
 
 .oio-job__progress {
+	position: relative;
+	overflow: hidden;
 	padding: var(--oio-space-4) var(--oio-space-5);
-	border: 1px solid var(--oio-border);
+	border: 1px solid rgba(123, 47, 247, .35);
 	border-radius: var(--oio-radius);
-	background: var(--oio-surface);
+	background: radial-gradient(circle at 100% 0%, rgba(255, 60, 172, .1) 0%, rgba(123, 47, 247, .06) 40%, var(--oio-surface) 75%);
 	box-shadow: var(--oio-shadow);
 }
 
@@ -694,15 +830,57 @@
 	display: flex;
 	flex-wrap: wrap;
 	align-items: center;
-	justify-content: space-between;
 	gap: var(--oio-space-3);
 	margin-bottom: var(--oio-space-3);
 }
 
+.oio-job__icon {
+	flex: none;
+	width: 32px;
+	height: 32px;
+	border-radius: 50%;
+	background: var(--oio-gradient);
+	color: #fff;
+	font-size: 18px;
+	line-height: 32px;
+	text-align: center;
+}
+
+.oio-job[data-state="running"] .oio-job__icon::before {
+	display: inline-block;
+	animation: oio-spin 1.6s linear infinite;
+}
+
+.oio-job[data-state="paused"] .oio-job__icon {
+	background: var(--oio-neutral);
+}
+
 .oio-job__label {
+	flex: 1;
+	min-width: 0;
 	margin: 0;
 	font-size: var(--oio-size-lead);
 	font-weight: 600;
+}
+
+.oio-job__percent {
+	color: var(--oio-violet-dark);
+	font-family: var(--oio-font-display);
+	font-size: var(--oio-size-heading);
+	font-weight: 600;
+	font-variant-numeric: tabular-nums;
+}
+
+@keyframes oio-spin {
+	to {
+		transform: rotate(360deg);
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.oio-job[data-state="running"] .oio-job__icon::before {
+		animation: none;
+	}
 }
 
 .oio-job__controls {
@@ -831,8 +1009,19 @@
 /* 11. Fields and toggles
    ========================================================================== */
 
+/* One layout for every field: its label on the left, its control on the
+   right (a switch for a checkbox), its note below. The label is not a
+   <label>: hovering it would hover the control. Only the control reacts. */
 .oio-field {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) auto;
+	align-items: center;
+	column-gap: var(--oio-space-4);
 	padding: var(--oio-space-4) 0;
+}
+
+.oio-field[hidden] {
+	display: none;
 }
 
 .oio-field + .oio-field {
@@ -840,8 +1029,6 @@
 }
 
 .oio-field__label {
-	display: block;
-	margin-bottom: var(--oio-space-2);
 	font-weight: 600;
 }
 
@@ -852,7 +1039,8 @@
 }
 
 .oio-page .oio-field__input {
-	min-width: 96px;
+	width: 96px;
+	min-width: 0;
 	border-color: var(--oio-border);
 	border-radius: var(--oio-radius-small);
 }
@@ -867,19 +1055,83 @@
 }
 
 .oio-field__help {
-	margin: var(--oio-space-2) 0 0;
+	grid-column: 1 / -1;
+	margin: var(--oio-space-1) 0 0;
 	max-width: 680px;
 	color: var(--oio-muted);
 }
 
-.oio-field--toggle .oio-field__help {
-	padding-left: 52px;
+/* Fields in a settings card: closer, without rules between them. */
+.oio-fields .oio-field {
+	padding: var(--oio-space-3) 0;
 }
 
+.oio-fields .oio-field + .oio-field {
+	border-top: 0;
+}
+
+/* A sub-option, under its checkbox. */
+.oio-field--sub {
+	margin-left: var(--oio-space-1);
+	padding-left: var(--oio-space-4);
+	border-left: 2px solid var(--oio-violet-soft);
+}
+
+.oio-fields .oio-field--sub {
+	padding: var(--oio-space-2) 0 var(--oio-space-2) var(--oio-space-4);
+}
+
+.oio-field--sub .oio-field__label {
+	font-weight: 400;
+}
+
+/* The "?" opening the full help of a field, under its short note. */
+.oio-page:not(.oio-page--js) .oio-help__toggle {
+	display: none;
+}
+
+.oio-help__toggle {
+	width: 18px;
+	height: 18px;
+	margin-left: 2px;
+	padding: 0;
+	border: 1px solid var(--oio-violet);
+	border-radius: 50%;
+	background: var(--oio-surface);
+	color: var(--oio-violet-dark);
+	font-size: 11px;
+	font-weight: 700;
+	line-height: 16px;
+	text-align: center;
+	vertical-align: 1px;
+	cursor: pointer;
+	transition: background-color var(--oio-transition), color var(--oio-transition);
+}
+
+.oio-help__toggle:hover,
+.oio-help__toggle:focus-visible {
+	background: var(--oio-violet-soft);
+}
+
+.oio-help__toggle:focus-visible {
+	outline: 2px solid var(--oio-violet);
+	outline-offset: 1px;
+}
+
+.oio-help__toggle[aria-expanded="true"] {
+	background: var(--oio-violet);
+	color: #fff;
+}
+
+.oio-help__text {
+	padding-top: var(--oio-space-2);
+	border-top: 1px dashed var(--oio-border);
+}
+
+/* The switch: only its track is clickable. */
 .oio-toggle {
 	display: inline-flex;
 	align-items: center;
-	gap: var(--oio-space-3);
 	cursor: pointer;
 }
 
@@ -926,15 +1178,132 @@
 	box-shadow: 0 0 0 2px #fff, 0 0 0 4px var(--oio-violet);
 }
 
-.oio-toggle__label {
-	font-weight: 600;
+/* 12. Settings: format cards
+   ========================================================================== */
+
+/* Two per row on wide screens, one on small ones: each shows the same
+   header, its settings folded below. A card opened leaves the other as is. */
+.oio-formats {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr));
+	align-items: start;
+	gap: var(--oio-space-4);
 }
 
-/* 12. Install instructions, code
+.oio-format {
+	display: flex;
+	flex-direction: column;
+	/* Clear of the admin bar when a card of the overview links here. */
+	scroll-margin-top: 48px;
+	border: 1px solid var(--oio-border);
+	border-radius: var(--oio-radius);
+	background: var(--oio-surface);
+	box-shadow: var(--oio-shadow);
+}
+
+.oio-format--off {
+	border-color: #f2c8c9;
+}
+
+.oio-format__header {
+	padding: var(--oio-space-5) var(--oio-space-5) var(--oio-space-3);
+}
+
+.oio-format__top {
+	display: flex;
+	align-items: center;
+	gap: var(--oio-space-3);
+	margin-bottom: var(--oio-space-3);
+}
+
+.oio-page .oio-format__title {
+	margin: 0;
+	padding: 0;
+	font-family: var(--oio-font-display);
+	font-size: var(--oio-size-heading);
+	font-weight: 600;
+	line-height: 1.3;
+}
+
+.oio-format__top .oio-toggle--switch {
+	margin-left: auto;
+}
+
+/* The library and the optional ones on one line, as long as it fits. */
+.oio-format__engines {
+	display: flex;
+	flex-wrap: wrap;
+	gap: var(--oio-space-1) var(--oio-space-5);
+}
+
+.oio-format__engines .oio-engine__version {
+	margin-left: 0;
+}
+
+.oio-format__description {
+	margin: 0;
+	padding: 0 var(--oio-space-5) var(--oio-space-4);
+	color: var(--oio-text-soft);
+}
+
+.oio-format > .oio-install {
+	margin: 0 var(--oio-space-5) var(--oio-space-4);
+}
+
+.oio-format__settings {
+	border-top: 1px solid var(--oio-border);
+}
+
+.oio-format__summary {
+	display: flex;
+	align-items: center;
+	gap: var(--oio-space-2);
+	padding: var(--oio-space-3) var(--oio-space-5);
+	color: var(--oio-violet-dark);
+	font-weight: 600;
+	list-style: none;
+	cursor: pointer;
+}
+
+.oio-format__summary::-webkit-details-marker {
+	display: none;
+}
+
+.oio-format__summary::before {
+	content: "\f345"; /* Dashicon arrow-right-alt2. */
+	font-family: dashicons;
+	font-size: 16px;
+	line-height: 1;
+	transition: transform var(--oio-transition);
+}
+
+.oio-format__settings[open] > .oio-format__summary::before {
+	transform: rotate(90deg);
+}
+
+.oio-format__summary:hover {
+	color: var(--oio-violet);
+}
+
+.oio-format__fields {
+	padding: 0 var(--oio-space-5) var(--oio-space-4);
+}
+
+.oio-format__fields .oio-install {
+	margin: var(--oio-space-2) 0 0;
+}
+
+/* A format switched off: its settings fade until it is switched on again. */
+.oio-format:has(.oio-toggle--switch .oio-toggle__input:not(:checked)) .oio-format__fields {
+	opacity: .5;
+	transition: opacity var(--oio-transition);
+}
+
+/* 13. Install instructions, code
    ========================================================================== */
 
 .oio-install {
-	margin: var(--oio-space-4) var(--oio-space-5) 0;
+	margin: 0 var(--oio-space-5) var(--oio-space-5);
 	padding: var(--oio-space-3) var(--oio-space-4);
 	border: 1px solid #f2c8c9;
 	border-radius: var(--oio-radius-small);
@@ -992,41 +1361,328 @@
 	color: inherit;
 }
 
-/* 13. Delivery: rules and test
+/* 14. Delivery: steps, methods, folds and test
    ========================================================================== */
 
-.oio-rules {
-	margin-top: var(--oio-space-2);
-	padding-top: var(--oio-space-4);
-	border-top: 1px solid var(--oio-border);
+/* Numbered steps, an arrow from one to the next: stacked, the arrows point
+   down; side by side when the panel is wide enough, they point right. */
+.oio-panel {
+	container-type: inline-size;
 }
 
-.oio-rules__summary {
-	color: var(--oio-violet-dark);
+.oio-steps {
+	--oio-steps-gap: 44px;
+	display: grid;
+	gap: var(--oio-steps-gap);
+	margin: 0 0 var(--oio-space-6);
+	padding: 0;
+	list-style: none;
+}
+
+.oio-step {
+	position: relative;
+	display: flex;
+	flex-direction: column;
+	margin: 0;
+	border: 1px solid var(--oio-border);
+	border-radius: var(--oio-radius);
+	background: var(--oio-surface);
+	box-shadow: var(--oio-shadow);
+}
+
+.oio-step:not(:last-child)::after {
+	content: "\f346"; /* Dashicon arrow-down-alt. */
+	position: absolute;
+	z-index: 1;
+	top: calc(100% + (var(--oio-steps-gap) - 28px) / 2);
+	left: calc(50% - 14px);
+	width: 28px;
+	height: 28px;
+	border-radius: 50%;
+	background: var(--oio-gradient);
+	box-shadow: 0 2px 8px rgba(123, 47, 247, .35);
+	color: #fff;
+	font-family: dashicons;
+	font-size: 18px;
+	line-height: 28px;
+	text-align: center;
+}
+
+@container (min-width: 900px) {
+	.oio-steps {
+		grid-template-columns: minmax(0, 1fr) minmax(0, 1.45fr) minmax(0, 1fr);
+	}
+
+	/* The arrow sits between two steps, level with their numbers. */
+	.oio-step:not(:last-child)::after {
+		content: "\f344"; /* Dashicon arrow-right-alt. */
+		top: calc(var(--oio-space-5) + 6px);
+		left: calc(100% + (var(--oio-steps-gap) - 28px) / 2);
+	}
+}
+
+.oio-step__header {
+	display: flex;
+	align-items: flex-start;
+	gap: var(--oio-space-4);
+	padding: var(--oio-space-5) var(--oio-space-5) var(--oio-space-4);
+}
+
+.oio-step__number {
+	flex: none;
+	width: 40px;
+	height: 40px;
+	border-radius: 50%;
+	background: var(--oio-gradient);
+	box-shadow: 0 4px 12px rgba(123, 47, 247, .3);
+	color: #fff;
+	font-family: var(--oio-font-display);
+	font-size: var(--oio-size-title);
 	font-weight: 600;
-	cursor: pointer;
+	line-height: 40px;
+	text-align: center;
 }
 
-.oio-rules__title {
-	margin: var(--oio-space-4) 0 var(--oio-space-2);
+.oio-step__heading {
+	flex: 1;
+	min-width: 0;
+}
+
+.oio-page .oio-step__title {
+	margin: 0;
+	padding: 0;
+	font-family: var(--oio-font-display);
+	font-size: var(--oio-size-heading);
+	font-weight: 500;
+	line-height: 40px;
+}
+
+.oio-step__description {
+	margin: var(--oio-space-1) 0 0;
 	color: var(--oio-text-soft);
+	font-size: var(--oio-size-lead);
+	line-height: 1.6;
+}
+
+.oio-step__body {
+	flex: 1;
+	padding: var(--oio-space-1) var(--oio-space-5) var(--oio-space-5);
+}
+
+.oio-step__actions {
+	display: flex;
+	justify-content: flex-end;
+	padding: var(--oio-space-4) var(--oio-space-5);
+	border-top: 1px solid var(--oio-border);
+	border-radius: 0 0 var(--oio-radius) var(--oio-radius);
+	background: var(--oio-surface-soft);
+}
+
+/* Step 1: how many images have their WebP or AVIF version. */
+.oio-generate {
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+	gap: var(--oio-space-4);
+}
+
+.oio-generate__value {
+	margin: 0;
+	color: var(--oio-text-soft);
+	font-size: var(--oio-size-lead);
+	line-height: 1.6;
+}
+
+.oio-generate__value strong {
+	color: var(--oio-text);
+	font-family: var(--oio-font-display);
+	font-size: var(--oio-size-heading);
 	font-weight: 600;
+}
+
+.oio-generate__formats {
+	display: flex;
+	flex-wrap: wrap;
+	gap: var(--oio-space-2);
+	margin: 0;
+}
+
+.oio-generate__formats li {
+	margin: 0;
+}
+
+.oio-meter {
+	display: block;
+	align-self: stretch;
+	height: 8px;
+	overflow: hidden;
+	border-radius: 999px;
+	background: var(--oio-violet-soft);
+}
+
+.oio-meter__value {
+	display: block;
+	height: 100%;
+	border-radius: 999px;
+	background: var(--oio-gradient);
+}
+
+/* Step 2: the two ways to serve, the checked one highlighted. */
+.oio-methods {
+	display: grid;
+	align-content: start;
+	gap: var(--oio-space-4);
+}
+
+.oio-method {
+	padding: var(--oio-space-4) var(--oio-space-5);
+	border: 1px solid var(--oio-border);
+	border-radius: var(--oio-radius);
+	background: var(--oio-surface-soft);
+	transition: border-color var(--oio-transition), background-color var(--oio-transition);
+}
+
+.oio-method:has(.oio-toggle__input:checked) {
+	border-color: rgba(123, 47, 247, .45);
+	background: var(--oio-violet-soft);
+}
+
+.oio-method .oio-field {
+	padding: 0;
+}
+
+.oio-method .oio-field__help {
+	margin-top: var(--oio-space-2);
+	line-height: 1.6;
+}
+
+/* Step 3: the test, its button as large as it matters, its verdict below. */
+.oio-test__list {
+	margin: 0 0 var(--oio-space-5);
+	padding-left: var(--oio-space-5);
+	color: var(--oio-text-soft);
+	font-size: var(--oio-size-lead);
+	line-height: 1.6;
+	list-style: disc;
+}
+
+.oio-test__list li {
+	margin-bottom: var(--oio-space-2);
 }
 
 .oio-page .oio-test__button {
-	flex: none;
-	align-self: center;
+	justify-content: center;
+	width: 100%;
+	min-height: 46px;
+	font-size: var(--oio-size-lead);
+	font-weight: 600;
+	text-align: center;
 }
 
-.oio-test__result {
-	padding: var(--oio-space-4) var(--oio-space-5) var(--oio-space-5);
+.oio-test__summary {
+	display: flex;
+	align-items: center;
+	gap: var(--oio-space-2);
+	margin: var(--oio-space-4) 0 0;
+	padding: var(--oio-space-3) var(--oio-space-4);
+	border-radius: var(--oio-radius-small);
+	font-weight: 600;
 }
 
-.oio-test__sample {
+.oio-test__summary[hidden] {
+	display: none;
+}
+
+.oio-test__summary::before {
+	font-family: dashicons;
+	font-size: 20px;
+	font-weight: 400;
+	line-height: 1;
+}
+
+.oio-test__summary--ok {
+	background: var(--oio-on-bg);
+	color: var(--oio-on);
+}
+
+.oio-test__summary--ok::before {
+	content: "\f12a"; /* Dashicon yes-alt. */
+}
+
+.oio-test__summary--fail {
+	background: var(--oio-off-bg);
+	color: var(--oio-off);
+}
+
+.oio-test__summary--fail::before {
+	content: "\f153"; /* Dashicon dismiss. */
+}
+
+.oio-test__sample:empty {
+	display: none;
+}
+
+/* Rules and code, folded: one line each until opened. */
+.oio-fold {
+	margin-top: var(--oio-space-3);
+	border: 1px solid var(--oio-border);
+	border-radius: var(--oio-radius);
+	background: var(--oio-surface);
+	box-shadow: var(--oio-shadow);
+}
+
+/* The chevron, the title, then its badge: on the right, or under the title
+   on small screens. */
+.oio-fold__summary {
+	display: grid;
+	grid-template-columns: auto minmax(0, 1fr) auto;
+	align-items: center;
+	gap: var(--oio-space-1) var(--oio-space-2);
+	padding: var(--oio-space-3) var(--oio-space-5);
+	font-weight: 600;
+	list-style: none;
+	cursor: pointer;
+}
+
+.oio-fold__summary::-webkit-details-marker {
+	display: none;
+}
+
+.oio-fold__summary::before {
+	content: "\f345"; /* Dashicon arrow-right-alt2. */
+	font-family: dashicons;
+	font-size: 16px;
+	line-height: 1;
+	color: var(--oio-violet);
+	transition: transform var(--oio-transition);
+}
+
+.oio-fold[open] > .oio-fold__summary::before {
+	transform: rotate(90deg);
+}
+
+.oio-fold__summary .oio-badge {
+	justify-self: end;
+}
+
+.oio-fold__summary:hover {
+	color: var(--oio-violet-dark);
+}
+
+.oio-fold__content {
+	padding: 0 var(--oio-space-5) var(--oio-space-5);
+}
+
+.oio-fold__text {
 	margin: 0 0 var(--oio-space-3);
-	color: var(--oio-muted);
+	color: var(--oio-text-soft);
 }
 
+.oio-fold__content .oio-code + .oio-fold__text {
+	margin: var(--oio-space-3) 0 0;
+}
+
+/* Results of the test. */
 .oio-checks {
 	margin: 0;
 	border: 1px solid var(--oio-border);
@@ -1038,7 +1694,11 @@
 	grid-template-columns: 24px 1fr;
 	gap: 2px var(--oio-space-3);
 	margin: 0;
-	padding: var(--oio-space-3) var(--oio-space-4);
+	padding: var(--oio-space-4);
+}
+
+.oio-checks__item--fail {
+	background: var(--oio-off-bg);
 }
 
 .oio-checks__item + .oio-checks__item {
@@ -1047,7 +1707,9 @@
 
 .oio-checks__icon {
 	grid-row: span 3;
-	font-size: 20px;
+	width: 24px;
+	height: 24px;
+	font-size: 24px;
 	color: var(--oio-on);
 }
 
@@ -1072,6 +1734,7 @@
 }
 
 .oio-checks__label {
+	font-size: var(--oio-size-lead);
 	font-weight: 600;
 }
 
@@ -1088,7 +1751,7 @@
 	display: none;
 }
 
-/* 14. WordPress components
+/* 15. WordPress components
    ========================================================================== */
 
 /* The buttons keep their WordPress classes, in the colours of the logo. */
@@ -1136,7 +1799,7 @@
 	opacity: .55;
 }
 
-/* 15. Small screens
+/* 16. Small screens
    ========================================================================== */
 
 @media (max-width: 782px) {
@@ -1152,6 +1815,39 @@
 	.oio-header__name {
 		display: block;
 		margin-left: 0;
+	}
+
+	/* The tabs stay on one line, scrolled sideways, without a scrollbar. */
+	.oio-tabs {
+		position: relative;
+		flex-wrap: nowrap;
+		overflow-x: auto;
+		scroll-snap-type: x proximity;
+		scrollbar-width: none;
+		-webkit-overflow-scrolling: touch;
+	}
+
+	.oio-tabs::-webkit-scrollbar {
+		display: none;
+	}
+
+	.oio-fold__summary {
+		padding: var(--oio-space-3) var(--oio-space-4);
+	}
+
+	.oio-fold__summary .oio-badge {
+		grid-column: 2;
+		justify-self: start;
+	}
+
+	.oio-fold__content {
+		padding: 0 var(--oio-space-4) var(--oio-space-4);
+	}
+
+	.oio-page .oio-tabs__tab {
+		flex: none;
+		padding: var(--oio-space-2) var(--oio-space-3);
+		scroll-snap-align: start;
 	}
 
 	.oio-savings {
@@ -1174,12 +1870,11 @@
 		border-top: 1px solid var(--oio-border);
 	}
 
-	.oio-action {
-		grid-template-columns: 1fr;
-		gap: var(--oio-space-2);
+	.oio-step__header {
+		padding: var(--oio-space-4) var(--oio-space-4) var(--oio-space-3);
 	}
 
-	.oio-field--toggle .oio-field__help {
-		padding-left: 0;
+	.oio-step__body {
+		padding: 0 var(--oio-space-4) var(--oio-space-4);
 	}
 }
