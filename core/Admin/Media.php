@@ -91,7 +91,7 @@ class Media
 	}
 
 	/**
-	 * Adds the OIO column.
+	 * Adds the Optimisation column.
 	 *
 	 * @param array $columns
 	 * @return array
@@ -100,7 +100,7 @@ class Media
 	 */
 	public function columns($columns)
 	{
-		$columns['oio'] = 'OIO';
+		$columns['oio'] = 'Optimisation';
 		return $columns;
 	}
 
@@ -266,7 +266,7 @@ class Media
 		if (!empty($_GET['oio_busy'])) {
 			$id = (int)$_GET['oio_busy'];
 			if (current_user_can('edit_post', $id)) {
-				printf('<div class="notice notice-warning is-dismissible"><p><strong>OIO</strong> is already processing %s, try again in a moment.</p></div>', esc_html(get_the_title($id)));
+				printf('<div class="notice notice-warning is-dismissible"><p><strong>Octopus Image Optimizer</strong> is already processing %s, try again in a moment.</p></div>', esc_html(get_the_title($id)));
 			}
 			return;
 		}
@@ -276,9 +276,9 @@ class Media
 				return;
 			}
 			if ($id > 0) {
-				printf('<div class="notice notice-success is-dismissible"><p><strong>OIO</strong> restored the original of %s.</p></div>', esc_html(get_the_title($id)));
+				printf('<div class="notice notice-success is-dismissible"><p><strong>Octopus Image Optimizer</strong> restored the original of %s.</p></div>', esc_html(get_the_title($id)));
 			} else {
-				printf('<div class="notice notice-warning is-dismissible"><p><strong>OIO</strong> removed its files of %s, but its original is missing: it stays compressed.</p></div>', esc_html(get_the_title(-$id)));
+				printf('<div class="notice notice-warning is-dismissible"><p><strong>Octopus Image Optimizer</strong> removed its files of %s, but its original is missing: it stays compressed.</p></div>', esc_html(get_the_title(-$id)));
 			}
 			return;
 		}
@@ -289,7 +289,7 @@ class Media
 		if (!current_user_can('edit_post', $id) || Status::of($id) === Status::ERROR) {
 			return;
 		}
-		printf('<div class="notice notice-success is-dismissible"><p><strong>OIO</strong> optimised %s.</p></div>', esc_html(get_the_title($id)));
+		printf('<div class="notice notice-success is-dismissible"><p><strong>Octopus Image Optimizer</strong> optimised %s.</p></div>', esc_html(get_the_title($id)));
 	}
 
 	/**

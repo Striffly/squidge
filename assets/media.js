@@ -14,7 +14,7 @@
 		if ($notice.length) {
 			return $notice;
 		}
-		$notice = $('<div class="notice notice-warning is-dismissible oio-errors-notice"><p><strong>OIO</strong> could not fully optimise some images:</p><ul></ul></div>');
+		$notice = $('<div class="notice notice-warning is-dismissible oio-errors-notice"><p><strong>Octopus Image Optimizer</strong> could not fully optimise some images:</p><ul></ul></div>');
 		var $headerEnd = $('.wp-header-end').first();
 		if ($headerEnd.length) {
 			$notice.insertAfter($headerEnd);

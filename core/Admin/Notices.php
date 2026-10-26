@@ -121,7 +121,7 @@ class Notices
 		}
 		?>
 		<div class="notice notice-warning is-dismissible oio-errors-notice">
-			<p><strong>OIO</strong> could not fully optimise some images:</p>
+			<p><strong>Octopus Image Optimizer</strong> could not fully optimise some images:</p>
 			<ul>
 				<?php foreach ($this->items_html($errors) as $html) : ?>
 					<li><?php echo $html; ?></li>

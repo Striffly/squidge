@@ -151,7 +151,7 @@ class Fields
 	 */
 	public function add_page()
 	{
-		add_options_page('OIO – Octopus Image Optimizer', 'OIO', 'manage_options', self::PAGE, [$this, 'render_page']);
+		add_options_page('OIO – Octopus Image Optimizer', 'Image Optimizer', 'manage_options', self::PAGE, [$this, 'render_page']);
 	}
 
 	/**

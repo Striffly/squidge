@@ -42,7 +42,7 @@ if (file_exists(__DIR__ . '/vendor-prefixed/autoload.php')) {
 	require __DIR__ . '/vendor-prefixed/autoload.php';
 } else {
 	add_action('admin_notices', function () {
-		echo '<div class="notice notice-error"><p><strong>OIO</strong>: its dependencies are missing, run <code>composer install</code> in the plugin folder.</p></div>';
+		echo '<div class="notice notice-error"><p><strong>OIO – Octopus Image Optimizer</strong>: its dependencies are missing, run <code>composer install</code> in the plugin folder.</p></div>';
 	});
 }
 
