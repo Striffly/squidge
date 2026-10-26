@@ -787,7 +787,7 @@ class SettingsPage
 			</header>
 			<?php if ($jobs) : ?>
 				<div class="octopus-confirm">
-					<label class="octopus-confirm__label"><input type="checkbox" class="octopus-confirm__input" data-confirm-for="remove_formats"> <?php esc_html_e('I understand the WebP and AVIF files are deleted, until the images are optimised again.', 'octopus-image-optimizer'); ?></label>
+					<label class="octopus-confirm__label"><input type="checkbox" class="octopus-confirm__input" data-confirm-for="remove_formats"> <?php esc_html_e('I understand the WebP and AVIF files will be deleted, until the images are optimised again.', 'octopus-image-optimizer'); ?></label>
 					<button type="button" class="button octopus-confirm__button" data-job="remove_formats"><?php esc_html_e('Remove WebP and AVIF', 'octopus-image-optimizer'); ?></button>
 				</div>
 			<?php else : ?>
@@ -805,7 +805,7 @@ class SettingsPage
 			</header>
 			<?php if ($jobs) : ?>
 				<div class="octopus-confirm">
-					<label class="octopus-confirm__label"><input type="checkbox" class="octopus-confirm__input" data-confirm-for="restore"> <?php esc_html_e('I understand the images are no longer optimised, and their WebP and AVIF files are deleted.', 'octopus-image-optimizer'); ?></label>
+					<label class="octopus-confirm__label"><input type="checkbox" class="octopus-confirm__input" data-confirm-for="restore"> <?php esc_html_e('I understand the images will no longer be optimised, and their WebP and AVIF files will be deleted.', 'octopus-image-optimizer'); ?></label>
 					<button type="button" class="button octopus-confirm__button octopus-button--danger" data-job="restore"><?php esc_html_e('Restore original images', 'octopus-image-optimizer'); ?></button>
 				</div>
 			<?php else : ?>
