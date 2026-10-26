@@ -8,6 +8,7 @@
 <ruleset name="OIO">
 	<file>octopus-image-optimizer.php</file>
 	<file>uninstall.php</file>
+	<file>autoload.php</file>
 	<file>core</file>
 	<file>functions</file>
 	<file>templates</file>

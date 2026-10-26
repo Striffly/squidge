@@ -80,10 +80,11 @@ class UninstallTest extends TestCase
 		Settings::set(array_map(function ($field) {
 			return $field['default'];
 		}, Settings::FIELDS));
-		foreach (['octopus_errors', 'octopus_job', 'octopus_theme_calls', 'octopus_lock_7'] as $option) {
+		foreach (['octopus_errors', 'octopus_job', 'octopus_lock_7'] as $option) {
 			update_option($option, ['data']);
 		}
 		set_transient('octopus_versions', ['cwebp' => '1.6.0']);
+		set_transient('octopus_theme_calls', ['functions.php']);
 		foreach (self::FOREIGN as $option) {
 			update_option($option, 'kept');
 		}

@@ -8,6 +8,7 @@
   "files": [
     "octopus-image-optimizer.php",
     "uninstall.php",
+    "autoload.php",
     "core",
     "functions",
     "templates",

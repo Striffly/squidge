@@ -25,22 +25,10 @@ if (!defined('ABSPATH')) {
 // The version of OIO, set by npm run release with the header above.
 define('OCTOPUS_VERSION', '0.1.4');
 
-// Autoload OIO classes (Octopus\Foo\Bar => core/Foo/Bar.php).
-spl_autoload_register(function ($class) {
-	$prefix = 'Octopus\\';
-	if (strpos($class, $prefix) !== 0) {
-		return;
-	}
-	$file = __DIR__ . '/core/' . str_replace('\\', '/', substr($class, strlen($prefix))) . '.php';
-	if (file_exists($file)) {
-		require $file;
-	}
-});
+require_once __DIR__ . '/autoload.php';
 
-// Autoload the dependencies, prefixed by Strauss (composer install).
-if (file_exists(__DIR__ . '/vendor-prefixed/autoload.php')) {
-	require __DIR__ . '/vendor-prefixed/autoload.php';
-} else {
+// The dependencies, prefixed by Strauss, are made by composer install.
+if (!file_exists(__DIR__ . '/vendor-prefixed/autoload.php')) {
 	add_action('admin_notices', function () {
 		echo '<div class="notice notice-error"><p><strong>OIO – Octopus Image Optimizer</strong>: its dependencies are missing, run <code>composer install</code> in the plugin folder.</p></div>';
 	});

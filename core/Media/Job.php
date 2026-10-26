@@ -239,7 +239,7 @@ class Job extends Octopus_Vendor_WP_Background_Process
 	public function cancelled_progress()
 	{
 		$progress = get_option(self::PROGRESS);
-		if (is_array($progress) && !$progress['finished']) {
+		if (is_array($progress) && empty($progress['finished'])) {
 			$progress['cancelled'] = true;
 			$progress['finished'] = time();
 			update_option(self::PROGRESS, $progress, false);
