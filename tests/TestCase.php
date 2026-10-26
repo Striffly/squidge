@@ -16,8 +16,10 @@
 namespace Octopus\Tests;
 
 use Octopus\Encoders\Encoder;
+use Octopus\Encoders\ImageEditor;
 use Octopus\Media\Optimiser;
 use Octopus\Settings;
+use Octopus\System\Process;
 use ReflectionProperty;
 use WP_UnitTestCase;
 
@@ -50,7 +52,7 @@ abstract class TestCase extends WP_UnitTestCase
 	public function tear_down()
 	{
 		self::remove(dirname($this->uploads));
-		Encoder::forget_versions();
+		Process::forget_versions();
 		parent::tear_down();
 	}
 
@@ -236,8 +238,9 @@ abstract class TestCase extends WP_UnitTestCase
 	 */
 	protected static function forget_libraries()
 	{
-		foreach (['binaries' => [], 'editors' => [], 'versions' => null] as $name => $value) {
-			$property = new ReflectionProperty(Encoder::class, $name);
+		$caches = [[Process::class, 'binaries', []], [Process::class, 'versions', null], [ImageEditor::class, 'classes', []]];
+		foreach ($caches as list($class, $name, $value)) {
+			$property = new ReflectionProperty($class, $name);
 			$property->setAccessible(true);
 			$property->setValue(null, $value);
 		}

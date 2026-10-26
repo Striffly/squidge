@@ -21,12 +21,13 @@ namespace Octopus\Encoders;
 use Octopus\Log\Logger;
 use Octopus\Media\Files;
 use Octopus\Media\Optimiser;
+use Octopus\System\Process;
 
 if (!defined('ABSPATH')) {
 	exit; // Exit if accessed directly
 }
 
-class PNG extends Encoder implements Convertor
+class PNG extends Encoder
 {
 	/**
 	 * The format of the encoder, see Encoder::FORMAT.
@@ -54,7 +55,7 @@ class PNG extends Encoder implements Convertor
 	 * backup.
 	 *
 	 * The library runs without shell, see
-	 * Encoder::execute().
+	 * Process::execute().
 	 *
 	 * @param $filepath
 	 * @param $mime
@@ -142,7 +143,7 @@ class PNG extends Encoder implements Convertor
 		require_once ABSPATH . 'wp-admin/includes/file.php';
 		$temp = wp_tempnam('octopus.png');
 		$range = max(0, $quality - 15) . '-' . $quality;
-		list($code, $output) = self::execute(array_merge(self::nice(), [self::binary('pngquant'), '--quality=' . $range, '--strip', '--skip-if-larger', '--force', '--output', $temp, '--', $original]));
+		list($code, $output) = Process::execute(array_merge(Process::nice(Optimiser::$context), [Process::binary('pngquant'), '--quality=' . $range, '--strip', '--skip-if-larger', '--force', '--output', $temp, '--', $original]));
 		clearstatcache();
 		if ($code === 0 && filesize($temp) > 0) {
 			return $temp;
@@ -214,10 +215,7 @@ class PNG extends Encoder implements Convertor
 	 */
 	private static function threads()
 	{
-		$defaults = ['upload' => 4, 'background' => 2, 'cli' => 'all'];
-		$default = isset($defaults[Optimiser::$context]) ? $defaults[Optimiser::$context] : 4;
-		$threads = apply_filters('octopus_oxipng_threads', $default, Optimiser::$context);
-		return $threads === 'all' ? 'all' : (string)max(1, (int)$threads);
+		return Process::threads('octopus_oxipng_threads', Optimiser::$context);
 	}
 
 	/**

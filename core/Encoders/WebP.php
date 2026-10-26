@@ -26,7 +26,7 @@ if (!defined('ABSPATH')) {
 	exit; // Exit if accessed directly
 }
 
-class WebP extends Encoder implements Convertor
+class WebP extends Encoder
 {
 	/**
 	 * The format of the encoder, see Encoder::FORMAT.
@@ -57,7 +57,7 @@ class WebP extends Encoder implements Convertor
 	 * to webp with the given file path.
 	 *
 	 * The library runs without shell, see
-	 * Encoder::execute().
+	 * Process::execute().
 	 *
 	 * @param $filepath
 	 * @param $mime
@@ -82,7 +82,7 @@ class WebP extends Encoder implements Convertor
 			return;
 		}
 		$original = self::original($filepath);
-		$source = self::readable_source($original, $mime);
+		$source = ImageEditor::readable($original, $mime);
 		$output = $filepath . self::extension();
 		$options = ['-q', (int)$args['quality']];
 		if (self::multithreading()) {
@@ -95,7 +95,7 @@ class WebP extends Encoder implements Convertor
 			Logger::info("Successfully converted to WebP file: " . $output);
 			Files::remember(isset($args['id']) ? (int)$args['id'] : 0, $output);
 		}
-		self::release_source($source, $original);
+		ImageEditor::release($source, $original);
 	}
 
 	/**

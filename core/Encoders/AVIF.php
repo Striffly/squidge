@@ -21,12 +21,13 @@ namespace Octopus\Encoders;
 use Octopus\Log\Logger;
 use Octopus\Media\Files;
 use Octopus\Media\Optimiser;
+use Octopus\System\Process;
 
 if (!defined('ABSPATH')) {
 	exit; // Exit if accessed directly
 }
 
-class AVIF extends Encoder implements Convertor
+class AVIF extends Encoder
 {
 	/**
 	 * The format of the encoder, see Encoder::FORMAT.
@@ -60,7 +61,7 @@ class AVIF extends Encoder implements Convertor
 	 * its original.
 	 *
 	 * The library runs without shell, see
-	 * Encoder::execute().
+	 * Process::execute().
 	 *
 	 * @param $filepath
 	 * @param $mime
@@ -96,13 +97,13 @@ class AVIF extends Encoder implements Convertor
 		$options = array_merge($options, self::metadata_options());
 
 		$original = self::original($filepath);
-		$source = self::readable_source($original, $mime);
+		$source = ImageEditor::readable($original, $mime);
 		$output = $filepath . self::extension();
 		if (self::run(array_merge($options, ['--speed', $speed, '--jobs', $jobs, $source, $output]), $filepath, $args)) {
 			Logger::info("Successfully converted to AVIF file: " . $output);
 			Files::remember(isset($args['id']) ? (int)$args['id'] : 0, $output);
 		}
-		self::release_source($source, $original);
+		ImageEditor::release($source, $original);
 	}
 
 	/**
@@ -154,10 +155,7 @@ class AVIF extends Encoder implements Convertor
 	 */
 	private static function jobs()
 	{
-		$defaults = ['upload' => 4, 'background' => 2, 'cli' => 'all'];
-		$default = isset($defaults[Optimiser::$context]) ? $defaults[Optimiser::$context] : 4;
-		$jobs = apply_filters('octopus_avif_jobs', $default, Optimiser::$context);
-		return $jobs === 'all' ? 'all' : (string)max(1, (int)$jobs);
+		return Process::threads('octopus_avif_jobs', Optimiser::$context);
 	}
 
 	/**
@@ -171,12 +169,7 @@ class AVIF extends Encoder implements Convertor
 	 */
 	private static function version()
 	{
-		static $major = null;
-		if ($major === null) {
-			list(, $output) = self::execute([self::binary(self::cmd_name()), '--version']);
-			$major = preg_match('/Version:\s*(\d+)\./', $output, $matches) ? (int)$matches[1] : 0;
-		}
-		return $major;
+		return (int)Process::version(self::cmd_name());
 	}
 
 	/**
@@ -195,7 +188,7 @@ class AVIF extends Encoder implements Convertor
 	{
 		static $options = null;
 		if ($options === null) {
-			list(, $help) = self::execute([self::binary(self::cmd_name()), '--help']);
+			list(, $help) = Process::execute([Process::binary(self::cmd_name()), '--help']);
 			$options = [];
 			foreach (['--ignore-exif', '--ignore-xmp'] as $option) {
 				if (strpos($help, $option) !== false) {

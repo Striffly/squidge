@@ -19,7 +19,6 @@ namespace Octopus\Admin;
 
 use Octopus\Delivery\Htaccess;
 use Octopus\Encoders\AVIF;
-use Octopus\Encoders\Encoder;
 use Octopus\Encoders\JPG;
 use Octopus\Encoders\PNG;
 use Octopus\Encoders\WebP;
@@ -28,6 +27,7 @@ use Octopus\Media\Files;
 use Octopus\Media\Stats;
 use Octopus\Media\Status;
 use Octopus\Settings;
+use Octopus\System\Process;
 
 if (!defined('ABSPATH')) {
 	exit; // Exit if accessed directly
@@ -127,7 +127,7 @@ class Fields
 		}
 		// Saving the settings reads the versions of the libraries again, e.g. after an upgrade.
 		if (isset($_GET['settings-updated'])) {
-			Encoder::forget_versions();
+			Process::forget_versions();
 		}
 		$sections = self::sections();
 		$formats = self::formats($sections);

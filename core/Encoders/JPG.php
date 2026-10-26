@@ -25,7 +25,7 @@ if (!defined('ABSPATH')) {
 	exit; // Exit if accessed directly
 }
 
-class JPG extends Encoder implements Convertor
+class JPG extends Encoder
 {
 	/**
 	 * The format of the encoder, see Encoder::FORMAT.
@@ -43,7 +43,7 @@ class JPG extends Encoder implements Convertor
 	 * from its original kept as a backup.
 	 *
 	 * The library runs without shell, see
-	 * Encoder::execute().
+	 * Process::execute().
 	 *
 	 * @param $filepath
 	 * @param $mime
