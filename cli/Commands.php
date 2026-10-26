@@ -32,11 +32,16 @@ use OIO\Services\PNG;
 use OIO\Services\WebP;
 use OIO\Services\AVIF;
 
+/**
+ * Optimises the images of the media library, removes
+ * their WebP and AVIF files or restores their
+ * originals.
+ */
 class OIO_CLI extends WP_CLI_Command
 {
 
 	/**
-	 * Returns the version number of the plugin.
+	 * Prints the version of OIO.
 	 *
 	 * @since 0.1.0
 	 * @date 24/11/2021
@@ -48,7 +53,10 @@ class OIO_CLI extends WP_CLI_Command
 	}
 
 	/**
-	 * Prints health status for each service.
+	 * Checks that the libraries are installed.
+	 *
+	 * Without cwebp or avifenc, tells whether GD or
+	 * Imagick makes the format instead.
 	 *
 	 * @since 0.1.0
 	 * @date 24/11/2021
@@ -64,25 +72,57 @@ class OIO_CLI extends WP_CLI_Command
 	}
 
 	/**
-	 * Processes all JPG and PNG images of the media
-	 * library: converts them to .webp and .avif files
-	 * and compresses them.
+	 * Optimises the JPG and PNG images of the media library.
 	 *
-	 * The formats and qualities are the ones of the
-	 * options page, the args below override them.
+	 * Compresses them and makes their WebP and AVIF
+	 * versions, with the formats and qualities of the
+	 * settings page, unless the options below override
+	 * them. The images already optimised are only
+	 * completed (e.g. a new thumbnail size), unless
+	 * --force. Exits with an error if images fail.
 	 *
-	 * Args:
-	 *    - jpg=true|false        JPG compression.
-	 *    - png=true|false        PNG compression.
-	 *    - webp=true|false       WebP conversion.
-	 *    - avif=true|false       AVIF conversion.
-	 *    - quality=80            The quality of JPG compression and WebP conversion.
-	 *    - optimization=o2       Optimization of PNG images (o0 to o7).
-	 *    - avif-quality=70       The quality of AVIF conversion.
-	 *    - avif-speed=6          The speed of the AVIF encoder (0 to 10): 6 is best, faster speeds make larger files.
-	 *    - force=false           Force reoptimization of already optimized images.
-	 *    - regenerate=false      Make the thumbnails again from the originals first (implies force).
-	 *    - thumbnails-only=false Only optimize thumbnails.
+	 * ## OPTIONS
+	 *
+	 * [--[no-]jpg]
+	 * : Compress the JPG images (--jpg) or not (--no-jpg). As on the settings page by default.
+	 *
+	 * [--[no-]png]
+	 * : Compress the PNG images (--png) or not (--no-png). As on the settings page by default.
+	 *
+	 * [--[no-]webp]
+	 * : Make the WebP versions (--webp) or not (--no-webp). As on the settings page by default.
+	 *
+	 * [--[no-]avif]
+	 * : Make the AVIF versions (--avif) or not (--no-avif). As on the settings page by default.
+	 *
+	 * [--quality=<quality>]
+	 * : The quality of the JPG and WebP files, from 0 to 100.
+	 *
+	 * [--optimization=<level>]
+	 * : The optimisation level of the PNG files, from o0 (fastest) to o7 (smallest).
+	 *
+	 * [--avif-quality=<quality>]
+	 * : The quality of the AVIF files, from 0 to 100.
+	 *
+	 * [--avif-speed=<speed>]
+	 * : The speed of avifenc, from 0 (slowest, smallest) to 10. 6 by default: faster speeds make heavier files.
+	 *
+	 * [--force]
+	 * : Optimise again the images already optimised.
+	 *
+	 * [--regenerate]
+	 * : Make the thumbnails again from the originals first. Implies --force.
+	 *
+	 * [--thumbnails-only]
+	 * : Leave the full size images out.
+	 *
+	 * ## EXAMPLES
+	 *
+	 *     # Optimise the new images.
+	 *     $ wp oio run
+	 *
+	 *     # Make the WebP files again at quality 75, and nothing else.
+	 *     $ wp oio run --webp --no-avif --no-jpg --no-png --quality=75 --force
 	 *
 	 * @param $args
 	 * @param $assoc_args
@@ -97,7 +137,10 @@ class OIO_CLI extends WP_CLI_Command
 		$settings = Optimiser::settings(false);
 		$enabled = Optimiser::settings();
 		foreach (array_keys($settings) as $format) {
-			$on = isset($assoc_args[$format]) ? filter_var($assoc_args[$format], FILTER_VALIDATE_BOOLEAN) : isset($enabled[$format]);
+			$on = isset($assoc_args[$format]) ? filter_var($assoc_args[$format], FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) : isset($enabled[$format]);
+			if ($on === null) {
+				WP_CLI::error(sprintf('--%1$s is on or off: use --%1$s or --no-%1$s.', $format));
+			}
 			if (!$on) {
 				unset($settings[$format]);
 			}
@@ -125,6 +168,7 @@ class OIO_CLI extends WP_CLI_Command
 		WP_CLI::log('Formats: ' . (empty($settings) ? 'none' : implode(', ', array_keys($settings))));
 
 		$counter = 0;
+		$failed = 0;
 		$page = 1;
 		do {
 			$query = new WP_Query([
@@ -148,16 +192,23 @@ class OIO_CLI extends WP_CLI_Command
 					continue;
 				}
 				$counter++;
+				if (Status::of($id) === Status::ERROR) {
+					$failed++;
+				}
 			}
 			$page++;
 		} while ($page <= $query->max_num_pages);
 
-		WP_CLI::success('Successfully processed ' . $counter . ' images. ');
+		if ($failed) {
+			WP_CLI::error(sprintf('Processed %d images, %d with errors: see them in the Media library.', $counter, $failed));
+		}
+		WP_CLI::success('Successfully processed ' . $counter . ' images.');
 	}
 
 	/**
-	 * Removes the WebP and AVIF files of all images. The
-	 * JPG and PNG files stay compressed.
+	 * Removes the WebP and AVIF files of all images.
+	 *
+	 * The JPG and PNG files stay compressed.
 	 *
 	 * @since 1.0.0
 	 * @date 25/10/2026
@@ -174,8 +225,10 @@ class OIO_CLI extends WP_CLI_Command
 	}
 
 	/**
-	 * Restores the original images and removes every
-	 * file made by OIO (WebP, AVIF, backups).
+	 * Restores the original images.
+	 *
+	 * Removes every file made by OIO (WebP, AVIF,
+	 * backups) and its data on the images.
 	 *
 	 * @since 1.0.0
 	 * @date 25/10/2026
@@ -201,13 +254,16 @@ class OIO_CLI extends WP_CLI_Command
 	}
 
 	/**
-	 * Measures the bytes saved on the images optimised
-	 * before OIO measured them, from the sizes of their
-	 * files (nothing is encoded), then prints the
-	 * totals of the media library.
+	 * Prints the bytes saved on the media library.
 	 *
-	 * Args:
-	 *    - rebuild=false  Measure every image again.
+	 * First measures the images optimised before OIO
+	 * measured them, from the sizes of their files:
+	 * nothing is encoded.
+	 *
+	 * ## OPTIONS
+	 *
+	 * [--rebuild]
+	 * : Measure every image again.
 	 *
 	 * @param $args
 	 * @param $assoc_args
