@@ -1455,7 +1455,7 @@
 	text-align: center;
 }
 
-@container (min-width: 900px) {
+@container (min-width: 1080px) {
 	.octopus-steps {
 		grid-template-columns: minmax(0, 1fr) minmax(0, 1.45fr) minmax(0, 1fr);
 	}
