@@ -39,18 +39,24 @@
         "test:multisite": [
             "@putenv WP_MULTISITE=1",
             "phpunit"
-        ]
+        ],
+        "lint": "phpcs"
     },
     "require-dev": {
         "brianhenryie/strauss": "^0.31.1",
         "phpunit/phpunit": "^9.6",
         "yoast/phpunit-polyfills": "^4.0",
         "wp-phpunit/wp-phpunit": "^7.1",
-        "roots/wordpress-no-content": "^7.1"
+        "roots/wordpress-no-content": "^7.1",
+        "wp-coding-standards/wpcs": "^3.1",
+        "phpcompatibility/phpcompatibility-wp": "^2.1"
     },
     "config": {
         "platform": {
             "php": "8.2"
+        },
+        "allow-plugins": {
+            "dealerdirect/phpcodesniffer-composer-installer": true
         }
     }
 }
