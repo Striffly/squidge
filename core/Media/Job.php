@@ -83,6 +83,23 @@ class Job extends Octopus_Vendor_WP_Background_Process
 	}
 
 	/**
+	 * The request that runs the job in the background:
+	 * as WordPress spawns its cron (spawn_cron()), it
+	 * does not wait for an answer, which only comes once
+	 * a batch is done. With the 5 seconds of the library,
+	 * starting a job kept the page waiting as long; the
+	 * cron of the library starts a job whose request was
+	 * lost.
+	 *
+	 * @return array
+	 * @since 1.0.0
+	 */
+	protected function get_post_args()
+	{
+		return array_merge(parent::get_post_args(), ['timeout' => 0.01]);
+	}
+
+	/**
 	 * Returns the instance.
 	 *
 	 * @return Job

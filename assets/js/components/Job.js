@@ -8,8 +8,9 @@
  * images are optimised.
  *
  * Emits job:status at each refresh, with the counts
- * and the bytes saved; renders the job started by a
- * JobStart on job:started.
+ * and the bytes saved; renders the job a JobStart
+ * starts at once on job:starting, as it is on
+ * job:started, and as it was if it could not start.
  */
 
 (() => {
@@ -75,7 +76,9 @@
 		events() {
 			super.events();
 			this.controls.forEach((control) => this.addEvent({target: control, name: 'click', callback: () => this.control(control.dataset.control)}));
+			this.addEvent({target: this.view, name: 'job:starting', callback: this.onStarting});
 			this.addEvent({target: this.view, name: 'job:started', callback: this.onStarted});
+			this.addEvent({target: this.view, name: 'job:start-failed', callback: this.refresh});
 		}
 
 		init() {
@@ -88,6 +91,17 @@
 			if (response.success) {
 				this.render(response.data);
 			}
+		}
+
+		/**
+		 * Shows the job at 0 % while it starts.
+		 *
+		 * @param {CustomEvent} event With the action and the number of images of the job.
+		 */
+		onStarting({detail: {action, total}}) {
+			this.el.hidden = false;
+			this.el.dataset.state = 'running';
+			this.showProgress({action, total, state: 'running', done: 0, failed: 0});
 		}
 
 		/**
