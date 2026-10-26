@@ -34,10 +34,19 @@
         ],
         "post-update-cmd": [
             "@prefix-namespaces"
+        ],
+        "test": "phpunit",
+        "test:multisite": [
+            "@putenv WP_MULTISITE=1",
+            "phpunit"
         ]
     },
     "require-dev": {
-        "brianhenryie/strauss": "^0.31.1"
+        "brianhenryie/strauss": "^0.31.1",
+        "phpunit/phpunit": "^9.6",
+        "yoast/phpunit-polyfills": "^4.0",
+        "wp-phpunit/wp-phpunit": "^7.1",
+        "roots/wordpress-no-content": "^7.1"
     },
     "config": {
         "platform": {

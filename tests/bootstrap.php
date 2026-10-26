@@ -1,37 +1,42 @@
 <?php
+
 /**
- * PHPUnit bootstrap file.
+ * Bootstrap of the integration tests: WordPress and its
+ * test library, with OIO loaded as a must-use plugin.
+ * See the Tests section of the README.
  *
- * @package Wp_OIO
+ * @package     OIO
+ * @author      Clément Gayot
+ * @repo        https://github.com/Striffly/octopus-image-optimizer
+ *
  */
 
-if ( PHP_MAJOR_VERSION >= 8 ) {
-	echo "The scaffolded tests cannot currently be run on PHP 8.0+. See https://github.com/wp-cli/scaffold-command/issues/285" . PHP_EOL; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-	exit( 1 );
+$root = dirname(__DIR__);
+$missing = [
+	$root . '/vendor/autoload.php' => 'run composer install',
+	$root . '/vendor-prefixed/autoload.php' => 'run composer install',
+];
+foreach ($missing as $file => $fix) {
+	if (!file_exists($file)) {
+		fwrite(STDERR, "Missing {$file}: {$fix}." . PHP_EOL);
+		exit(1);
+	}
 }
 
-$_tests_dir = getenv( 'WP_TESTS_DIR' );
+// Sets WP_PHPUNIT__DIR, the folder of the test library.
+require $root . '/vendor/autoload.php';
+putenv('WP_PHPUNIT__TESTS_CONFIG=' . __DIR__ . '/wp-tests-config.php');
+define('WP_TESTS_PHPUNIT_POLYFILLS_PATH', $root . '/vendor/yoast/phpunit-polyfills');
 
-if ( ! $_tests_dir ) {
-	$_tests_dir = rtrim( sys_get_temp_dir(), '/\\' ) . '/wordpress-tests-lib';
-}
+// The messages of OIO (Logger) go to a file, not between the results.
+ini_set('error_log', sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'oio-tests.log');
 
-if ( ! file_exists( "{$_tests_dir}/includes/functions.php" ) ) {
-	echo "Could not find {$_tests_dir}/includes/functions.php, have you run bin/install-wp-tests.sh ?" . PHP_EOL; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-	exit( 1 );
-}
+$library = getenv('WP_PHPUNIT__DIR');
+require $library . '/includes/functions.php';
 
-// Give access to tests_add_filter() function.
-require_once "{$_tests_dir}/includes/functions.php";
+tests_add_filter('muplugins_loaded', function () use ($root) {
+	require $root . '/octopus-image-optimizer.php';
+});
 
-/**
- * Manually load the plugin being tested.
- */
-function _manually_load_plugin() {
-	require dirname( dirname( __FILE__ ) ) . '/octopus-image-optimizer.php';
-}
-
-tests_add_filter( 'muplugins_loaded', '_manually_load_plugin' );
-
-// Start up the WP testing environment.
-require "{$_tests_dir}/includes/bootstrap.php";
+require $library . '/includes/bootstrap.php';
+require __DIR__ . '/TestCase.php';
