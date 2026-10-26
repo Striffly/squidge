@@ -92,9 +92,7 @@ class PNG extends Service implements Convertor
 		if ($compressed) {
 			Logger::info("Successfully compressed image PNG file: " . $filepath);
 		} else {
-			// Back to the original, without backup: it is retried next time.
-			copy($original, $filepath);
-			unlink($original);
+			self::put_back($filepath, $args);
 		}
 	}
 

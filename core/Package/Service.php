@@ -787,6 +787,28 @@ class Service
 	}
 
 	/**
+	 * Puts the original image back in place of a file
+	 * the library failed to compress, without backup:
+	 * it is retried next time. If the copy fails (e.g.
+	 * a full disk), the backup stays: it is the only
+	 * copy of the original left.
+	 *
+	 * @param string $filepath
+	 * @param array $args
+	 * @since 1.0.0
+	 * @date 26/10/2026
+	 */
+	protected static function put_back($filepath, $args)
+	{
+		$original = self::backup_path($filepath);
+		if (@copy($original, $filepath)) {
+			unlink($original);
+			return;
+		}
+		Errors::add(isset($args['id']) ? $args['id'] : 0, static::cmd_name(), $filepath, 'cannot put the original back, it stays in ' . self::BACKUP_DIR);
+	}
+
+	/**
 	 * Adds a file made by OIO to the list of files
 	 * of the attachment, used to delete them.
 	 *

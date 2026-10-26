@@ -72,9 +72,7 @@ class JPG extends Service implements Convertor
 		if (self::run(['--strip-all', '--all-progressive', '--overwrite', '--max=' . (int)$args['quality'], $filepath], $filepath, $args)) {
 			Logger::info("Successfully compressed image JPG file: " . $filepath);
 		} else {
-			// Back to the original, without backup: it is retried next time.
-			copy($original, $filepath);
-			unlink($original);
+			self::put_back($filepath, $args);
 		}
 	}
 
