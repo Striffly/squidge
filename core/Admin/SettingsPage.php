@@ -205,10 +205,10 @@ class SettingsPage
 		?>
 		<div class="wrap octopus-page js-octopus-page">
 			<header class="octopus-header">
-				<?php // The octopus floats, unless the system asks for less motion. ?>
+				<?php // The octopus floats, unless the system asks for less motion. Loaded early, as it opens the page. ?>
 				<picture class="octopus-header__picture">
 					<source srcset="<?php echo esc_url(OCTOPUS_URL . 'assets/images/icon-128x128.png'); ?> 1x, <?php echo esc_url(OCTOPUS_URL . 'assets/images/icon-256x256.png'); ?> 2x" media="(prefers-reduced-motion: reduce)">
-					<img class="octopus-header__logo" src="<?php echo esc_url(OCTOPUS_URL . 'assets/images/icon-128x128.gif'); ?>" srcset="<?php echo esc_url(OCTOPUS_URL . 'assets/images/icon-256x256.gif'); ?> 2x" alt="" width="80" height="80">
+					<img class="octopus-header__logo" src="<?php echo esc_url(OCTOPUS_URL . 'assets/images/icon-128x128.gif'); ?>" srcset="<?php echo esc_url(OCTOPUS_URL . 'assets/images/icon-256x256.gif'); ?> 2x" alt="" width="80" height="80" fetchpriority="high">
 				</picture>
 				<div class="octopus-header__text">
 					<h1 class="octopus-header__title">OIO <span class="octopus-header__name">Octopus Image Optimizer</span></h1>
