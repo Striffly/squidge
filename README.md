@@ -42,7 +42,7 @@ unlimited, no API key, no quota: your images never leave your server.
 
 ## Requirements
 
-- WordPress 6.0 and PHP 7.4 or later.
+- WordPress 6.0 and PHP 8.2 or later.
 - The JPG and PNG compression needs `jpegoptim` and `optipng` or `oxipng` installed on the server, and PHP allowed to
   run them (`proc_open()` or `exec()`). Linux and macOS have them; Windows has no official build of `jpegoptim` and
   `optipng`.
