@@ -75,12 +75,16 @@
 	}
 }
 
-.octopus-header__logo {
+.octopus-header__picture {
 	flex: none;
-	width: 64px;
-	height: 64px;
+}
+
+.octopus-header__logo {
+	display: block;
+	width: 80px;
+	height: 80px;
 	border-radius: var(--octopus-radius);
-	box-shadow: var(--octopus-glow);
+	box-shadow: 0 0 0 1px rgba(255, 60, 172, .55), var(--octopus-glow);
 }
 
 .octopus-header__text {
