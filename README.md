@@ -1,16 +1,21 @@
 <p align="left">
-    <img alt="OIO – Octopus Image Optimizer" src="assets/images/icon-256x256.png" width="200">
+    <img alt="OIO – Octopus Image Optimizer: squeezes images, spills no ink, sends no bill." src="assets/images/banner-1544x500.png" width="772">
 </p>
 
 # OIO – Octopus Image Optimizer
 
 🐙 **Squeezes images. Spills no ink, sends no bill.**
 
+[![GNU General Public License 3.0](https://img.shields.io/github/license/Striffly/octopus-image-optimizer.svg)](https://www.gnu.org/licenses/gpl-3.0.en.html)
+![WordPress 6.0 or later](https://img.shields.io/badge/WordPress-6.0%2B-3858e9)
+![PHP 8.2 or later](https://img.shields.io/badge/PHP-8.2%2B-777bb4)
+
+[Features](#features) · [Screenshots](#screenshots) · [Requirements](#requirements) · [Installation](#installation) ·
+[FAQ](#faq) · [Developers](#developers) · [Changelog](CHANGELOG.md) · [Support](#support)
+
 OIO optimises the images of your WordPress media library with the libraries of your own server: `jpegoptim`,
 `optipng` or `oxipng`, `pngquant`, `cwebp` and `avifenc`, or GD and Imagick for the WebP and AVIF formats. Free and
 unlimited, no API key, no quota: your images never leave your server.
-
-[![GNU General Public License 3.0](https://img.shields.io/github/license/Striffly/octopus-image-optimizer.svg)](https://www.gnu.org/licenses/gpl-3.0.en.html)
 
 ## Features
 
@@ -38,8 +43,26 @@ unlimited, no API key, no quota: your images never leave your server.
 - Serves AVIF and WebP, with the JPG or PNG as fallback (optional): in a `<picture>` element, or from the server
   with rewrite rules (written for Apache, given for nginx), which leaves the HTML as it is.
 - Tests the delivery: types sent by the server, rewrite, originals kept private.
-- `octopus_image()` returns a `<picture>` in your own templates, `octopus_image_sources()` only its AVIF and WebP
-  srcsets.
+
+For themes, `octopus_image()` and `octopus_image_sources()` give the `<picture>` of an image or its srcsets: see
+[Developers](#developers).
+
+## Screenshots
+
+![The overview: the bytes saved, the status of the images and the libraries of each format.](assets/images/screenshot-1.png)
+
+<details>
+<summary>The optimisation, the delivery, the settings and the media library</summary>
+
+![The optimisation of the media library in the background, with its progress.](assets/images/screenshot-2.png)
+
+![The delivery of WebP and AVIF on the site, and its test.](assets/images/screenshot-3.png)
+
+![The settings of each format: quality, compression, library.](assets/images/screenshot-4.png)
+
+![The status and the bytes saved of each image, in the media library.](assets/images/screenshot-5.png)
+
+</details>
 
 ## Requirements
 
@@ -321,6 +344,13 @@ the rest, the animation and the texts of the banner, in Unbounded. It writes the
 
 ```bash
 bun run brand
+```
+
+The screenshots of WordPress.org are captures of the admin, 1408x880 at 2x, dressed on the night of the logo by
+`tools/brand/screenshots.js`, in the order of `readme.txt`:
+
+```bash
+bun tools/brand/screenshots.js overview.png optimise.png delivery.png settings.png media.png
 ```
 
 ## Support
