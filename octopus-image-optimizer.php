@@ -49,6 +49,9 @@ if (file_exists(__DIR__ . '/vendor-prefixed/autoload.php')) {
 // Boot OIO (Once).
 OIO\OIO::boot();
 
+register_activation_hook(__FILE__, ['OIO\\Lifecycle', 'activate']);
+register_deactivation_hook(__FILE__, ['OIO\\Lifecycle', 'deactivate']);
+
 // Require CLI.
 if (file_exists(__DIR__ . '/cli/Commands.php')) {
 	require(__DIR__ . '/cli/Commands.php');

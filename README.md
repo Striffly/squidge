@@ -131,9 +131,12 @@ Yes for the WebP and AVIF formats: without their libraries, or where PHP cannot 
 them. The JPG and PNG compression needs the libraries installed and PHP allowed to run them: most shared hosts do not
 let you install them, ask your host. The Overview tab tells what is missing.
 
-### What happens when I delete OIO?
+### What happens when I deactivate or delete OIO?
 
-Its settings and data are removed from the database, and the files stay: the compressed images, their WebP and AVIF
+Deactivated, OIO stops its background job and removes its rewrite rules from `uploads/.htaccess`: the site serves
+the JPG and PNG images again. Its settings and files stay, and the rules come back when it is activated again.
+
+Deleted, its settings and data are removed from the database, and the files stay: the compressed images, their WebP and AVIF
 versions and the originals. To get your original images back, run `Restore original images` before deleting OIO,
 which reminds it when it is deactivated.
 

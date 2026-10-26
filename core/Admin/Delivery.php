@@ -62,8 +62,8 @@ class Delivery
 	public function __construct()
 	{
 		$option = Fields::OPTION_PREFIX . self::OPTION;
-		add_action('add_option_' . $option, [$this, 'sync'], 10, 0);
-		add_action('update_option_' . $option, [$this, 'sync'], 10, 0);
+		add_action('add_option_' . $option, [self::class, 'sync'], 10, 0);
+		add_action('update_option_' . $option, [self::class, 'sync'], 10, 0);
 		add_action('wp_ajax_' . self::TEST, [$this, 'test']);
 	}
 
@@ -167,7 +167,7 @@ class Delivery
 	 * @since 1.0.0
 	 * @date 25/10/2026
 	 */
-	public function sync()
+	public static function sync()
 	{
 		// nginx does not read .htaccess: its rules are added by hand. WP-CLI does
 		// not know the server, the rules are written (a .htaccess not read does nothing).

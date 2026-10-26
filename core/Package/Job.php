@@ -226,8 +226,26 @@ class Job extends OIO_Vendor_WP_Background_Process
 	}
 
 	/**
-	 * Marks the job as cancelled, once the library has
-	 * emptied its queue.
+	 * Stops the job for good, without the request the
+	 * library sends to cancel it: its queue, status,
+	 * lock and cron event go, and a job in progress is
+	 * marked as cancelled. When OIO is deactivated.
+	 *
+	 * @since 1.0.0
+	 * @date 26/10/2026
+	 */
+	public function stop()
+	{
+		$this->delete_all();
+		$this->clear_scheduled_event();
+		$this->unlock_process();
+		$this->cancelled_progress();
+	}
+
+	/**
+	 * Marks the job in progress as cancelled, once the
+	 * library has emptied its queue. A job that ended
+	 * stays as it ended.
 	 *
 	 * @since 1.0.0
 	 * @date 25/10/2026
@@ -235,7 +253,7 @@ class Job extends OIO_Vendor_WP_Background_Process
 	public function cancelled_progress()
 	{
 		$progress = get_option(self::PROGRESS);
-		if (is_array($progress)) {
+		if (is_array($progress) && !$progress['finished']) {
 			$progress['cancelled'] = true;
 			$progress['finished'] = time();
 			update_option(self::PROGRESS, $progress, false);
