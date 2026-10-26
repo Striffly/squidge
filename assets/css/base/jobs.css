@@ -324,14 +324,13 @@
 		background: var(--octopus-warning-bg);
 	}
 
+	/* Cancelled on purpose: told in the colour of OIO, not as a warning, and seen on the grey of the admin. */
 	[data-result="cancelled"] & {
-		--octopus-result-colour: var(--octopus-neutral);
+		--octopus-result-colour: var(--octopus-violet);
 		--octopus-result-icon: "\f14c"; /* Dashicon info-outline. */
-		background: var(--octopus-neutral-bg);
-
-		& .octopus-result__icon {
-			color: var(--octopus-muted);
-		}
+		border-color: var(--octopus-violet-line);
+		border-left-color: var(--octopus-result-colour);
+		background: var(--octopus-violet-soft);
 	}
 }
 
