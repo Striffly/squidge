@@ -872,12 +872,16 @@ class Fields
 			echo '<div class="octopus-field__control">';
 			if ($field['type'] === 'number') {
 				printf('<input type="number" class="octopus-field__input" id="%s" name="%s" value="%s" min="%d" max="%d" step="1" aria-labelledby="%s-label">', $id, $input, esc_attr($value), $setting['min'], $setting['max'], $id);
-			} elseif ($field['type'] === 'select') {
-				printf('<select class="octopus-field__input" id="%s" name="%s" aria-labelledby="%s-label">', $id, $input, $id);
-				foreach ($field['options'] as $optionValue => $optionLabel) {
-					printf('<option value="%s" %s>%s</option>', esc_attr($optionValue), selected((string)$value, (string)$optionValue, false), esc_html($optionLabel));
+			} elseif ($field['type'] === 'choice') {
+				// Every value in sight, as buttons side by side: radio buttons underneath.
+				printf('<div class="octopus-choice" role="radiogroup" aria-labelledby="%s-label">', $id);
+				foreach ($field['options'] as $option => $label) {
+					printf(
+						'<label class="octopus-choice__option"><input type="radio" class="octopus-choice__input" name="%s" value="%s" %s><span class="octopus-choice__label">%s</span></label>',
+						$input, esc_attr($option), checked($value, $option, false), esc_html($label)
+					);
 				}
-				echo '</select>';
+				echo '</div>';
 			}
 			if (!empty($field['unit'])) {
 				printf('<span class="octopus-field__unit">%s</span>', esc_html($field['unit']));
@@ -955,7 +959,7 @@ class Fields
 						'help' => 'Compresses the PNG images in place with oxipng or optipng, after pngquant when lossy. Their originals are kept.',
 					],
 					'png_compression' => [
-						'type' => 'select',
+						'type' => 'choice',
 						'label' => 'Compression',
 						'options' => [
 							'lossless' => 'Lossless',

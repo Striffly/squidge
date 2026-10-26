@@ -1223,6 +1223,53 @@
 	box-shadow: 0 0 0 2px #fff, 0 0 0 4px var(--octopus-violet);
 }
 
+/* A choice between a few values, all in sight: buttons side by side, the
+   chosen one in the colours of OIO. Radio buttons underneath. */
+.octopus-choice {
+	display: inline-flex;
+	flex-wrap: wrap;
+	gap: 2px;
+	padding: 3px;
+	border: 1px solid var(--octopus-border);
+	border-radius: var(--octopus-radius-small);
+	background: var(--octopus-surface-soft);
+}
+
+.octopus-choice__option {
+	display: flex;
+	cursor: pointer;
+}
+
+.octopus-page .octopus-choice__input {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	margin: 0;
+	opacity: 0;
+}
+
+.octopus-choice__label {
+	padding: 5px 12px;
+	border-radius: 4px;
+	color: var(--octopus-text-soft);
+	font-weight: 600;
+	white-space: nowrap;
+	transition: background var(--octopus-transition), color var(--octopus-transition);
+}
+
+.octopus-choice__option:hover .octopus-choice__label {
+	color: var(--octopus-violet-dark);
+}
+
+.octopus-choice__input:checked + .octopus-choice__label {
+	background: var(--octopus-gradient);
+	color: #fff;
+}
+
+.octopus-choice__input:focus-visible + .octopus-choice__label {
+	box-shadow: 0 0 0 2px #fff, 0 0 0 4px var(--octopus-violet);
+}
+
 /* 12. Settings: format cards
    ========================================================================== */
 
