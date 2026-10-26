@@ -7,7 +7,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-10-26T20:26:02+00:00\n"
+"POT-Creation-Date: 2026-10-26T20:27:12+00:00\n"
 "PO-Revision-Date: 2026-10-26 08:00+0100\n"
 "Language: fr_FR\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
@@ -535,7 +535,7 @@ msgstr "Je comprends que les fichiers WebP et AVIF seront supprimés, jusqu’à
 
 #: core/Admin/SettingsPage.php:806
 #: core/Admin/SettingsPage.php:813
-#: assets/plugins.js:87
+#: assets/js/plugins.js:87
 msgid "Restore original images"
 msgstr "Restaurer les images originales"
 
@@ -562,7 +562,7 @@ msgid "Resume"
 msgstr "Reprendre"
 
 #: core/Admin/SettingsPage.php:858
-#: assets/plugins.js:105
+#: assets/js/plugins.js:105
 msgid "Cancel"
 msgstr "Annuler"
 
@@ -1044,19 +1044,19 @@ msgid "replaces optipng, on recent systems, or from its <a href=\"%s\" target=\"
 msgstr "remplace optipng, sur les systèmes récents, ou depuis ses <a href=\"%s\" target=\"_blank\" rel=\"noopener\">versions publiées</a>"
 
 #. translators: %s: octopus_image()
-#: assets/plugins.js:90
+#: assets/js/plugins.js:90
 #, js-format
 msgid "Your theme calls %s"
 msgstr "Votre thème appelle %s"
 
 #. translators: %s: Your theme calls octopus_image()
-#: assets/plugins.js:92
+#: assets/js/plugins.js:92
 #, js-format
 msgid "%s: the pages using it will break while OIO is deactivated."
 msgstr "%s : les pages qui l’utilisent casseront tant qu’OIO sera désactivé."
 
 #. translators: %s: the number of images.
-#: assets/plugins.js:97
+#: assets/js/plugins.js:97
 #, js-format
 msgid "%s image"
 msgid_plural "%s images"
@@ -1064,79 +1064,79 @@ msgstr[0] "%s image"
 msgstr[1] "%s images"
 
 #. translators: 1: the number of images, 2: the folder of the originals and its size.
-#: assets/plugins.js:99
+#: assets/js/plugins.js:99
 #, js-format
 msgid "OIO has optimised %1$s. Deactivating or deleting OIO keeps them as they are: compressed, with their WebP and AVIF versions, and their originals in %2$s."
 msgstr "OIO a optimisé %1$s. Désactiver ou supprimer OIO les laisse telles quelles : compressées, avec leurs versions WebP et AVIF, et leurs originaux dans %2$s."
 
 #. translators: %s: Restore original images
-#: assets/plugins.js:101
+#: assets/js/plugins.js:101
 #, js-format
 msgid "If you are going to delete OIO, run %s first to get your original images back and remove every OIO file."
 msgstr "Si vous comptez supprimer OIO, lancez d’abord %s pour récupérer vos images originales et retirer tous les fichiers d’OIO."
 
-#: assets/plugins.js:104
+#: assets/js/plugins.js:104
 msgid "Deactivate anyway"
 msgstr "Désactiver quand même"
 
-#: assets/plugins.js:106
+#: assets/js/plugins.js:106
 msgid "Before deactivating OIO"
 msgstr "Avant de désactiver OIO"
 
-#: assets/settings.js:170
+#: assets/js/settings.js:170
 msgid "Optimising"
 msgstr "Optimisation"
 
-#: assets/settings.js:171
+#: assets/js/settings.js:171
 msgid "Removing WebP and AVIF"
 msgstr "Suppression des WebP et AVIF"
 
-#: assets/settings.js:172
+#: assets/js/settings.js:172
 msgid "Restoring the originals"
 msgstr "Restauration des originaux"
 
-#: assets/settings.js:177
+#: assets/js/settings.js:177
 msgid "Optimisation complete"
 msgstr "Optimisation terminée"
 
-#: assets/settings.js:178
+#: assets/js/settings.js:178
 msgid "Optimisation cancelled"
 msgstr "Optimisation annulée"
 
 #. translators: %s: the number of images.
-#: assets/settings.js:181
+#: assets/js/settings.js:181
 #, js-format
 msgid "%s image optimised"
 msgid_plural "%s images optimised"
 msgstr[0] "%s image optimisée"
 msgstr[1] "%s images optimisées"
 
-#: assets/settings.js:185
+#: assets/js/settings.js:185
 msgid "WebP and AVIF files removed"
 msgstr "Fichiers WebP et AVIF supprimés"
 
-#: assets/settings.js:186
+#: assets/js/settings.js:186
 msgid "Removal cancelled"
 msgstr "Suppression annulée"
 
 #. translators: %s: the number of images.
-#: assets/settings.js:189
+#: assets/js/settings.js:189
 #, js-format
 msgid "%s image cleaned up"
 msgid_plural "%s images cleaned up"
 msgstr[0] "%s image nettoyée"
 msgstr[1] "%s images nettoyées"
 
-#: assets/settings.js:193
+#: assets/js/settings.js:193
 msgid "Original images restored"
 msgstr "Images originales restaurées"
 
-#: assets/settings.js:194
+#: assets/js/settings.js:194
 msgid "Restore cancelled"
 msgstr "Restauration annulée"
 
 #. translators: %s: the number of images.
-#: assets/settings.js:197
+#: assets/js/settings.js:197
 #, js-format
 msgid "%s image restored"
 msgid_plural "%s images restored"
@@ -1144,55 +1144,55 @@ msgstr[0] "%s image restaurée"
 msgstr[1] "%s images restaurées"
 
 #. translators: 1: hours, 2: minutes.
-#: assets/settings.js:336
+#: assets/js/settings.js:336
 #, js-format
 msgid "%1$d h %2$d min"
 msgstr "%1$d h %2$d min"
 
 #. translators: 1: minutes, 2: seconds.
-#: assets/settings.js:340
+#: assets/js/settings.js:340
 #, js-format
 msgid "%1$d min %2$d s"
 msgstr "%1$d min %2$d s"
 
 #. translators: %d: seconds.
-#: assets/settings.js:343
+#: assets/js/settings.js:343
 #, js-format
 msgid "%d s"
 msgstr "%d s"
 
 #. translators: 1: what was done, e.g. 12 images optimised, 2: a duration, e.g. 2 min 5 s.
-#: assets/settings.js:349
+#: assets/js/settings.js:349
 #, js-format
 msgid "%1$s in %2$s"
 msgstr "%1$s en %2$s"
 
 #. translators: 1: the number of images processed, 2: the number of images.
-#: assets/settings.js:360
+#: assets/js/settings.js:360
 #, js-format
 msgid "Stopped after %1$s of %2$s image"
 msgid_plural "Stopped after %1$s of %2$s images"
 msgstr[0] "Arrêtée après %1$s sur %2$s image"
 msgstr[1] "Arrêtée après %1$s sur %2$s images"
 
-#: assets/settings.js:361
+#: assets/js/settings.js:361
 msgid "The images already processed stay processed."
 msgstr "Les images déjà traitées le restent."
 
 #. translators: %s: the number of images.
-#: assets/settings.js:367
+#: assets/js/settings.js:367
 #, js-format
 msgid "%s could not be optimised:"
 msgid_plural "%s could not be optimised:"
 msgstr[0] "%s n’a pas pu être optimisée :"
 msgstr[1] "%s n’ont pas pu être optimisées :"
 
-#: assets/settings.js:370
+#: assets/js/settings.js:370
 msgid "see the errors in the Media library"
 msgstr "voir les erreurs dans la médiathèque"
 
 #. translators: %s: the number of images.
-#: assets/settings.js:375
+#: assets/js/settings.js:375
 #, js-format
 msgid "%s had no original to restore, it stays compressed."
 msgid_plural "%s had no original to restore, they stay compressed."
@@ -1200,7 +1200,7 @@ msgstr[0] "%s n’avait pas d’original à restaurer, elle reste compressée."
 msgstr[1] "%s n’avaient pas d’original à restaurer, elles restent compressées."
 
 #. translators: 1: the number of images processed, 2: the number of images.
-#: assets/settings.js:396
+#: assets/js/settings.js:396
 #, js-format
 msgid "%1$s / %2$s image"
 msgid_plural "%1$s / %2$s images"
@@ -1208,39 +1208,39 @@ msgstr[0] "%1$s / %2$s image"
 msgstr[1] "%1$s / %2$s images"
 
 #. translators: 1: the progress, e.g. 3 / 12 images, 2: the number of images with errors.
-#: assets/settings.js:399
+#: assets/js/settings.js:399
 #, js-format
 msgid "%1$s, %2$s with errors"
 msgid_plural "%1$s, %2$s with errors"
 msgstr[0] "%1$s, %2$s en erreur"
 msgstr[1] "%1$s, %2$s en erreur"
 
-#: assets/settings.js:401
+#: assets/js/settings.js:401
 msgid "Paused:"
 msgstr "En pause :"
 
-#: assets/settings.js:401
+#: assets/js/settings.js:401
 msgid "Processing"
 msgstr "Traitement"
 
-#: assets/settings.js:445
+#: assets/js/settings.js:445
 msgid "The job could not start."
 msgstr "La tâche n’a pas pu démarrer."
 
-#: assets/settings.js:454
+#: assets/js/settings.js:454
 msgid "Cancel the job? The images already processed stay processed."
 msgstr "Annuler la tâche ? Les images déjà traitées le restent."
 
-#: assets/settings.js:499
+#: assets/js/settings.js:499
 msgid "Testing…"
 msgstr "Test en cours…"
 
-#: assets/settings.js:509
+#: assets/js/settings.js:509
 msgid "The test failed."
 msgstr "Le test a échoué."
 
 #. translators: 1: the number of checks failed, 2: the number of checks.
-#: assets/settings.js:519
+#: assets/js/settings.js:519
 #, js-format
 msgid "%1$s of %2$s check failed: see the results below."
 msgid_plural "%1$s of %2$s checks failed: see the results below."
@@ -1248,7 +1248,7 @@ msgstr[0] "Vérifications en échec : %1$s sur %2$s. Voir les résultats ci-des
 msgstr[1] "Vérifications en échec : %1$s sur %2$s. Voir les résultats ci-dessous."
 
 #. translators: %s: the number of checks.
-#: assets/settings.js:522
+#: assets/js/settings.js:522
 #, js-format
 msgid "The %s check passed."
 msgid_plural "All %s checks passed."
@@ -1256,32 +1256,32 @@ msgstr[0] "%s vérification réussie."
 msgstr[1] "Les %s vérifications ont réussi."
 
 #. translators: %s: the file of an image.
-#: assets/settings.js:525
+#: assets/js/settings.js:525
 #, js-format
 msgid "Tested on %s."
 msgstr "Testé sur %s."
 
-#: assets/settings.js:539
+#: assets/js/settings.js:539
 msgid "Run the test again"
 msgstr "Relancer le test"
 
-#: assets/settings.js:565
-#: assets/settings.js:620
+#: assets/js/settings.js:565
+#: assets/js/settings.js:620
 msgid "Copy"
 msgstr "Copier"
 
-#: assets/settings.js:616
+#: assets/js/settings.js:616
 msgid "Copied"
 msgstr "Copié"
 
-#: assets/settings.js:616
+#: assets/js/settings.js:616
 msgid "Press Ctrl+C"
 msgstr "Appuyez sur Ctrl+C"
 
-#: assets/settings.js:617
+#: assets/js/settings.js:617
 msgid "Copied to the clipboard."
 msgstr "Copié dans le presse-papiers."
 
-#: assets/settings.js:617
+#: assets/js/settings.js:617
 msgid "The code is selected: press Ctrl+C to copy it."
 msgstr "Le code est sélectionné : appuyez sur Ctrl+C pour le copier."

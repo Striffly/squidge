@@ -98,7 +98,7 @@ class PluginsScreen
 		if ($hook !== 'plugins.php' || !current_user_can('activate_plugins')) {
 			return;
 		}
-		wp_enqueue_script('octopus-plugins', OCTOPUS_URL . 'assets/plugins.js', ['wp-i18n'], filemtime(OCTOPUS_PATH . 'assets/plugins.js'), true);
+		wp_enqueue_script('octopus-plugins', OCTOPUS_URL . 'assets/js/plugins.js', ['wp-i18n'], filemtime(OCTOPUS_PATH . 'assets/js/plugins.js'), true);
 		wp_set_script_translations('octopus-plugins', 'octopus-image-optimizer', OCTOPUS_PATH . 'languages');
 		wp_localize_script('octopus-plugins', 'octopusPlugins', [
 			'plugin' => plugin_basename(OCTOPUS_FILE),
@@ -107,7 +107,7 @@ class PluginsScreen
 			'restoreUrl' => SettingsPage::page_url() . '#overview',
 			'themeCalls' => $this->theme_calls(),
 		]);
-		wp_enqueue_style('octopus-plugins', OCTOPUS_URL . 'assets/plugins.css', [], filemtime(OCTOPUS_PATH . 'assets/plugins.css'));
+		wp_enqueue_style('octopus-plugins', OCTOPUS_URL . 'assets/css/plugins.css', [], filemtime(OCTOPUS_PATH . 'assets/css/plugins.css'));
 	}
 
 	/**

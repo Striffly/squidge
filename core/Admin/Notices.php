@@ -250,13 +250,13 @@ class Notices
 		if (!$this->is_notice_screen()) {
 			return;
 		}
-		wp_enqueue_script('octopus-notices', OCTOPUS_URL . 'assets/notices.js', ['jquery'], filemtime(OCTOPUS_PATH . 'assets/notices.js'), true);
+		wp_enqueue_script('octopus-notices', OCTOPUS_URL . 'assets/js/notices.js', ['jquery'], filemtime(OCTOPUS_PATH . 'assets/js/notices.js'), true);
 		wp_localize_script('octopus-notices', 'octopusNotices', [
 			'action' => self::NONCE,
 			'nonce' => wp_create_nonce(self::NONCE),
 			'title' => self::title(),
 		]);
-		wp_enqueue_style('octopus-notices', OCTOPUS_URL . 'assets/notices.css', [], filemtime(OCTOPUS_PATH . 'assets/notices.css'));
+		wp_enqueue_style('octopus-notices', OCTOPUS_URL . 'assets/css/notices.css', [], filemtime(OCTOPUS_PATH . 'assets/css/notices.css'));
 	}
 
 	/**

@@ -303,6 +303,6 @@ class MediaColumn
 		if ($hook !== 'upload.php') {
 			return;
 		}
-		wp_enqueue_style('octopus-media', OCTOPUS_URL . 'assets/media.css', [], filemtime(OCTOPUS_PATH . 'assets/media.css'));
+		wp_enqueue_style('octopus-media', OCTOPUS_URL . 'assets/css/media.css', [], filemtime(OCTOPUS_PATH . 'assets/css/media.css'));
 	}
 }

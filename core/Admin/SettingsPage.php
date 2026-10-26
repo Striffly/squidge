@@ -84,8 +84,8 @@ class SettingsPage
 		if ($hook !== 'settings_page_' . self::PAGE) {
 			return;
 		}
-		wp_enqueue_style('octopus-settings', OCTOPUS_URL . 'assets/settings.css', [], filemtime(OCTOPUS_PATH . 'assets/settings.css'));
-		wp_enqueue_script('octopus-settings', OCTOPUS_URL . 'assets/settings.js', ['wp-i18n'], filemtime(OCTOPUS_PATH . 'assets/settings.js'), true);
+		wp_enqueue_style('octopus-settings', OCTOPUS_URL . 'assets/css/settings.css', [], filemtime(OCTOPUS_PATH . 'assets/css/settings.css'));
+		wp_enqueue_script('octopus-settings', OCTOPUS_URL . 'assets/js/settings.js', ['wp-i18n'], filemtime(OCTOPUS_PATH . 'assets/js/settings.js'), true);
 		wp_set_script_translations('octopus-settings', 'octopus-image-optimizer', OCTOPUS_PATH . 'languages');
 		wp_localize_script('octopus-settings', 'octopusJob', [
 			'ajaxurl' => admin_url('admin-ajax.php'),
@@ -140,7 +140,7 @@ class SettingsPage
 		?>
 		<div class="wrap octopus-page">
 			<header class="octopus-header">
-				<img class="octopus-header__logo" src="<?php echo esc_url(OCTOPUS_URL . 'assets/icon-128x128.png'); ?>" alt="" width="64" height="64">
+				<img class="octopus-header__logo" src="<?php echo esc_url(OCTOPUS_URL . 'assets/images/icon-128x128.png'); ?>" alt="" width="64" height="64">
 				<div class="octopus-header__text">
 					<h1 class="octopus-header__title">OIO <span class="octopus-header__name">Octopus Image Optimizer</span></h1>
 					<?php // The tagline stays in English, as the name of OIO. ?>
@@ -221,7 +221,7 @@ class SettingsPage
 			</p>
 			<div class="octopus-support__wallet" id="octopus-support-wallet">
 				<a class="octopus-support__qr" href="<?php echo esc_url('bitcoin:' . self::BITCOIN, ['bitcoin']); ?>">
-					<img src="<?php echo esc_url(OCTOPUS_URL . 'assets/bitcoin.svg'); ?>" width="104" height="104" alt="<?php esc_attr_e('QR code of the Bitcoin address', 'octopus-image-optimizer'); ?>">
+					<img src="<?php echo esc_url(OCTOPUS_URL . 'assets/images/bitcoin-qr.svg'); ?>" width="104" height="104" alt="<?php esc_attr_e('QR code of the Bitcoin address', 'octopus-image-optimizer'); ?>">
 				</a>
 				<code class="octopus-support__address"><?php echo esc_html(self::BITCOIN); ?></code>
 			</div>
