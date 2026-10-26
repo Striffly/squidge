@@ -266,6 +266,23 @@ add_filter('oio_binary_path', function ($path, $name) {
 }, 10, 2);
 ```
 
+### Tests
+
+The integration tests run on the test suite of WordPress, with the libraries installed: they upload images and check
+the files on the disk. `composer install` installs PHPUnit, the WordPress test library and WordPress itself. They need
+a MySQL or MariaDB database of their own, emptied at each run: never the one of a site.
+
+```bash
+composer install
+# The database, by default wordpress_test on 127.0.0.1 as root without password.
+export WP_TESTS_DB_NAME=wordpress_test WP_TESTS_DB_USER=root WP_TESTS_DB_PASSWORD=root WP_TESTS_DB_HOST=127.0.0.1:3306
+composer test             # On a single site.
+composer test:multisite   # On a network.
+```
+
+A test needing a library that is not installed is skipped. The GitHub workflow runs them on PHP 8.2 and 8.4, on a
+single site and on a network, at each push and before each release.
+
 ## Credits
 
 OIO is developed by [Clément Gayot](https://github.com/Striffly).
