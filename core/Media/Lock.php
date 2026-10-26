@@ -88,6 +88,7 @@ class Lock
 		global $wpdb;
 		$name = self::PREFIX . $id;
 		$insert = $wpdb->prepare("INSERT IGNORE INTO {$wpdb->options} (option_name, option_value, autoload) VALUES (%s, %s, 'no')", $name, time());
+		// phpcs:disable WordPress.DB.DirectDatabaseQuery -- The lock is atomic in the database, never cached: the Options API reads before it writes.
 		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- Prepared above.
 		if ($wpdb->query($insert)) {
 			return true;
@@ -95,6 +96,7 @@ class Lock
 		$deleted = $wpdb->query($wpdb->prepare("DELETE FROM {$wpdb->options} WHERE option_name = %s AND option_value < %d", $name, time() - self::TIMEOUT));
 		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- Prepared above.
 		return $deleted && $wpdb->query($insert);
+		// phpcs:enable WordPress.DB.DirectDatabaseQuery
 	}
 
 	/**
@@ -106,6 +108,6 @@ class Lock
 	private static function release($id)
 	{
 		global $wpdb;
-		$wpdb->delete($wpdb->options, ['option_name' => self::PREFIX . $id]);
+		$wpdb->delete($wpdb->options, ['option_name' => self::PREFIX . $id]); // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- See acquire().
 	}
 }

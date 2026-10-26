@@ -78,11 +78,11 @@ class Libraries
 		$command = array_map('strval', $command);
 		if (function_exists('proc_open')) {
 			$null = self::is_windows() ? 'NUL' : '/dev/null';
-			// phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.system_calls_proc_open -- Running the libraries is what OIO does, without shell.
+			// phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.system_calls_proc_open, Generic.PHP.ForbiddenFunctions.Found -- Running the libraries (cwebp, avifenc...) is what OIO does: each argument apart, without shell.
 			$process = @proc_open($command, [0 => ['file', $null, 'r'], 1 => ['pipe', 'w'], 2 => ['redirect', 1]], $pipes);
 			if (is_resource($process)) {
 				$output = stream_get_contents($pipes[1]);
-				fclose($pipes[1]);
+				fclose($pipes[1]); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fclose -- The output pipe of the library, not a file.
 				return [proc_close($process), (string)$output];
 			}
 		}

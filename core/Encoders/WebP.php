@@ -122,9 +122,10 @@ class WebP extends AbstractEncoder
 		}
 		$temp = $output . '.tmp';
 		if (self::run(array_merge($options, ['-near_lossless', self::NEAR_LOSSLESS, $source, '-o', $temp]), $filepath, $args) && filesize($temp) < $lossy) {
+			// phpcs:ignore WordPress.WP.AlternativeFunctions.rename_rename -- Replaces the WebP the site may be serving at once, never half written.
 			rename($temp, $output);
 		} elseif (file_exists($temp)) {
-			unlink($temp);
+			wp_delete_file($temp);
 		}
 	}
 

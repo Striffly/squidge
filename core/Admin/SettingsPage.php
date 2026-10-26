@@ -574,6 +574,7 @@ class SettingsPage
 	private static function with_formats()
 	{
 		global $wpdb;
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery -- One count over the media library, once per page.
 		return (int)$wpdb->get_var($wpdb->prepare(
 			"SELECT COUNT(DISTINCT m.post_id) FROM {$wpdb->postmeta} m
 			INNER JOIN {$wpdb->posts} p ON p.ID = m.post_id

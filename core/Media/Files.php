@@ -209,7 +209,7 @@ class Files
 	public static function delete($path)
 	{
 		if (file_exists($path) && self::contained($path)) {
-			unlink($path);
+			wp_delete_file($path);
 		}
 	}
 

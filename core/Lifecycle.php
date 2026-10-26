@@ -82,6 +82,7 @@ class Lifecycle
 				delete_transient($transient);
 			}
 			// Settings used, files made, errors and bytes of the images.
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery -- Deletes the metas of OIO on every image at once, the cache flushed after.
 			$wpdb->query($wpdb->prepare("DELETE FROM {$wpdb->postmeta} WHERE meta_key LIKE %s", $wpdb->esc_like('_octopus_') . '%'));
 		});
 		wp_cache_flush();
@@ -102,6 +103,7 @@ class Lifecycle
 		if (class_exists('Octopus_Vendor_WP_Background_Process')) {
 			(new Job())->stop();
 		}
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery -- The locks of the images, written in the database by Lock and never cached.
 		$wpdb->query($wpdb->prepare("DELETE FROM {$wpdb->options} WHERE option_name LIKE %s", $wpdb->esc_like(Lock::PREFIX) . '%'));
 		Htaccess::remove_rules(Htaccess::htaccess());
 	}

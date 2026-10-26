@@ -162,6 +162,7 @@ class Stats
 			$sums[] = "SUM(IF(m.meta_key = %s, CAST(m.meta_value AS UNSIGNED), 0)) AS {$name}";
 		}
 		$keys = array_values(self::KEYS);
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter -- One sum over the media library, kept for the request above; $sums only holds the names of KEYS and placeholders.
 		$row = $wpdb->get_row($wpdb->prepare(
 			// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- The sums are columns named after KEYS, their values placeholders.
 			"SELECT " . implode(', ', $sums) . ", SUM(m.meta_key = %s) AS images

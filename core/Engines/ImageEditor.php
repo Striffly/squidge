@@ -83,7 +83,7 @@ class ImageEditor
 		$saved = $editor->save($temp, 'image/png');
 		// The editor saves it with the .png extension, next to the empty .tmp.
 		if (file_exists($temp) && (is_wp_error($saved) || $saved['path'] !== $temp)) {
-			unlink($temp);
+			wp_delete_file($temp);
 		}
 		if (is_wp_error($saved)) {
 			return $filepath;
@@ -103,7 +103,7 @@ class ImageEditor
 	public static function release($source, $filepath)
 	{
 		if ($source !== $filepath && file_exists($source)) {
-			unlink($source);
+			wp_delete_file($source);
 		}
 	}
 
@@ -161,7 +161,7 @@ class ImageEditor
 		// another format, with another extension.
 		if (!is_wp_error($saved) && wp_normalize_path($saved['path']) !== wp_normalize_path($output)) {
 			if (file_exists($saved['path']) && !in_array($saved['path'], [$source, $filepath], true) && Files::contained($saved['path'])) {
-				unlink($saved['path']);
+				wp_delete_file($saved['path']);
 			}
 			$saved = new WP_Error('octopus_editor_error', sprintf('saved as %s instead of %s', $saved['mime-type'], $format));
 		}

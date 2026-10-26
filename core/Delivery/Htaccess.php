@@ -171,7 +171,7 @@ class Htaccess
 	 */
 	public static function remove_rules($path)
 	{
-		if (!is_file($path) || !is_writable($path)) {
+		if (!is_file($path) || !wp_is_writable($path)) {
 			return;
 		}
 		$content = (string)file_get_contents($path);
@@ -180,7 +180,7 @@ class Htaccess
 			return;
 		}
 		if (trim($cleaned) === '') {
-			unlink($path);
+			wp_delete_file($path);
 			return;
 		}
 		file_put_contents($path, ltrim($cleaned, "\n"));

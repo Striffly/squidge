@@ -40,6 +40,7 @@ class Cleaner
 	public static function ids()
 	{
 		global $wpdb;
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery -- No API lists the posts by meta key prefix; read live, while a job changes them.
 		$ids = $wpdb->get_col($wpdb->prepare(
 			"SELECT DISTINCT post_id FROM {$wpdb->postmeta} WHERE meta_key LIKE %s ORDER BY post_id",
 			$wpdb->esc_like('_octopus_') . '%'
@@ -147,7 +148,7 @@ class Cleaner
 				$backup = Files::backup_path($file);
 				if (file_exists($backup) && Files::contained($file) && Files::contained($backup)) {
 					copy($backup, $file);
-					unlink($backup);
+					wp_delete_file($backup);
 				} elseif ($index === 0 && $compressed && in_array(get_post_mime_type($id), Files::MIMES, true)) {
 					$restored = false;
 				}

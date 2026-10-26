@@ -76,7 +76,7 @@ class PNG extends AbstractEncoder
 		$quantized = self::quantize($original, $args);
 		$source = $quantized ?: $original;
 		// optipng keeps a .bak of an output file it overwrites: remove it first.
-		unlink($filepath);
+		wp_delete_file($filepath);
 		$level = self::optimization_level($args);
 		if (self::library() === 'oxipng') {
 			// oxipng goes up to -o 6. --force writes the file even if not lighter, as optipng.
@@ -91,7 +91,7 @@ class PNG extends AbstractEncoder
 		}
 		$compressed = self::run($arguments, $filepath, $args);
 		if ($quantized) {
-			unlink($quantized);
+			wp_delete_file($quantized);
 		}
 		if ($compressed) {
 			Logger::info("Successfully compressed image PNG file: " . $filepath);
@@ -145,7 +145,7 @@ class PNG extends AbstractEncoder
 		if ($code === 0 && filesize($temp) > 0) {
 			return $temp;
 		}
-		unlink($temp);
+		wp_delete_file($temp);
 		// 98: not lighter, 99: under the minimum quality. Otherwise, pngquant failed.
 		if ($code !== 98 && $code !== 99) {
 			Logger::error('pngquant failed on ' . $original . ': ' . trim($output));
