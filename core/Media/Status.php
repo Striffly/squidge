@@ -265,6 +265,7 @@ class Status
 			return $args;
 		}
 		if ($status === self::ERROR) {
+			// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query -- On the meta keys of OIO, indexed; the media library is counted and listed once per page.
 			$args['meta_query'] = [['key' => Errors::META_KEY, 'compare' => 'EXISTS']];
 			return $args;
 		}
@@ -296,6 +297,7 @@ class Status
 			}
 			$meta_query[] = ['key' => self::SIZES_KEY, 'value' => self::sizes_signature()];
 		}
+		// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query -- On the meta keys of OIO, indexed; the media library is counted and listed once per page.
 		$args['meta_query'] = $meta_query;
 		return $args;
 	}

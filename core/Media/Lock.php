@@ -88,10 +88,12 @@ class Lock
 		global $wpdb;
 		$name = self::PREFIX . $id;
 		$insert = $wpdb->prepare("INSERT IGNORE INTO {$wpdb->options} (option_name, option_value, autoload) VALUES (%s, %s, 'no')", $name, time());
+		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- Prepared above.
 		if ($wpdb->query($insert)) {
 			return true;
 		}
 		$deleted = $wpdb->query($wpdb->prepare("DELETE FROM {$wpdb->options} WHERE option_name = %s AND option_value < %d", $name, time() - self::TIMEOUT));
+		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- Prepared above.
 		return $deleted && $wpdb->query($insert);
 	}
 

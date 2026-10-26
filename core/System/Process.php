@@ -75,6 +75,7 @@ class Process
 		$command = array_map('strval', $command);
 		if (function_exists('proc_open')) {
 			$null = self::is_windows() ? 'NUL' : '/dev/null';
+			// phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.system_calls_proc_open -- Running the libraries is what OIO does, without shell.
 			$process = @proc_open($command, [0 => ['file', $null, 'r'], 1 => ['pipe', 'w'], 2 => ['redirect', 1]], $pipes);
 			if (is_resource($process)) {
 				$output = stream_get_contents($pipes[1]);
@@ -83,6 +84,7 @@ class Process
 			}
 		}
 		if (function_exists('exec')) {
+			// phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.system_calls_exec -- Where proc_open() is disabled, each argument escaped.
 			exec(implode(' ', array_map('escapeshellarg', $command)) . ' 2>&1', $lines, $code);
 			return [$code, implode("\n", $lines)];
 		}
@@ -286,6 +288,7 @@ class Process
 	{
 		$defaults = ['upload' => 4, 'background' => 2, 'cli' => 'all'];
 		$default = isset($defaults[$context]) ? $defaults[$context] : 4;
+		// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.DynamicHooknameFound -- octopus_avif_jobs or octopus_oxipng_threads.
 		$threads = apply_filters($filter, $default, $context);
 		return $threads === 'all' ? 'all' : (string)max(1, (int)$threads);
 	}

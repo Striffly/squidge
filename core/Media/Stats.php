@@ -163,6 +163,7 @@ class Stats
 		}
 		$keys = array_values(self::KEYS);
 		$row = $wpdb->get_row($wpdb->prepare(
+			// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- The sums are columns named after KEYS, their values placeholders.
 			"SELECT " . implode(', ', $sums) . ", SUM(m.meta_key = %s) AS images
 			FROM {$wpdb->postmeta} m
 			INNER JOIN {$wpdb->posts} p ON p.ID = m.post_id

@@ -57,6 +57,21 @@ class Notices
 	];
 
 	/**
+	 * The tags of an item of the notice (see
+	 * items_html()), escaped once more on output.
+	 *
+	 * @var array
+	 */
+	const ITEM_TAGS = [
+		'a' => ['href' => true],
+		'strong' => [],
+		'details' => ['class' => true],
+		'summary' => [],
+		'code' => [],
+		'br' => [],
+	];
+
+	/**
 	 * Likely causes of the library errors, as shown to
 	 * the user, matched against the technical message
 	 * in this order.
@@ -121,7 +136,7 @@ class Notices
 			<p><strong>Octopus Image Optimizer</strong> could not fully optimise some images:</p>
 			<ul>
 				<?php foreach ($this->items_html($errors) as $html) : ?>
-					<li><?php echo $html; ?></li>
+					<li><?php echo wp_kses($html, self::ITEM_TAGS); ?></li>
 				<?php endforeach; ?>
 			</ul>
 		</div>

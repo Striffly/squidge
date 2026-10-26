@@ -121,6 +121,7 @@ class SettingsPage
 			return;
 		}
 		// Saving the settings reads the versions of the libraries again, e.g. after an upgrade.
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Set by WordPress after the settings are saved, with their nonce.
 		if (isset($_GET['settings-updated'])) {
 			Process::forget_versions();
 		}
@@ -269,7 +270,10 @@ class SettingsPage
 				<?php endforeach; ?>
 			</ul>
 			<p class="octopus-card__footer">
-				<?php echo esc_html(sprintf(_n('%s JPG or PNG image in the media library.', '%s JPG and PNG images in the media library.', $counts['total']), number_format_i18n($counts['total']))); ?>
+				<?php
+				/* translators: %s: the number of images. */
+				echo esc_html(sprintf(_n('%s JPG or PNG image in the media library.', '%s JPG and PNG images in the media library.', $counts['total'], 'octopus-image-optimizer'), number_format_i18n($counts['total'])));
+				?>
 				<a href="#optimise" data-tab="optimise">Optimise the media library</a>
 			</p>
 		</div>
@@ -426,7 +430,10 @@ class SettingsPage
 				<div class="octopus-step__body octopus-generate">
 					<p class="octopus-generate__value">
 						<strong><?php echo esc_html(number_format_i18n($made)); ?></strong>
-						<?php echo esc_html(sprintf(_n('of %s image has its WebP or AVIF version', 'of %s images have their WebP or AVIF version', $total), number_format_i18n($total))); ?>
+						<?php
+						/* translators: %s: the number of images. */
+						echo esc_html(sprintf(_n('of %s image has its WebP or AVIF version', 'of %s images have their WebP or AVIF version', $total, 'octopus-image-optimizer'), number_format_i18n($total)));
+						?>
 					</p>
 					<span class="octopus-meter" role="img" aria-label="<?php echo esc_attr($percent . ' %'); ?>"><span class="octopus-meter__value" style="width: <?php echo esc_attr($percent); ?>%"></span></span>
 					<ul class="octopus-generate__formats">
@@ -609,12 +616,12 @@ class SettingsPage
 						<details class="octopus-install octopus-install--advice">
 							<summary class="octopus-install__summary">Recommended: install <?php echo esc_html($format['library']); ?></summary>
 							<p class="octopus-install__text"><?php echo esc_html(sprintf($format['recommendation'], $format['engine'])); ?></p>
-							<?php echo $this->render_template('health' . DIRECTORY_SEPARATOR . $format['template']); ?>
+							<?php $this->render_template('health' . DIRECTORY_SEPARATOR . $format['template']); ?>
 						</details>
 					<?php elseif (!$format['installed']) : ?>
 						<details class="octopus-install">
 							<summary class="octopus-install__summary">How to install <?php echo esc_html($format['library']); ?></summary>
-							<?php echo $this->render_template('health' . DIRECTORY_SEPARATOR . $format['template']); ?>
+							<?php $this->render_template('health' . DIRECTORY_SEPARATOR . $format['template']); ?>
 						</details>
 					<?php endif; ?>
 					<details class="octopus-format__settings">
@@ -627,7 +634,7 @@ class SettingsPage
 								<?php if ($format['installed'] && !$format['extras'][$name]) : ?>
 									<details class="octopus-install octopus-install--advice">
 										<summary class="octopus-install__summary">How to install <?php echo esc_html($name); ?>, for the <?php echo esc_html($use); ?></summary>
-										<?php echo $this->render_template('health' . DIRECTORY_SEPARATOR . $format['template']); ?>
+										<?php $this->render_template('health' . DIRECTORY_SEPARATOR . $format['template']); ?>
 									</details>
 								<?php endif; ?>
 							<?php endforeach; ?>
@@ -869,15 +876,14 @@ class SettingsPage
 			echo '</div>';
 		}
 
-		$help = wp_kses($field['help'], ['strong' => [], 'code' => []]);
 		if (empty($field['note'])) {
-			printf('<p class="octopus-field__help">%s</p></div>', $help);
+			printf('<p class="octopus-field__help">%s</p></div>', wp_kses($field['help'], $tags));
 			return;
 		}
 		// A short note, the full help behind a "?" button (admin.js hides it, shown without JS).
 		printf(
 			'<p class="octopus-field__help">%s <button type="button" class="octopus-help__toggle" aria-expanded="false" aria-controls="%s-help"><span aria-hidden="true">?</span><span class="screen-reader-text">More about: %s</span></button></p><p class="octopus-field__help octopus-help__text" id="%s-help">%s</p></div>',
-			wp_kses($field['note'], ['strong' => [], 'code' => []]), $id, esc_html($field['label']), $id, $help
+			wp_kses($field['note'], $tags), esc_attr($id), esc_html($field['label']), esc_attr($id), wp_kses($field['help'], $tags)
 		);
 	}
 
@@ -892,10 +898,9 @@ class SettingsPage
 	 */
 	private function render_switch($name, $field)
 	{
-		$id = esc_attr('octopus-' . str_replace('_', '-', $name));
 		printf(
 			'<label class="octopus-toggle octopus-toggle--switch"><input type="checkbox" class="octopus-toggle__input" id="%s" name="%s" value="1" %s><span class="octopus-toggle__track" aria-hidden="true"></span><span class="screen-reader-text">%s</span></label>',
-			$id, esc_attr(Settings::OPTION . '[' . $name . ']'), checked(Settings::get($name), true, false), esc_html($field['label'])
+			esc_attr('octopus-' . str_replace('_', '-', $name)), esc_attr(Settings::OPTION . '[' . $name . ']'), checked(Settings::get($name), true, false), esc_html($field['label'])
 		);
 	}
 
@@ -1021,13 +1026,10 @@ class SettingsPage
 	 * folder.
 	 *
 	 * @param $name
-	 * @return false|string
 	 * @since 1.0.0
 	 */
 	private function render_template($name)
 	{
-		ob_start();
 		include OCTOPUS_TEMPLATE_PATH . DIRECTORY_SEPARATOR . $name;
-		return ob_get_clean();
 	}
 }

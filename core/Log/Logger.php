@@ -63,6 +63,7 @@ class Logger
 		if ($error) {
 			$type = '[ERROR]';
 		}
+		// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log -- OIO logs its errors in the log of PHP, the info with WP_DEBUG only.
 		error_log(sprintf('OIO: %s - %s', $type, $message));
 	}
 }

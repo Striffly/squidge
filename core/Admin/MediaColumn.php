@@ -229,6 +229,7 @@ class MediaColumn
 	 */
 	public function notice()
 	{
+		// phpcs:disable WordPress.Security.NonceVerification.Recommended -- Query args of the redirect after an action checked by its nonce: they only pick a notice.
 		if (!current_user_can('upload_files')) {
 			return;
 		}
@@ -259,6 +260,7 @@ class MediaColumn
 			return;
 		}
 		printf('<div class="notice notice-success is-dismissible"><p><strong>Octopus Image Optimizer</strong> optimised %s.</p></div>', esc_html(get_the_title($id)));
+		// phpcs:enable WordPress.Security.NonceVerification.Recommended
 	}
 
 	/**

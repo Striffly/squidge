@@ -61,13 +61,13 @@ class JobsAjax
 	}
 
 	/**
-	 * Checks the nonce and the capability of a request.
+	 * Checks the capability of a request, its nonce
+	 * checked first.
 	 *
 	 * @since 1.0.0
 	 */
 	private function authorize()
 	{
-		check_ajax_referer(self::NONCE);
 		if (!current_user_can('manage_options')) {
 			wp_send_json_error(null, 403);
 		}
@@ -80,6 +80,7 @@ class JobsAjax
 	 */
 	public function start()
 	{
+		check_ajax_referer(self::NONCE);
 		$this->authorize();
 		$name = isset($_POST['job']) ? sanitize_key(wp_unslash($_POST['job'])) : '';
 		if (!array_key_exists($name, self::JOBS)) {
@@ -104,6 +105,7 @@ class JobsAjax
 	 */
 	public function control()
 	{
+		check_ajax_referer(self::NONCE);
 		$this->authorize();
 		$command = isset($_POST['command']) ? sanitize_key(wp_unslash($_POST['command'])) : '';
 		$job = Job::instance();
@@ -127,6 +129,7 @@ class JobsAjax
 	 */
 	public function status()
 	{
+		check_ajax_referer(self::NONCE);
 		$this->authorize();
 		wp_send_json_success([
 			'job' => Job::instance()->progress(),

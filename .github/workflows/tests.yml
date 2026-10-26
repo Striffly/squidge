@@ -1,5 +1,6 @@
-# Runs the integration tests on the oldest and the newest PHP version
-# OIO supports, on a single site and on a network, with the libraries
+# Checks the code with the WordPress Coding Standards, and runs the
+# integration tests on the oldest and the newest PHP version OIO
+# supports, on a single site and on a network, with the libraries
 # installed. Also run by the release workflow before it builds the zip.
 name: Tests
 
@@ -19,6 +20,27 @@ env:
   OXIPNG_SHA256: 1813750ef592c5350ca79c88f98b2c0876d05c826dc7156245256d4255c1ad17
 
 jobs:
+  # The security and translation checks of the WordPress Coding Standards,
+  # and the compatibility with the PHP versions OIO supports.
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # 2.40.0
+        with:
+          php-version: '8.2'
+          tools: composer
+          coverage: none
+
+      - name: Install the dependencies
+        run: composer install --no-interaction --no-progress
+
+      - name: Run PHPCS
+        run: composer lint
+
   test:
     runs-on: ubuntu-latest
     strategy:

@@ -157,6 +157,7 @@ class Test
 			'post_mime_type' => ['image/jpeg', 'image/png'],
 			'posts_per_page' => 50,
 			'fields' => 'ids',
+			// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query -- On the meta keys of OIO, indexed; the media library is counted and listed once per page.
 			'meta_query' => [
 				'relation' => 'OR',
 				['key' => WebP::meta_key(), 'compare' => 'EXISTS'],
@@ -198,7 +199,7 @@ class Test
 			'redirection' => 3,
 			'headers' => $accept ? ['Accept' => $accept] : [],
 			// As WordPress for its own loopback requests.
-			'sslverify' => apply_filters('https_local_ssl_verify', false),
+			'sslverify' => apply_filters('https_local_ssl_verify', false), // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- A filter of WordPress.
 		]);
 		if (is_wp_error($response)) {
 			return ['status' => 0, 'type' => '', 'vary' => '', 'error' => $response->get_error_message()];
