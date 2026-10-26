@@ -1,5 +1,5 @@
 # Builds the zip of the plugin and publishes the GitHub release when
-# `npm run release` pushes a version tag.
+# `npm run release` pushes a version tag, once the tests pass.
 name: Release
 
 on:
@@ -11,7 +11,11 @@ permissions:
   contents: write
 
 jobs:
+  tests:
+    uses: ./.github/workflows/tests.yml
+
   release:
+    needs: tests
     runs-on: ubuntu-latest
     steps:
       - name: Check out
