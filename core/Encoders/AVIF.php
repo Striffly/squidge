@@ -18,19 +18,20 @@
 
 namespace Octopus\Encoders;
 
+use Octopus\Engines\ImageEditor;
+use Octopus\Engines\Libraries;
 use Octopus\Log\Logger;
 use Octopus\Media\Files;
 use Octopus\Media\Optimiser;
-use Octopus\System\Process;
 
 if (!defined('ABSPATH')) {
 	exit; // Exit if accessed directly
 }
 
-class AVIF extends Encoder
+class AVIF extends AbstractEncoder
 {
 	/**
-	 * The format of the encoder, see Encoder::FORMAT.
+	 * The format of the encoder, see AbstractEncoder::FORMAT.
 	 */
 	const FORMAT = 'avif';
 
@@ -51,7 +52,7 @@ class AVIF extends Encoder
 
 	/**
 	 * EDITOR_MIME is the format of the image editor,
-	 * without avifenc (see Encoder::editor()).
+	 * without avifenc (see AbstractEncoder::editor()).
 	 */
 	const EDITOR_MIME = 'image/avif';
 
@@ -61,7 +62,7 @@ class AVIF extends Encoder
 	 * its original.
 	 *
 	 * The library runs without shell, see
-	 * Process::execute().
+	 * Libraries::execute().
 	 *
 	 * @param $filepath
 	 * @param $mime
@@ -152,7 +153,7 @@ class AVIF extends Encoder
 	 */
 	private static function jobs()
 	{
-		return Process::threads('octopus_avif_jobs', Optimiser::$context);
+		return Libraries::threads('octopus_avif_jobs', Optimiser::$context);
 	}
 
 	/**
@@ -165,7 +166,7 @@ class AVIF extends Encoder
 	 */
 	private static function version()
 	{
-		return (int)Process::version(self::cmd_name());
+		return (int)Libraries::version(self::cmd_name());
 	}
 
 	/**
@@ -183,7 +184,7 @@ class AVIF extends Encoder
 	{
 		static $options = null;
 		if ($options === null) {
-			list(, $help) = Process::execute([Process::binary(self::cmd_name()), '--help']);
+			list(, $help) = Libraries::execute([Libraries::binary(self::cmd_name()), '--help']);
 			$options = [];
 			foreach (['--ignore-exif', '--ignore-xmp'] as $option) {
 				if (strpos($help, $option) !== false) {

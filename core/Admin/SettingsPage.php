@@ -22,12 +22,12 @@ use Octopus\Encoders\AVIF;
 use Octopus\Encoders\JPG;
 use Octopus\Encoders\PNG;
 use Octopus\Encoders\WebP;
+use Octopus\Engines\Libraries;
 use Octopus\Media\Cleaner;
 use Octopus\Media\Files;
 use Octopus\Media\Stats;
 use Octopus\Media\Status;
 use Octopus\Settings;
-use Octopus\System\Process;
 
 if (!defined('ABSPATH')) {
 	exit; // Exit if accessed directly
@@ -123,7 +123,7 @@ class SettingsPage
 		// Saving the settings reads the versions of the libraries again, e.g. after an upgrade.
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Set by WordPress after the settings are saved, with their nonce.
 		if (isset($_GET['settings-updated'])) {
-			Process::forget_versions();
+			Libraries::forget_versions();
 		}
 		$sections = self::sections();
 		$formats = self::formats($sections);

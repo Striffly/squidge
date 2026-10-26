@@ -25,10 +25,10 @@ if (!defined('ABSPATH')) {
 	exit; // Exit if accessed directly
 }
 
-class JPG extends Encoder
+class JPG extends AbstractEncoder
 {
 	/**
-	 * The format of the encoder, see Encoder::FORMAT.
+	 * The format of the encoder, see AbstractEncoder::FORMAT.
 	 */
 	const FORMAT = 'jpg';
 
@@ -43,7 +43,7 @@ class JPG extends Encoder
 	 * from its original kept as a backup.
 	 *
 	 * The library runs without shell, see
-	 * Process::execute().
+	 * Libraries::execute().
 	 *
 	 * @param $filepath
 	 * @param $mime

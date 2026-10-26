@@ -15,11 +15,11 @@
  *
  */
 
-namespace Octopus\Encoders;
+namespace Octopus\Engines;
 
 use Imagick;
-use Octopus\Media\Files;
 use Octopus\Log\Logger;
+use Octopus\Media\Files;
 use Throwable;
 use WP_Error;
 use WP_Image_Editor_Imagick;

@@ -15,11 +15,11 @@
 
 namespace Octopus;
 
-use Octopus\Admin\SettingsPage;
 use Octopus\Admin\JobsAjax;
 use Octopus\Admin\MediaColumn;
 use Octopus\Admin\Notices;
 use Octopus\Admin\PluginsScreen;
+use Octopus\Admin\SettingsPage;
 use Octopus\Delivery\Display;
 use Octopus\Delivery\Htaccess;
 use Octopus\Delivery\Test;

@@ -1,11 +1,14 @@
 <?php
 
 /**
- * Process
+ * Libraries
  *
- * Runs the libraries: finds them, runs them without
- * shell, with a lower priority and their number of
- * threads, and reads their versions.
+ * The libraries of the server making the formats
+ * (cwebp, avifenc, jpegoptim, optipng, oxipng,
+ * pngquant): finds them, runs them without shell,
+ * with a lower priority and their number of threads,
+ * and reads their versions. ImageEditor makes the
+ * WebP and AVIF files without them.
  *
  * @package     OIO
  * @author      Clément Gayot
@@ -14,13 +17,13 @@
  *
  */
 
-namespace Octopus\System;
+namespace Octopus\Engines;
 
 if (!defined('ABSPATH')) {
 	exit; // Exit if accessed directly
 }
 
-class Process
+class Libraries
 {
 	/**
 	 * The libraries OIO runs, and no other program.

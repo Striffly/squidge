@@ -18,6 +18,7 @@
 
 namespace Octopus\Encoders;
 
+use Octopus\Engines\ImageEditor;
 use Octopus\Log\Logger;
 use Octopus\Media\Files;
 use Octopus\Media\Optimiser;
@@ -26,10 +27,10 @@ if (!defined('ABSPATH')) {
 	exit; // Exit if accessed directly
 }
 
-class WebP extends Encoder
+class WebP extends AbstractEncoder
 {
 	/**
-	 * The format of the encoder, see Encoder::FORMAT.
+	 * The format of the encoder, see AbstractEncoder::FORMAT.
 	 */
 	const FORMAT = 'webp';
 
@@ -48,7 +49,7 @@ class WebP extends Encoder
 
 	/**
 	 * EDITOR_MIME is the format of the image editor,
-	 * without cwebp (see Encoder::editor()).
+	 * without cwebp (see AbstractEncoder::editor()).
 	 */
 	const EDITOR_MIME = 'image/webp';
 
@@ -57,7 +58,7 @@ class WebP extends Encoder
 	 * to webp with the given file path.
 	 *
 	 * The library runs without shell, see
-	 * Process::execute().
+	 * Libraries::execute().
 	 *
 	 * @param $filepath
 	 * @param $mime
