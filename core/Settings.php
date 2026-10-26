@@ -50,6 +50,8 @@ class Settings
 		'jpg_quality' => ['type' => 'int', 'min' => 0, 'max' => 100, 'default' => 80],
 		'png_enable' => ['type' => 'bool', 'default' => true],
 		'png_compression' => ['type' => 'choice', 'values' => ['lossless', 'lossy'], 'default' => 'lossless'],
+		'png_level' => ['type' => 'int', 'min' => 0, 'max' => 7, 'default' => 2],
+		'png_lossy_quality' => ['type' => 'int', 'min' => 0, 'max' => 100, 'default' => 80],
 		'webp_enable' => ['type' => 'bool', 'default' => true],
 		'webp_quality' => ['type' => 'int', 'min' => 0, 'max' => 100, 'default' => 80],
 		'avif_enable' => ['type' => 'bool', 'default' => true],

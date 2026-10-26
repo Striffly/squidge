@@ -89,6 +89,20 @@
 		document.getElementById(toggle.getAttribute('aria-controls')).hidden = !open;
 	});
 
+	// A field shown while another one has a value, e.g. the lossy quality while lossy.
+	function showDependentFields() {
+		page.querySelectorAll('[data-when]').forEach(function (field) {
+			var checked = page.querySelector('[name="' + field.getAttribute('data-when') + '"]:checked');
+			field.hidden = !checked || checked.value !== field.getAttribute('data-when-value');
+		});
+	}
+	page.addEventListener('change', function (event) {
+		if (event.target.matches('.octopus-choice__input')) {
+			showDependentFields();
+		}
+	});
+	showDependentFields();
+
 	// A field the browser refuses on saving is shown: its tab, its folded settings.
 	page.addEventListener('invalid', function (event) {
 		var panel = event.target.closest('[data-panel]');
@@ -98,6 +112,10 @@
 		var fold = event.target.closest('details');
 		if (fold) {
 			fold.open = true;
+		}
+		var dependent = event.target.closest('[data-when]');
+		if (dependent) {
+			dependent.hidden = false;
 		}
 	}, true);
 })();

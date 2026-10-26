@@ -15,6 +15,7 @@
 namespace Octopus\Tests\Integration;
 
 use Octopus\Encoders\PNG;
+use Octopus\Media\Optimiser;
 use Octopus\Settings;
 use Octopus\Tests\TestCase;
 
@@ -52,21 +53,17 @@ class SettingsTest extends TestCase
 		$this->assertSame(1200, Settings::get('max_size'));
 	}
 
-	public function test_the_png_level_and_lossy_quality_are_set_by_filters()
+	public function test_the_png_level_and_lossy_quality_reach_pngquant_and_oxipng()
 	{
-		$this->assertSame('level:2', PNG::signature(['lossy' => false]));
+		self::set('png_level', 4);
+		self::set('png_lossy_quality', 65);
+		self::set('png_compression', 'lossy');
 
-		add_filter('octopus_png_level', function () {
-			return 4;
-		});
-		add_filter('octopus_pngquant_quality', function () {
-			return 65;
-		});
-
-		$this->assertSame('level:4', PNG::signature(['lossy' => false]));
+		$args = Optimiser::settings()['png'];
+		$this->assertSame('level:4', PNG::signature(['lossy' => false] + $args));
 		if (PNG::installed('pngquant')) {
-			$this->assertSame('level:4,lossy:65', PNG::signature(['lossy' => true]));
+			$this->assertSame('level:4,lossy:65', PNG::signature($args));
 		}
-		$this->assertSame('level:3', PNG::signature(['lossy' => false, 'optimization' => 'o3']), 'WP-CLI sets it.');
+		$this->assertSame('level:3', PNG::signature(['optimization' => 'o3']), 'WP-CLI sets it.');
 	}
 }

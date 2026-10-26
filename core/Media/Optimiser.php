@@ -107,7 +107,11 @@ class Optimiser
 			'webp' => ['quality' => Settings::get('webp_quality')],
 			'avif' => ['quality' => Settings::get('avif_quality')],
 			'jpg' => ['quality' => Settings::get('jpg_quality')],
-			'png' => ['lossy' => Settings::get('png_compression') === 'lossy'],
+			'png' => [
+				'lossy' => Settings::get('png_compression') === 'lossy',
+				'optimization' => Settings::get('png_level'),
+				'lossy_quality' => Settings::get('png_lossy_quality'),
+			],
 		];
 		foreach (array_keys($settings) as $format) {
 			if ($enabled_only && !Settings::get($format . '_enable')) {

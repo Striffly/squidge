@@ -842,30 +842,51 @@ class SettingsPage
 	 */
 	private function render_field($name, $field)
 	{
-		$id = esc_attr('octopus-' . str_replace('_', '-', $name));
-		$input = esc_attr(Settings::OPTION . '[' . $name . ']');
+		$id = 'octopus-' . str_replace('_', '-', $name);
+		$input = Settings::OPTION . '[' . $name . ']';
 		$value = Settings::get($name);
 		$setting = Settings::FIELDS[$name];
+		$tags = ['strong' => [], 'code' => []];
+		// A field shown while another one has a value, e.g. the lossy quality (admin.js).
+		$when = '';
+		if (!empty($field['when'])) {
+			$when = sprintf(' data-when="%s" data-when-value="%s"', esc_attr(Settings::OPTION . '[' . $field['when'][0] . ']'), esc_attr($field['when'][1]));
+		}
 
 		// The label names the control without being a <label>: hovering it would hover the control.
-		printf('<div class="octopus-field%s"><span class="octopus-field__label" id="%s-label">%s</span>', $field['type'] === 'checkbox' ? ' octopus-field--toggle' : '', $id, esc_html($field['label']));
+		printf(
+			'<div class="octopus-field%s"%s><span class="octopus-field__label" id="%s-label">%s</span>',
+			$field['type'] === 'checkbox' ? ' octopus-field--toggle' : '',
+			$when, // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Escaped above.
+			esc_attr($id),
+			esc_html($field['label'])
+		);
 
 		if ($field['type'] === 'checkbox') {
 			printf(
 				'<label class="octopus-toggle"><input type="checkbox" class="octopus-toggle__input" id="%s" name="%s" value="1" aria-labelledby="%s-label" %s><span class="octopus-toggle__track" aria-hidden="true"></span></label>',
-				$id, $input, $id, checked($value, true, false)
+				esc_attr($id), esc_attr($input), esc_attr($id), checked($value, true, false)
 			);
 		} else {
 			echo '<div class="octopus-field__control">';
 			if ($field['type'] === 'number') {
-				printf('<input type="number" class="octopus-field__input" id="%s" name="%s" value="%s" min="%d" max="%d" step="1" aria-labelledby="%s-label">', $id, $input, esc_attr($value), $setting['min'], $setting['max'], $id);
+				printf(
+					'<input type="number" class="octopus-field__input" id="%s" name="%s" value="%s" min="%d" max="%d" step="1" aria-labelledby="%s-label">',
+					esc_attr($id), esc_attr($input), esc_attr($value), (int)$setting['min'], (int)$setting['max'], esc_attr($id)
+				);
+			} elseif ($field['type'] === 'select') {
+				printf('<select class="octopus-field__input" id="%s" name="%s" aria-labelledby="%s-label">', esc_attr($id), esc_attr($input), esc_attr($id));
+				foreach ($field['options'] as $option => $label) {
+					printf('<option value="%s" %s>%s</option>', esc_attr($option), selected((string)$value, (string)$option, false), esc_html($label));
+				}
+				echo '</select>';
 			} elseif ($field['type'] === 'choice') {
 				// Every value in sight, as buttons side by side: radio buttons underneath.
-				printf('<div class="octopus-choice" role="radiogroup" aria-labelledby="%s-label">', $id);
+				printf('<div class="octopus-choice" role="radiogroup" aria-labelledby="%s-label">', esc_attr($id));
 				foreach ($field['options'] as $option => $label) {
 					printf(
 						'<label class="octopus-choice__option"><input type="radio" class="octopus-choice__input" name="%s" value="%s" %s><span class="octopus-choice__label">%s</span></label>',
-						$input, esc_attr($option), checked($value, $option, false), esc_html($label)
+						esc_attr($input), esc_attr($option), checked($value, $option, false), esc_html($label)
 					);
 				}
 				echo '</div>';
@@ -949,6 +970,18 @@ class SettingsPage
 							'lossy' => 'Lossy (pngquant)',
 						],
 						'help' => 'Lossy: often 60 to 80 % lighter, for graphics and screenshots. Needs pngquant.',
+					],
+					'png_level' => [
+						'type' => 'select',
+						'label' => 'Optimisation level',
+						'options' => ['0' => 'o0', '1' => 'o1', '2' => 'o2', '3' => 'o3', '4' => 'o4', '5' => 'o5', '6' => 'o6', '7' => 'o7'],
+						'help' => 'From o0 (fastest) to o7 (smallest files), o2 by default.',
+					],
+					'png_lossy_quality' => [
+						'type' => 'number',
+						'label' => 'Lossy quality',
+						'when' => ['png_compression', 'lossy'],
+						'help' => 'The quality pngquant aims at, 80 by default.',
 					],
 				],
 			],
