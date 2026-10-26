@@ -34,13 +34,13 @@
 	--octopus-violet: #7b2ff7;
 	--octopus-violet-dark: #6420d6;
 	--octopus-violet-soft: #f3edff;
-	--octopus-violet-line: rgba(123, 47, 247, .25);
-	--octopus-violet-edge: rgba(123, 47, 247, .4);
+	--octopus-violet-line: rgb(123 47 247 / 25%);
+	--octopus-violet-edge: rgb(123 47 247 / 40%);
 	--octopus-cyan: #00e5ff;
 	--octopus-gradient: linear-gradient(120deg, var(--octopus-pink) 0%, var(--octopus-violet) 100%);
 	--octopus-gradient-night: linear-gradient(120deg, var(--octopus-night) 0%, var(--octopus-night-2) 55%, var(--octopus-night-3) 100%);
 	/* A light glow of the logo, from the top right corner. */
-	--octopus-gradient-glow: radial-gradient(circle at 100% 0%, rgba(255, 60, 172, .1) 0%, rgba(123, 47, 247, .07) 40%, var(--octopus-surface) 78%);
+	--octopus-gradient-glow: radial-gradient(circle at 100% 0%, rgb(255 60 172 / 10%) 0%, rgb(123 47 247 / 7%) 40%, var(--octopus-surface) 78%);
 
 	/* Text and surfaces. The pink and cyan are too light for text on white. */
 	--octopus-text: #1d2327;
@@ -84,9 +84,9 @@
 	--octopus-radius: 12px;
 	--octopus-radius-large: 16px;
 	--octopus-radius-pill: 999px;
-	--octopus-shadow: 0 1px 2px rgba(27, 11, 59, .06), 0 6px 20px rgba(27, 11, 59, .06);
-	--octopus-shadow-hover: 0 2px 4px rgba(27, 11, 59, .08), 0 12px 32px rgba(123, 47, 247, .14);
-	--octopus-glow: 0 0 24px rgba(255, 60, 172, .45);
+	--octopus-shadow: 0 1px 2px rgb(27 11 59 / 6%), 0 6px 20px rgb(27 11 59 / 6%);
+	--octopus-shadow-hover: 0 2px 4px rgb(27 11 59 / 8%), 0 12px 32px rgb(123 47 247 / 14%);
+	--octopus-glow: 0 0 24px rgb(255 60 172 / 45%);
 	--octopus-focus-ring: 0 0 0 2px var(--octopus-surface), 0 0 0 4px var(--octopus-violet);
 	--octopus-transition: 150ms ease;
 }
@@ -96,7 +96,7 @@
 
 /* Variable: every weight in one file, its Latin glyphs (French included). */
 @font-face {
-	font-family: "Unbounded";
+	font-family: Unbounded;
 	font-style: normal;
 	font-weight: 200 900;
 	font-display: swap;

@@ -279,7 +279,6 @@
 	border: 0;
 	border-radius: var(--octopus-radius-pill);
 	background: var(--octopus-violet-soft);
-	-webkit-appearance: none;
 	appearance: none;
 
 	&::-webkit-progress-bar {

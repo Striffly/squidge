@@ -87,7 +87,7 @@
 	& .octopus-field__help {
 		grid-column: 1;
 
-		@media (max-width: 782px) {
+		@media (width <= 782px) {
 			grid-column: 1 / -1;
 		}
 	}
@@ -96,7 +96,7 @@
 		grid-column: 2;
 		grid-row: 1 / span 3;
 
-		@media (max-width: 782px) {
+		@media (width <= 782px) {
 			grid-row: auto;
 		}
 	}
@@ -182,7 +182,7 @@
 		height: 16px;
 		border-radius: 50%;
 		background: #fff;
-		box-shadow: 0 1px 2px rgba(0, 0, 0, .2);
+		box-shadow: 0 1px 2px rgb(0 0 0 / 20%);
 		transition: transform var(--octopus-transition);
 	}
 
@@ -231,7 +231,7 @@
 	&:hover .octopus-choice__label {
 		color: var(--octopus-neutral);
 		text-decoration: line-through;
-		text-decoration-color: rgba(140, 143, 148, .6);
+		text-decoration-color: rgb(140 143 148 / 60%);
 	}
 }
 
