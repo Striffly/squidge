@@ -26,12 +26,12 @@ if (!defined('ABSPATH')) {
 <ul class="octopus-install__list">
 	<li>
 		<span class="octopus-install__os">Linux</span>
-		<code>sudo apt-get install jpegoptim</code>
+		<?php $this->render_command('sudo apt-get install jpegoptim'); ?>
 		<a href="https://vitux.com/optimize-jpeg-jpg-images-in-ubuntu-with-jpegoptim/" target="_blank" rel="noopener"><?php esc_html_e('More information', 'octopus-image-optimizer'); ?></a>
 	</li>
 	<li>
 		<span class="octopus-install__os">Mac</span>
-		<code>brew install jpegoptim</code>
+		<?php $this->render_command('brew install jpegoptim'); ?>
 		<a href="https://formulae.brew.sh/formula/jpegoptim" target="_blank" rel="noopener"><?php esc_html_e('More information', 'octopus-image-optimizer'); ?></a>
 	</li>
 	<li>

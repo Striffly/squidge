@@ -26,12 +26,12 @@ if (!defined('ABSPATH')) {
 <ul class="octopus-install__list">
 	<li>
 		<span class="octopus-install__os">Linux</span>
-		<code>sudo apt-get install webp</code>
+		<?php $this->render_command('sudo apt-get install webp'); ?>
 		<a href="https://www.interserver.net/tips/kb/install-and-serve-webp-images-on-ubuntu/" target="_blank" rel="noopener"><?php esc_html_e('More information', 'octopus-image-optimizer'); ?></a>
 	</li>
 	<li>
 		<span class="octopus-install__os">Mac</span>
-		<code>brew install webp</code>
+		<?php $this->render_command('brew install webp'); ?>
 		<a href="https://formulae.brew.sh/formula/webp" target="_blank" rel="noopener"><?php esc_html_e('More information', 'octopus-image-optimizer'); ?></a>
 	</li>
 	<li>

@@ -2,7 +2,7 @@
  * screens/notices.css
  *
  * The details of the errors in the notices of OIO,
- * folded under their summary (see notices.js).
+ * folded under their summary (see ErrorsNotice.js).
  */
 
 .octopus-error-details {

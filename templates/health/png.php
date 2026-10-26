@@ -28,12 +28,12 @@ if (!defined('ABSPATH')) {
 <ul class="octopus-install__list">
 	<li>
 		<span class="octopus-install__os">Linux</span>
-		<code>sudo apt install optipng pngquant</code>
+		<?php $this->render_command('sudo apt install optipng pngquant'); ?>
 		<a href="https://packages.debian.org/search?keywords=pngquant" target="_blank" rel="noopener"><?php esc_html_e('More information', 'octopus-image-optimizer'); ?></a>
 	</li>
 	<li>
 		<span class="octopus-install__os"><?php esc_html_e('Faster', 'octopus-image-optimizer'); ?></span>
-		<code>sudo apt install oxipng</code>
+		<?php $this->render_command('sudo apt install oxipng'); ?>
 		<span>
 			<?php
 			echo wp_kses(
@@ -49,7 +49,7 @@ if (!defined('ABSPATH')) {
 	</li>
 	<li>
 		<span class="octopus-install__os">Mac</span>
-		<code>brew install oxipng pngquant</code>
+		<?php $this->render_command('brew install oxipng pngquant'); ?>
 		<a href="https://formulae.brew.sh/formula/oxipng" target="_blank" rel="noopener"><?php esc_html_e('More information', 'octopus-image-optimizer'); ?></a>
 	</li>
 </ul>

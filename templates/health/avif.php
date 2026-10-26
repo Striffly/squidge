@@ -31,7 +31,7 @@ if (!defined('ABSPATH')) {
 	</li>
 	<li>
 		<span class="octopus-install__os">Mac</span>
-		<code>brew install libavif</code>
+		<?php $this->render_command('brew install libavif'); ?>
 		<a href="https://formulae.brew.sh/formula/libavif" target="_blank" rel="noopener"><?php esc_html_e('More information', 'octopus-image-optimizer'); ?></a>
 	</li>
 	<li>

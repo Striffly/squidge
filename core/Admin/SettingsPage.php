@@ -73,6 +73,33 @@ class SettingsPage
 	];
 
 	/**
+	 * The scripts of the page: each class after the
+	 * ones it uses, then settings.js, which starts them.
+	 *
+	 * @var string[]
+	 */
+	const SCRIPTS = [
+		'utils/Api',
+		'utils/Confetti',
+		'views/Screen',
+		'components/Component',
+		'components/Tabs',
+		'components/Form',
+		'components/HelpToggle',
+		'components/DependentField',
+		'components/CopyButton',
+		'components/Wallet',
+		'components/Count',
+		'components/Job',
+		'components/JobStart',
+		'components/Savings',
+		'components/Cta',
+		'components/AllOptimised',
+		'components/DeliveryTest',
+		'settings',
+	];
+
+	/**
 	 * Registers the options page.
 	 *
 	 * @since 1.0.0
@@ -106,8 +133,8 @@ class SettingsPage
 			return;
 		}
 		Plugin::enqueue_chain(self::STYLES, 'style');
-		$script = Plugin::enqueue_script('settings', ['wp-i18n']);
-		wp_localize_script($script, 'octopusJob', [
+		$script = Plugin::enqueue_chain(self::SCRIPTS, 'script');
+		wp_localize_script($script, 'octopusSettings', [
 			'ajaxurl' => admin_url('admin-ajax.php'),
 			'nonce' => wp_create_nonce(JobsAjax::NONCE),
 		]);
@@ -158,7 +185,7 @@ class SettingsPage
 		// The settings tab warns when a format has nothing to make it.
 		$missing = in_array('off', array_map([self::class, 'state'], $formats), true);
 		?>
-		<div class="wrap octopus-page">
+		<div class="wrap octopus-page js-octopus-page">
 			<header class="octopus-header">
 				<img class="octopus-header__logo" src="<?php echo esc_url(OCTOPUS_URL . 'assets/images/icon-128x128.png'); ?>" alt="" width="64" height="64">
 				<div class="octopus-header__text">
@@ -171,9 +198,9 @@ class SettingsPage
 			<?php // WordPress puts its notices after the first heading of the page, or this marker. ?>
 			<hr class="wp-header-end">
 
-			<nav class="octopus-tabs" role="tablist" aria-label="OIO">
+			<nav class="octopus-tabs js-octopus-tabs" role="tablist" aria-label="OIO">
 				<?php foreach ($tabs as $id => $title) : ?>
-					<a href="#<?php echo esc_attr($id); ?>" class="octopus-tabs__tab" role="tab" data-tab="<?php echo esc_attr($id); ?>">
+					<a href="#<?php echo esc_attr($id); ?>" class="octopus-tabs__tab js-octopus-tab js-octopus-tab-link" role="tab" data-tab="<?php echo esc_attr($id); ?>">
 						<?php echo esc_html($title); ?>
 						<?php if ($id === 'settings' && $missing) : ?>
 							<span class="octopus-dot octopus-dot--off" title="<?php esc_attr_e('A format has no library', 'octopus-image-optimizer'); ?>"></span>
@@ -186,31 +213,32 @@ class SettingsPage
 				<?php $this->render_job(); ?>
 			<?php endif; ?>
 
-			<form class="octopus-page__form" action="options.php" method="post">
+			<form class="octopus-page__form js-octopus-form" action="options.php" method="post">
 				<?php settings_fields(Settings::GROUP); ?>
 
-				<section class="octopus-panel" id="octopus-panel-overview" role="tabpanel" data-panel="overview">
+				<section class="octopus-panel js-octopus-panel" id="octopus-panel-overview" role="tabpanel" data-panel="overview">
 					<?php $this->render_overview($formats, $counts); ?>
 				</section>
 
-				<section class="octopus-panel" id="octopus-panel-optimise" role="tabpanel" data-panel="optimise">
+				<section class="octopus-panel js-octopus-panel" id="octopus-panel-optimise" role="tabpanel" data-panel="optimise">
 					<?php $this->render_optimise($counts, $jobs); ?>
 				</section>
 
-				<section class="octopus-panel" id="octopus-panel-delivery" role="tabpanel" data-panel="delivery">
+				<section class="octopus-panel js-octopus-panel" id="octopus-panel-delivery" role="tabpanel" data-panel="delivery">
 					<?php $this->render_delivery($sections['display'], $formats, $counts); ?>
 				</section>
 
-				<section class="octopus-panel" id="octopus-panel-settings" role="tabpanel" data-panel="settings">
+				<section class="octopus-panel js-octopus-panel" id="octopus-panel-settings" role="tabpanel" data-panel="settings">
 					<?php $this->render_settings($sections['general'], $formats); ?>
 				</section>
 
-				<section class="octopus-panel" id="octopus-panel-maintenance" role="tabpanel" data-panel="maintenance">
+				<section class="octopus-panel js-octopus-panel" id="octopus-panel-maintenance" role="tabpanel" data-panel="maintenance">
 					<?php $this->render_maintenance($jobs); ?>
 				</section>
 			</form>
 
 			<?php $this->render_support(); ?>
+			<span class="screen-reader-text js-octopus-announcer" aria-live="polite"></span>
 		</div>
 		<?php
 	}
@@ -218,7 +246,7 @@ class SettingsPage
 	/**
 	 * Renders how to buy a coffee to the author, at the
 	 * bottom of every tab: PayPal, or Bitcoin with its
-	 * address and QR code, behind its button (settings.js
+	 * address and QR code, behind its button (Wallet.js
 	 * hides them, shown without JS). No notice, nothing
 	 * elsewhere in the admin but a link on the plugins
 	 * page.
@@ -237,13 +265,13 @@ class SettingsPage
 				?>
 				<a href="<?php echo esc_url(self::PAYPAL); ?>" target="_blank" rel="noopener">PayPal</a>
 				<span aria-hidden="true">&middot;</span>
-				<button type="button" class="button-link octopus-support__toggle" aria-expanded="true" aria-controls="octopus-support-wallet">Bitcoin</button>
+				<button type="button" class="button-link octopus-support__toggle js-octopus-wallet-toggle" aria-expanded="true" aria-controls="octopus-support-wallet">Bitcoin</button>
 			</p>
-			<div class="octopus-support__wallet" id="octopus-support-wallet">
+			<div class="octopus-support__wallet js-octopus-wallet" id="octopus-support-wallet">
 				<a class="octopus-support__qr" href="<?php echo esc_url('bitcoin:' . self::BITCOIN, ['bitcoin']); ?>">
 					<img src="<?php echo esc_url(OCTOPUS_URL . 'assets/images/bitcoin-qr.svg'); ?>" width="104" height="104" alt="<?php esc_attr_e('QR code of the Bitcoin address', 'octopus-image-optimizer'); ?>">
 				</a>
-				<code class="octopus-support__address"><?php echo esc_html(self::BITCOIN); ?></code>
+				<?php $this->render_command(self::BITCOIN, 'octopus-support__address'); ?>
 			</div>
 		</footer>
 		<?php
@@ -313,24 +341,24 @@ class SettingsPage
 			</div>
 		<?php endif; ?>
 		<div class="octopus-card octopus-card--hero">
-			<div class="octopus-savings">
-				<div class="octopus-savings__main"<?php echo $savings['images'] ? '' : ' hidden'; ?>>
+			<div class="octopus-savings js-octopus-savings">
+				<div class="octopus-savings__main js-octopus-savings-main"<?php echo $savings['images'] ? '' : ' hidden'; ?>>
 					<p class="octopus-savings__value">
 						<?php
 						/* translators: %s: a size, e.g. 12.5 MB. */
-						$this->printf_html(__('%s saved', 'octopus-image-optimizer'), '<span data-savings="saved">' . esc_html($savings['saved']) . '</span>');
+						$this->printf_html(__('%s saved', 'octopus-image-optimizer'), '<span class="js-octopus-savings-value" data-savings="saved">' . esc_html($savings['saved']) . '</span>');
 						?>
 					</p>
 					<p class="octopus-savings__detail">
 						<?php
 						/* translators: %s: a reduction, e.g. −48 %. */
-						$this->printf_html(__('%s on what the site serves', 'octopus-image-optimizer'), '<span class="octopus-savings__reduction" data-savings="reduction">' . esc_html($savings['reduction']) . '</span>');
+						$this->printf_html(__('%s on what the site serves', 'octopus-image-optimizer'), '<span class="octopus-savings__reduction js-octopus-savings-value" data-savings="reduction">' . esc_html($savings['reduction']) . '</span>');
 						?>
-						<span class="octopus-savings__hint"<?php echo $savings['hint'] ? '' : ' hidden'; ?>>
-							&middot; <a href="#delivery" data-tab="delivery">
+						<span class="octopus-savings__hint js-octopus-savings-hint"<?php echo $savings['hint'] ? '' : ' hidden'; ?>>
+							&middot; <a class="js-octopus-tab-link" href="#delivery" data-tab="delivery">
 								<?php
 								/* translators: %s: a reduction, e.g. −62 %. */
-								$this->printf_html(__('%s with WebP and AVIF served', 'octopus-image-optimizer'), '<span data-savings="modern">' . esc_html($savings['modern']) . '</span>');
+								$this->printf_html(__('%s with WebP and AVIF served', 'octopus-image-optimizer'), '<span class="js-octopus-savings-value" data-savings="modern">' . esc_html($savings['modern']) . '</span>');
 								?>
 							</a>
 						</span>
@@ -343,23 +371,23 @@ class SettingsPage
 						<span class="octopus-disk__item">
 							<?php
 							/* translators: %s: the size of the original images, e.g. 4.2 MB. */
-							$this->printf_html(__('%s of originals kept', 'octopus-image-optimizer'), '<strong data-savings="originals">' . esc_html($savings['originals']) . '</strong>');
+							$this->printf_html(__('%s of originals kept', 'octopus-image-optimizer'), '<strong class="js-octopus-savings-value" data-savings="originals">' . esc_html($savings['originals']) . '</strong>');
 							?>
 						</span>
 						<span class="octopus-disk__item">
 							<?php
 							/* translators: %s: the size of the WebP and AVIF files, e.g. 916.6 KB. */
-							$this->printf_html(__('%s of WebP and AVIF', 'octopus-image-optimizer'), '<strong data-savings="formats">' . esc_html($savings['formats']) . '</strong>');
+							$this->printf_html(__('%s of WebP and AVIF', 'octopus-image-optimizer'), '<strong class="js-octopus-savings-value" data-savings="formats">' . esc_html($savings['formats']) . '</strong>');
 							?>
 						</span>
 					</p>
 				</div>
-				<div class="octopus-savings__empty"<?php echo $savings['images'] ? ' hidden' : ''; ?>>
+				<div class="octopus-savings__empty js-octopus-savings-empty"<?php echo $savings['images'] ? ' hidden' : ''; ?>>
 					<p class="octopus-savings__value"><?php esc_html_e('Ready to squeeze', 'octopus-image-optimizer'); ?></p>
 					<p class="octopus-savings__detail"><?php esc_html_e('OIO optimises your images on your own server: free, unlimited, and they never leave it.', 'octopus-image-optimizer'); ?></p>
 				</div>
 				<?php // Filled while images wait for an optimisation. ?>
-				<a class="octopus-cta<?php echo $counts[Status::TO_OPTIMISE] + $counts[Status::ERROR] + $counts[Status::OUTDATED] ? ' octopus-cta--filled' : ''; ?>" href="#optimise" data-tab="optimise">
+				<a class="octopus-cta js-octopus-cta js-octopus-tab-link<?php echo $counts[Status::TO_OPTIMISE] + $counts[Status::ERROR] + $counts[Status::OUTDATED] ? ' octopus-cta--filled' : ''; ?>" href="#optimise" data-tab="optimise">
 					<?php esc_html_e('Optimise the media library', 'octopus-image-optimizer'); ?>
 					<span class="octopus-cta__arrow dashicons dashicons-arrow-right-alt" aria-hidden="true"></span>
 				</a>
@@ -367,7 +395,7 @@ class SettingsPage
 			<ul class="octopus-counts">
 				<?php foreach (self::count_labels() as $status => $label) : ?>
 					<li class="octopus-counts__item octopus-counts__item--<?php echo esc_attr($status); ?>">
-						<span class="octopus-counts__value" data-count="<?php echo esc_attr($status); ?>"><?php echo esc_html(number_format_i18n($counts[$status])); ?></span>
+						<span class="octopus-counts__value js-octopus-count" data-count="<?php echo esc_attr($status); ?>"><?php echo esc_html(number_format_i18n($counts[$status])); ?></span>
 						<span class="octopus-counts__label"><?php echo esc_html($label); ?></span>
 					</li>
 				<?php endforeach; ?>
@@ -378,7 +406,7 @@ class SettingsPage
 		<div class="octopus-libraries">
 			<?php foreach ($formats as $id => $format) : ?>
 				<?php $state = self::state($format); ?>
-				<a class="octopus-library octopus-library--<?php echo esc_attr($state); ?>" href="#settings-<?php echo esc_attr($id); ?>" data-tab="settings" data-target="octopus-settings-<?php echo esc_attr($id); ?>">
+				<a class="octopus-library octopus-library--<?php echo esc_attr($state); ?> js-octopus-tab-link" href="#settings-<?php echo esc_attr($id); ?>" data-tab="settings" data-target="octopus-settings-<?php echo esc_attr($id); ?>">
 					<span class="octopus-library__head">
 						<span class="octopus-library__format"><?php echo esc_html($format['title']); ?></span>
 						<?php $this->render_badge($state, self::state_label($state)); ?>
@@ -453,8 +481,8 @@ class SettingsPage
 			</header>
 			<?php if ($jobs) : ?>
 				<?php $done = $counts['total'] > 0 && $counts[Status::OPTIMISED] === $counts['total']; ?>
-				<div class="octopus-done" data-done role="status"<?php echo $done ? '' : ' hidden'; ?>>
-					<span class="octopus-confetti" aria-hidden="true"></span>
+				<div class="octopus-done js-octopus-all-optimised" role="status"<?php echo $done ? '' : ' hidden'; ?>>
+					<span class="octopus-confetti js-octopus-confetti" aria-hidden="true"></span>
 					<span class="octopus-done__icon dashicons dashicons-yes-alt" aria-hidden="true"></span>
 					<p class="octopus-done__text"><strong><?php esc_html_e('All your images are optimised.', 'octopus-image-optimizer'); ?></strong> <?php esc_html_e('Nothing left to do: the new ones are optimised on upload.', 'octopus-image-optimizer'); ?></p>
 				</div>
@@ -462,23 +490,23 @@ class SettingsPage
 					<div class="octopus-action octopus-action--primary">
 						<span class="octopus-action__icon dashicons dashicons-format-image" aria-hidden="true"></span>
 						<h3 class="octopus-action__title"><?php esc_html_e('New images', 'octopus-image-optimizer'); ?></h3>
-						<p class="octopus-action__count" data-count="new"><?php echo esc_html(number_format_i18n($counts[Status::TO_OPTIMISE] + $counts[Status::ERROR])); ?></p>
+						<p class="octopus-action__count js-octopus-count" data-count="new"><?php echo esc_html(number_format_i18n($counts[Status::TO_OPTIMISE] + $counts[Status::ERROR])); ?></p>
 						<p class="octopus-action__text"><?php esc_html_e('Not optimised yet, or their optimisation failed.', 'octopus-image-optimizer'); ?></p>
-						<button type="button" class="button button-primary octopus-action__button" data-job="new"><?php esc_html_e('Optimise new images', 'octopus-image-optimizer'); ?></button>
+						<button type="button" class="button button-primary octopus-action__button js-octopus-job-start" data-job="new"><?php esc_html_e('Optimise new images', 'octopus-image-optimizer'); ?></button>
 					</div>
 					<div class="octopus-action">
 						<span class="octopus-action__icon dashicons dashicons-update" aria-hidden="true"></span>
 						<h3 class="octopus-action__title"><?php esc_html_e('Outdated images', 'octopus-image-optimizer'); ?></h3>
-						<p class="octopus-action__count" data-count="outdated"><?php echo esc_html(number_format_i18n($counts[Status::OUTDATED])); ?></p>
+						<p class="octopus-action__count js-octopus-count" data-count="outdated"><?php echo esc_html(number_format_i18n($counts[Status::OUTDATED])); ?></p>
 						<p class="octopus-action__text"><?php esc_html_e('Optimised before a quality, a format, the maximum size or the thumbnail sizes changed. Optimised again from their originals.', 'octopus-image-optimizer'); ?></p>
-						<button type="button" class="button octopus-action__button" data-job="outdated"><?php esc_html_e('Re-optimise outdated images', 'octopus-image-optimizer'); ?></button>
+						<button type="button" class="button octopus-action__button js-octopus-job-start" data-job="outdated"><?php esc_html_e('Re-optimise outdated images', 'octopus-image-optimizer'); ?></button>
 					</div>
 					<div class="octopus-action">
 						<span class="octopus-action__icon dashicons dashicons-images-alt" aria-hidden="true"></span>
 						<h3 class="octopus-action__title"><?php esc_html_e('All images', 'octopus-image-optimizer'); ?></h3>
-						<p class="octopus-action__count" data-count="total"><?php echo esc_html(number_format_i18n($counts['total'])); ?></p>
+						<p class="octopus-action__count js-octopus-count" data-count="total"><?php echo esc_html(number_format_i18n($counts['total'])); ?></p>
 						<p class="octopus-action__text"><?php esc_html_e('Every image optimised again from its original, with its thumbnails made again.', 'octopus-image-optimizer'); ?></p>
-						<button type="button" class="button octopus-action__button" data-job="all" data-confirm="<?php esc_attr_e('Re-optimise all images from their originals, with their thumbnails? This can take a while.', 'octopus-image-optimizer'); ?>"><?php esc_html_e('Re-optimise all images', 'octopus-image-optimizer'); ?></button>
+						<button type="button" class="button octopus-action__button js-octopus-job-start" data-job="all" data-confirm="<?php esc_attr_e('Re-optimise all images from their originals, with their thumbnails? This can take a while.', 'octopus-image-optimizer'); ?>"><?php esc_html_e('Re-optimise all images', 'octopus-image-optimizer'); ?></button>
 					</div>
 				</div>
 			<?php else : ?>
@@ -547,7 +575,7 @@ class SettingsPage
 						<?php foreach (['webp', 'avif'] as $id) : ?>
 							<?php $state = self::state($formats[$id]); ?>
 							<li>
-								<a class="octopus-chip" href="#settings-<?php echo esc_attr($id); ?>" data-tab="settings" data-target="octopus-settings-<?php echo esc_attr($id); ?>">
+								<a class="octopus-chip js-octopus-tab-link" href="#settings-<?php echo esc_attr($id); ?>" data-tab="settings" data-target="octopus-settings-<?php echo esc_attr($id); ?>">
 									<span class="octopus-dot octopus-dot--<?php echo esc_attr($state); ?>" aria-hidden="true"></span>
 									<span class="octopus-chip__name"><?php echo esc_html($formats[$id]['title']); ?></span>
 									<span class="octopus-chip__state"><?php echo esc_html(self::state_label($state)); ?></span>
@@ -556,7 +584,7 @@ class SettingsPage
 						<?php endforeach; ?>
 					</ul>
 					<?php if ($made < $total) : ?>
-						<a class="button octopus-generate__button" href="#optimise" data-tab="optimise"><?php esc_html_e('Optimise the media library', 'octopus-image-optimizer'); ?></a>
+						<a class="button octopus-generate__button js-octopus-tab-link" href="#optimise" data-tab="optimise"><?php esc_html_e('Optimise the media library', 'octopus-image-optimizer'); ?></a>
 					<?php endif; ?>
 				</div>
 			</li>
@@ -596,22 +624,30 @@ class SettingsPage
 						<li><?php esc_html_e('Does the server answer the image with them?', 'octopus-image-optimizer'); ?></li>
 						<li><?php esc_html_e('Are the originals kept private?', 'octopus-image-optimizer'); ?></li>
 					</ul>
-					<button type="button" class="button button-primary octopus-test__button" data-delivery-test><?php esc_html_e('Run the test', 'octopus-image-optimizer'); ?></button>
-					<p class="octopus-test__summary" aria-live="polite" hidden></p>
+					<button type="button" class="button button-primary octopus-test__button js-octopus-delivery-test"><?php esc_html_e('Run the test', 'octopus-image-optimizer'); ?></button>
+					<p class="octopus-test__summary js-octopus-test-summary" aria-live="polite" hidden></p>
 				</div>
 			</li>
 		</ol>
 
-		<div class="octopus-card octopus-test__result" hidden>
+		<div class="octopus-card octopus-test__result js-octopus-test-result" hidden>
 			<header class="octopus-card__header">
 				<span class="octopus-card__icon dashicons dashicons-yes-alt" aria-hidden="true"></span>
 				<div>
 					<h2 class="octopus-card__title"><?php esc_html_e('Test results', 'octopus-image-optimizer'); ?></h2>
-					<p class="octopus-card__description octopus-test__sample"></p>
+					<p class="octopus-card__description octopus-test__sample js-octopus-test-sample"></p>
 				</div>
 			</header>
 			<div class="octopus-card__body">
-				<ul class="octopus-checks"></ul>
+				<ul class="octopus-checks js-octopus-test-checks"></ul>
+				<template class="js-octopus-check-template">
+					<li class="octopus-checks__item js-octopus-check">
+						<span class="octopus-checks__icon dashicons" aria-hidden="true"></span>
+						<span class="octopus-checks__label js-octopus-check-label"></span>
+						<span class="octopus-checks__detail js-octopus-check-detail"></span>
+						<span class="octopus-checks__advice js-octopus-check-advice"></span>
+					</li>
+				</template>
 			</div>
 		</div>
 
@@ -630,7 +666,7 @@ class SettingsPage
 							$this->printf_html(__('OIO writes them in %s when the server option is on, and removes them when it is off.', 'octopus-image-optimizer'), '<code>uploads/.htaccess</code>');
 							?>
 						</p>
-					<pre class="octopus-code"><code><?php echo esc_html(implode("\n", Htaccess::apache_rules())); ?></code></pre>
+					<?php $this->render_code(implode("\n", Htaccess::apache_rules()), 'octopus-code-apache'); ?>
 				</div>
 			</details>
 		<?php else : ?>
@@ -644,7 +680,7 @@ class SettingsPage
 								$this->printf_html(__('In %s, written by OIO when the server option is on.', 'octopus-image-optimizer'), '<code>uploads/.htaccess</code>');
 								?>
 							</p>
-						<pre class="octopus-code"><code><?php echo esc_html(implode("\n", Htaccess::apache_rules())); ?></code></pre>
+						<?php $this->render_code(implode("\n", Htaccess::apache_rules()), 'octopus-code-apache'); ?>
 					</div>
 				</details>
 			<?php endif; ?>
@@ -652,7 +688,7 @@ class SettingsPage
 				<summary class="octopus-fold__summary"><span class="octopus-fold__title"><?php esc_html_e('Rewrite rules for nginx', 'octopus-image-optimizer'); ?></span></summary>
 				<div class="octopus-fold__content">
 					<p class="octopus-fold__text"><?php esc_html_e('Add them to the configuration of the site, reload nginx, then tick the server option.', 'octopus-image-optimizer'); ?></p>
-					<pre class="octopus-code"><code><?php echo esc_html(Htaccess::nginx_rules()); ?></code></pre>
+					<?php $this->render_code(Htaccess::nginx_rules(), 'octopus-code-nginx'); ?>
 				</div>
 			</details>
 		<?php endif; ?>
@@ -754,7 +790,7 @@ class SettingsPage
 							<?php $this->render_template('health' . DIRECTORY_SEPARATOR . $format['template']); ?>
 						</details>
 					<?php endif; ?>
-					<details class="octopus-format__settings">
+					<details class="octopus-format__settings js-octopus-fold">
 						<summary class="octopus-format__summary"><?php esc_html_e('Settings', 'octopus-image-optimizer'); ?></summary>
 						<div class="octopus-format__fields octopus-fields">
 							<?php foreach ($fields as $name => $field) : ?>
@@ -804,15 +840,15 @@ class SettingsPage
 					<p class="octopus-card__description">
 						<?php
 						/* translators: %s: the number of images. */
-						$this->printf_html(__('Deletes the WebP and AVIF files of the %s images processed. The JPG and PNG files stay compressed, and the originals kept.', 'octopus-image-optimizer'), '<strong data-count="processed">' . esc_html(number_format_i18n(count(Cleaner::ids()))) . '</strong>');
+						$this->printf_html(__('Deletes the WebP and AVIF files of the %s images processed. The JPG and PNG files stay compressed, and the originals kept.', 'octopus-image-optimizer'), '<strong class="js-octopus-count" data-count="processed">' . esc_html(number_format_i18n(count(Cleaner::ids()))) . '</strong>');
 						?>
 					</p>
 				</div>
 			</header>
 			<?php if ($jobs) : ?>
 				<div class="octopus-confirm">
-					<label class="octopus-confirm__label"><input type="checkbox" class="octopus-confirm__input" data-confirm-for="remove_formats"> <?php esc_html_e('I understand the WebP and AVIF files will be deleted, until the images are optimised again.', 'octopus-image-optimizer'); ?></label>
-					<button type="button" class="button octopus-confirm__button" data-job="remove_formats"><?php esc_html_e('Remove WebP and AVIF', 'octopus-image-optimizer'); ?></button>
+					<label class="octopus-confirm__label"><input type="checkbox" class="octopus-confirm__input js-octopus-job-confirm" data-confirm-for="remove_formats"> <?php esc_html_e('I understand the WebP and AVIF files will be deleted, until the images are optimised again.', 'octopus-image-optimizer'); ?></label>
+					<button type="button" class="button octopus-confirm__button js-octopus-job-start" data-job="remove_formats"><?php esc_html_e('Remove WebP and AVIF', 'octopus-image-optimizer'); ?></button>
 				</div>
 			<?php else : ?>
 				<?php $this->render_no_jobs(); ?>
@@ -829,8 +865,8 @@ class SettingsPage
 			</header>
 			<?php if ($jobs) : ?>
 				<div class="octopus-confirm">
-					<label class="octopus-confirm__label"><input type="checkbox" class="octopus-confirm__input" data-confirm-for="restore"> <?php esc_html_e('I understand the images will no longer be optimised, and their WebP and AVIF files will be deleted.', 'octopus-image-optimizer'); ?></label>
-					<button type="button" class="button octopus-confirm__button octopus-button--danger" data-job="restore"><?php esc_html_e('Restore original images', 'octopus-image-optimizer'); ?></button>
+					<label class="octopus-confirm__label"><input type="checkbox" class="octopus-confirm__input js-octopus-job-confirm" data-confirm-for="restore"> <?php esc_html_e('I understand the images will no longer be optimised, and their WebP and AVIF files will be deleted.', 'octopus-image-optimizer'); ?></label>
+					<button type="button" class="button octopus-confirm__button octopus-button--danger js-octopus-job-start" data-job="restore"><?php esc_html_e('Restore original images', 'octopus-image-optimizer'); ?></button>
 				</div>
 			<?php else : ?>
 				<?php $this->render_no_jobs(); ?>
@@ -866,28 +902,35 @@ class SettingsPage
 	private function render_job()
 	{
 		?>
-		<div class="octopus-job" hidden>
+		<div class="octopus-job js-octopus-job" hidden>
 			<div class="octopus-job__progress">
 				<div class="octopus-job__head">
 					<span class="octopus-job__icon dashicons dashicons-update" aria-hidden="true"></span>
-					<p class="octopus-job__label" aria-live="polite"></p>
-					<span class="octopus-job__percent"></span>
+					<p class="octopus-job__label js-octopus-job-label" aria-live="polite"></p>
+					<span class="octopus-job__percent js-octopus-job-percent"></span>
 					<div class="octopus-job__controls">
-						<button type="button" class="button" data-control="pause"><?php esc_html_e('Pause', 'octopus-image-optimizer'); ?></button>
-						<button type="button" class="button" data-control="resume"><?php esc_html_e('Resume', 'octopus-image-optimizer'); ?></button>
-						<button type="button" class="button-link button-link-delete" data-control="cancel"><?php esc_html_e('Cancel', 'octopus-image-optimizer'); ?></button>
+						<button type="button" class="button js-octopus-job-control" data-control="pause"><?php esc_html_e('Pause', 'octopus-image-optimizer'); ?></button>
+						<button type="button" class="button js-octopus-job-control" data-control="resume"><?php esc_html_e('Resume', 'octopus-image-optimizer'); ?></button>
+						<button type="button" class="button-link button-link-delete js-octopus-job-control" data-control="cancel"><?php esc_html_e('Cancel', 'octopus-image-optimizer'); ?></button>
 					</div>
 				</div>
-				<progress class="octopus-job__bar" max="100" value="0"></progress>
+				<progress class="octopus-job__bar js-octopus-job-bar" max="100" value="0"></progress>
 			</div>
-			<div class="octopus-result" role="status" aria-live="polite">
-				<span class="octopus-confetti" aria-hidden="true"></span>
+			<div class="octopus-result js-octopus-job-result" role="status" aria-live="polite">
+				<span class="octopus-confetti js-octopus-confetti" aria-hidden="true"></span>
 				<span class="octopus-result__icon dashicons" aria-hidden="true"></span>
 				<div class="octopus-result__body">
-					<p class="octopus-result__title"></p>
-					<p class="octopus-result__detail"></p>
+					<p class="octopus-result__title js-octopus-job-title"></p>
+					<p class="octopus-result__detail">
+						<span class="js-octopus-job-detail"></span>
+						<span class="js-octopus-job-errors" hidden>
+							<span class="js-octopus-job-errors-count"></span>
+							<a href="<?php echo esc_url(admin_url('upload.php?mode=list')); ?>"><?php esc_html_e('see the errors in the Media library', 'octopus-image-optimizer'); ?></a>.
+						</span>
+						<span class="js-octopus-job-missing" hidden></span>
+					</p>
 				</div>
-				<button type="button" class="octopus-result__close" data-control="dismiss">
+				<button type="button" class="octopus-result__close js-octopus-job-control" data-control="dismiss">
 					<span class="dashicons dashicons-no-alt" aria-hidden="true"></span>
 					<span class="screen-reader-text"><?php esc_html_e('Dismiss', 'octopus-image-optimizer'); ?></span>
 				</button>
@@ -923,7 +966,7 @@ class SettingsPage
 					$this->printf_html(__('Images output with your own markup (e.g. from an ACF field) are not wrapped in a %1$s by the HTML option: serve them from the server, or use the %2$s helper, which returns their %1$s whatever the options.', 'octopus-image-optimizer'), '<code>&lt;picture&gt;</code>', '<code>octopus_image()</code>');
 					?>
 				</p>
-				<pre class="octopus-code"><code><?php echo esc_html($code); ?></code></pre>
+				<?php $this->render_code($code, 'octopus-code-theme'); ?>
 				<p class="octopus-fold__text">
 					<?php
 					$this->printf_html(
@@ -1036,6 +1079,44 @@ class SettingsPage
 	}
 
 	/**
+	 * Renders a block of code, with its copy button
+	 * (CopyButton.js, hidden without JS).
+	 *
+	 * @param string $code
+	 * @param string $id Unique on the page.
+	 * @since 1.0.0
+	 */
+	private function render_code($code, $id)
+	{
+		?>
+		<div class="octopus-code-block">
+			<pre class="octopus-code" id="<?php echo esc_attr($id); ?>"><code><?php echo esc_html($code); ?></code></pre>
+			<button type="button" class="octopus-copy js-octopus-copy" aria-controls="<?php echo esc_attr($id); ?>"><?php esc_html_e('Copy', 'octopus-image-optimizer'); ?></button>
+		</div>
+		<?php
+	}
+
+	/**
+	 * Renders a command or an address on one line, with
+	 * its copy button after it.
+	 *
+	 * @param string $command
+	 * @param string $class Of the code.
+	 * @since 1.0.0
+	 */
+	private function render_command($command, $class = '')
+	{
+		$id = 'octopus-command-' . sanitize_title($command);
+		printf(
+			'<code class="%1$s" id="%2$s">%3$s</code> <button type="button" class="octopus-copy js-octopus-copy" aria-controls="%2$s">%4$s</button>',
+			esc_attr($class),
+			esc_attr($id),
+			esc_html($command),
+			esc_html__('Copy', 'octopus-image-optimizer')
+		);
+	}
+
+	/**
 	 * Renders a status badge.
 	 *
 	 * @param string $variant on, off or muted.
@@ -1091,7 +1172,7 @@ class SettingsPage
 		$setting = Settings::FIELDS[$name];
 		$tags = ['strong' => [], 'code' => []];
 		$disabled = !empty($field['disabled']) ? ' disabled' : '';
-		// A field shown while another one has a value, e.g. the lossy quality (settings.js).
+		// A field shown while another one has a value, e.g. the lossy quality (DependentField.js).
 		$when = '';
 		if (!empty($field['when'])) {
 			$when = sprintf(' data-when="%s" data-when-value="%s"', esc_attr(Settings::OPTION . '[' . $field['when'][0] . ']'), esc_attr($field['when'][1]));
@@ -1099,9 +1180,10 @@ class SettingsPage
 
 		// The label names the control without being a <label>: hovering it would hover the control.
 		printf(
-			'<div class="octopus-field%s%s"%s><span class="octopus-field__label" id="%s-label">%s</span>',
+			'<div class="octopus-field%s%s%s"%s><span class="octopus-field__label" id="%s-label">%s</span>',
 			$field['type'] === 'checkbox' ? ' octopus-field--toggle' : '',
 			$disabled ? ' octopus-field--disabled' : '',
+			$when ? ' js-octopus-dependent' : '',
 			$when, // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Escaped above.
 			esc_attr($id),
 			esc_html($field['label'])
@@ -1155,9 +1237,9 @@ class SettingsPage
 			printf('<p class="octopus-field__help">%s</p></div>', wp_kses($field['help'], $tags));
 			return;
 		}
-		// A short note, the full help behind a "?" button (settings.js hides it, shown without JS).
+		// A short note, the full help behind a "?" button (HelpToggle.js hides it, shown without JS).
 		printf(
-			'<p class="octopus-field__help">%s <button type="button" class="octopus-help__toggle" aria-expanded="false" aria-controls="%s-help"><span aria-hidden="true">?</span><span class="screen-reader-text">%s</span></button></p><p class="octopus-field__help octopus-help__text" id="%s-help">%s</p></div>',
+			'<p class="octopus-field__help">%s <button type="button" class="octopus-help__toggle js-octopus-help-toggle" aria-expanded="false" aria-controls="%s-help"><span aria-hidden="true">?</span><span class="screen-reader-text">%s</span></button></p><p class="octopus-field__help octopus-help__text" id="%s-help">%s</p></div>',
 			wp_kses($field['note'], $tags), esc_attr($id), /* translators: %s: the label of a setting. */ esc_html(sprintf(__('More about: %s', 'octopus-image-optimizer'), $field['label'])), esc_attr($id), wp_kses($field['help'], $tags)
 		);
 	}

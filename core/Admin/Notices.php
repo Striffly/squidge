@@ -128,25 +128,41 @@ class Notices
 	/**
 	 * Renders the recent errors as an admin notice, to
 	 * the administrators: they list the images of
-	 * every user. The others see the errors of their
-	 * uploads right after uploading them.
+	 * every user. Everyone sees the errors of their
+	 * uploads right after uploading them, from the
+	 * templates of the notice and of an error
+	 * (ErrorsNotice.js).
 	 *
 	 * @since 1.0.0
 	 */
 	public function render()
 	{
-		if (!$this->is_notice_screen() || !current_user_can('manage_options')) {
+		if (!$this->is_notice_screen()) {
 			return;
 		}
-		$errors = Errors::recent();
-		if (empty($errors)) {
-			return;
+		$errors = current_user_can('manage_options') ? Errors::recent() : [];
+		if (!empty($errors)) {
+			$this->render_notice($this->items_html($errors));
 		}
 		?>
-		<div class="notice notice-warning is-dismissible octopus-errors-notice">
+		<template class="js-octopus-errors-notice-template"><?php $this->render_notice([]); ?></template>
+		<template class="js-octopus-error-template"><li class="js-octopus-error"></li></template>
+		<?php
+	}
+
+	/**
+	 * Renders the notice of the errors.
+	 *
+	 * @param string[] $items The HTML of each error, see items_html().
+	 * @since 1.0.0
+	 */
+	private function render_notice($items)
+	{
+		?>
+		<div class="notice notice-warning is-dismissible octopus-errors-notice js-octopus-errors-notice">
 			<p><?php echo wp_kses(self::title(), ['strong' => []]); ?></p>
-			<ul>
-				<?php foreach ($this->items_html($errors) as $html) : ?>
+			<ul class="js-octopus-errors-list">
+				<?php foreach ($items as $html) : ?>
 					<li><?php echo wp_kses($html, self::ITEM_TAGS); ?></li>
 				<?php endforeach; ?>
 			</ul>
@@ -251,11 +267,11 @@ class Notices
 		if (!$this->is_notice_screen()) {
 			return;
 		}
-		$script = Plugin::enqueue_script('notices', ['jquery']);
+		$script = Plugin::enqueue_chain(['utils/Api', 'views/Screen', 'components/Component', 'components/ErrorsNotice', 'notices'], 'script');
 		wp_localize_script($script, 'octopusNotices', [
+			'ajaxurl' => admin_url('admin-ajax.php'),
 			'action' => self::NONCE,
 			'nonce' => wp_create_nonce(self::NONCE),
-			'title' => self::title(),
 		]);
 		Plugin::enqueue_style('screens/notices');
 	}
