@@ -434,7 +434,7 @@ class SettingsPage
 			<?php if ($jobs) : ?>
 				<?php $done = $counts['total'] > 0 && $counts[Status::OPTIMISED] === $counts['total']; ?>
 				<div class="octopus-done" data-done role="status"<?php echo $done ? '' : ' hidden'; ?>>
-					<span class="octopus-done__confetti" aria-hidden="true"></span>
+					<span class="octopus-confetti" aria-hidden="true"></span>
 					<span class="octopus-done__icon dashicons dashicons-yes-alt" aria-hidden="true"></span>
 					<p class="octopus-done__text"><strong><?php esc_html_e('All your images are optimised.', 'octopus-image-optimizer'); ?></strong> <?php esc_html_e('Nothing left to do: the new ones are optimised on upload.', 'octopus-image-optimizer'); ?></p>
 				</div>
@@ -861,6 +861,7 @@ class SettingsPage
 				<progress class="octopus-job__bar" max="100" value="0"></progress>
 			</div>
 			<div class="octopus-result" role="status" aria-live="polite">
+				<span class="octopus-confetti" aria-hidden="true"></span>
 				<span class="octopus-result__icon dashicons" aria-hidden="true"></span>
 				<div class="octopus-result__body">
 					<p class="octopus-result__title"></p>

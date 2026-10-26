@@ -166,6 +166,8 @@
 	var timer = null;
 	// Set while a job runs on this page, to report its end.
 	var following = false;
+	// Set once a job ran while the page was open.
+	var jobSeen = false;
 	var LABELS = {
 		optimise: __('Optimising', 'octopus-image-optimizer'),
 		remove_formats: __('Removing WebP and AVIF', 'octopus-image-optimizer'),
@@ -232,11 +234,12 @@
 		document.querySelectorAll('[data-count]').forEach(function (element) {
 			var name = element.getAttribute('data-count');
 			if (name in counts) {
-				element.textContent = number(counts[name]);
+				countTo(element, counts[name]);
 			}
 		});
 		updateButtons();
-		showDone(counts.total > 0 && counts.optimised === counts.total);
+		// Not while a job runs, nor after: its result already says it.
+		showDone(!busy && !jobSeen && allOptimised());
 		// The button of the overview, filled while images wait for an optimisation.
 		var cta = document.querySelector('.octopus-cta');
 		if (cta) {
@@ -244,8 +247,34 @@
 		}
 	}
 
+	function allOptimised() {
+		return counts.total > 0 && counts.optimised === counts.total;
+	}
+
+	// A count rolls to its new value, between two refreshes of a job.
+	var rolls = new WeakMap();
+
+	function countTo(element, value) {
+		var from = element.hasAttribute('data-value') ? Number(element.getAttribute('data-value')) : value;
+		element.setAttribute('data-value', value);
+		cancelAnimationFrame(rolls.get(element));
+		if (from === value || window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+			element.textContent = number(value);
+			return;
+		}
+		var start = performance.now();
+		(function step(now) {
+			var t = Math.min(1, (now - start) / 1500);
+			var eased = 1 - Math.pow(1 - t, 3);
+			element.textContent = number(Math.round(from + (value - from) * eased));
+			if (t < 1) {
+				rolls.set(element, requestAnimationFrame(step));
+			}
+		})(start);
+	}
+
 	// All the images optimised: the message, with confetti the first time it
-	// is seen on this page, and each time a job brings it.
+	// is seen on this page. After a job, the confetti go on its result.
 	var done = page.querySelector('[data-done]');
 	var celebrated = false;
 	var COLOURS = ['#ff3cac', '#7b2ff7', '#00e5ff', '#ffc53d', '#b78cff'];
@@ -254,11 +283,7 @@
 		if (!done) {
 			return;
 		}
-		var appears = isDone && done.hidden;
 		done.hidden = !isDone;
-		if (appears) {
-			celebrated = false;
-		}
 		celebrate();
 	}
 
@@ -268,14 +293,18 @@
 			return;
 		}
 		celebrated = true;
-		var confetti = done.querySelector('.octopus-done__confetti');
+		throwConfetti(done);
+	}
+
+	function throwConfetti(element) {
+		var confetti = element.querySelector('.octopus-confetti');
 		confetti.textContent = '';
 		if (!confetti.animate || window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
 			return;
 		}
 		for (var i = 0; i < 40; i++) {
 			var piece = document.createElement('span');
-			piece.className = 'octopus-done__piece';
+			piece.className = 'octopus-confetti__piece';
 			piece.style.setProperty('--x', (10 + Math.random() * 80) + '%');
 			piece.style.setProperty('--color', COLOURS[i % COLOURS.length]);
 			confetti.appendChild(piece);
@@ -375,6 +404,9 @@
 			resultDetail.append(' ' + sprintf(_n('%s had no original to restore, it stays compressed.', '%s had no original to restore, they stay compressed.', job.missing, 'octopus-image-optimizer'), number(job.missing)));
 		}
 		box.setAttribute('data-result', cancelled ? 'cancelled' : (job.failed || job.missing ? 'warning' : 'success'));
+		if (job.action === 'optimise' && !cancelled && allOptimised()) {
+			throwConfetti(box.querySelector('.octopus-result'));
+		}
 	}
 
 	function render(data) {
@@ -383,6 +415,7 @@
 		box.hidden = false;
 		box.setAttribute('data-state', state);
 		busy = state !== 'idle';
+		jobSeen = jobSeen || busy;
 		page.classList.toggle('octopus-page--busy', busy);
 		showCounts(data.counts);
 		showSavings(data.savings);

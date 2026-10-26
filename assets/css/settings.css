@@ -1062,7 +1062,8 @@
 	color: var(--octopus-text);
 }
 
-.octopus-done__confetti {
+/* Confetti, thrown from the top of the message or of the result of a job. */
+.octopus-confetti {
 	position: absolute;
 	z-index: 2;
 	top: 0;
@@ -1072,7 +1073,7 @@
 	pointer-events: none;
 }
 
-.octopus-done__piece {
+.octopus-confetti__piece {
 	position: absolute;
 	top: 50%;
 	left: var(--x);
@@ -1085,7 +1086,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-	.octopus-done__confetti {
+	.octopus-confetti {
 		display: none;
 	}
 }
@@ -1219,6 +1220,7 @@
 
 /* Sum up of the last job: success, with errors, or cancelled. */
 .octopus-job[data-result] .octopus-result {
+	position: relative;
 	display: flex;
 	align-items: flex-start;
 	gap: var(--octopus-space-3);
