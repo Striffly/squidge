@@ -48,6 +48,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
+    "@napi-rs/canvas": "^1.0.13",
     "@release-it/bumper": "^8.0.1",
     "@wordpress/scripts": "^37.0.0",
     "eslint": "^10.13.0",

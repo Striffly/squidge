@@ -312,11 +312,12 @@ changing a text, update the template and the translations with [WP-CLI](https://
 composer translations   # The .pot, then the .po, .mo, .l10n.php and .json of each language.
 ```
 
-### Logo
+### Logo and banner
 
-The logo is drawn by `tools/brand/build.js`: the octopus and the arms it wraps in front of the picture come from the
-pixel grids of `tools/brand/sprites/`, one letter per colour, and the script draws the rest and the animation. It
-writes the still PNGs and the floating GIFs of `assets/images/`, at 128 and 256 px.
+The logo and the banner of WordPress.org are drawn by `tools/brand/build.js`: the octopus and the arms it wraps in
+front of the picture come from the pixel grids of `tools/brand/sprites/`, one letter per colour, and the script draws
+the rest, the animation and the texts of the banner, in Unbounded. It writes the still PNGs and the floating GIFs of
+`assets/images/`, at 128 and 256 px, and the banners, at 772x250 and 1544x500.
 
 ```bash
 bun run brand

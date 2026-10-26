@@ -3,18 +3,21 @@
  *
  * Draws the logo, a pixel-art octopus hugging a picture, and
  * writes it to assets/images: a still PNG and a floating GIF,
- * at 128 and 256 px. Run it with `bun run brand`.
+ * at 128 and 256 px, and the banner of WordPress.org, at
+ * 772x250 and 1544x500. Run it with `bun run brand`.
  *
  * The octopus comes from sprites/octopus.txt, and the arms
  * it wraps in front of the picture from sprites/arms.txt:
  * 128 rows of 128 pixels, one letter per colour (see
- * SPRITE). Everything else is drawn here: the glow behind,
- * the shadow on the floor, the tilted picture and its halo,
- * the stars.
+ * SPRITE). The rest is drawn here: the glow behind, the
+ * shadow on the floor, the tilted picture and its halo, the
+ * stars, the night of the banner, and its texts, smooth over
+ * its pixels, in the display font of the page (Unbounded).
  */
 
 import {readFileSync, writeFileSync} from 'node:fs';
 import {crc32, deflateSync} from 'node:zlib';
+import {createCanvas, GlobalFonts} from '@napi-rs/canvas';
 import {GIFEncoder} from 'gifenc';
 
 const SPRITES = new URL('./sprites/', import.meta.url);
@@ -52,6 +55,51 @@ function readSprite(name) {
 
 const OCTO = readSprite('octopus.txt');
 const ARMS = readSprite('arms.txt');
+
+GlobalFonts.registerFromPath(new URL('../../assets/fonts/unbounded-variable.woff2', import.meta.url).pathname, 'Unbounded');
+
+/**
+ * Lines of text in Unbounded, left aligned: how much each pixel is inked (0 to 255), cropped to the ink,
+ * at MASK_SCALE times the grid of the banner.
+ *
+ * @param {string[]} lines
+ * @param {number} size In px of the grid of the banner, half its 772x250.
+ * @param {number} weight
+ * @param {number} [leading] From one line to the next, in sizes.
+ * @return {{width: number, height: number, data: Uint8Array}}
+ */
+function textMask(lines, size, weight, leading = 1.35) {
+	const px = size * MASK_SCALE, pad = 2 * MASK_SCALE, step = Math.round(px * leading);
+	const font = `${weight} ${px}px Unbounded`;
+	const probe = createCanvas(1, 1).getContext('2d');
+	probe.font = font;
+	const canvas = createCanvas(Math.ceil(Math.max(...lines.map((line) => probe.measureText(line).width))) + 2 * pad, step * lines.length + 2 * pad);
+	const ctx = canvas.getContext('2d');
+	ctx.font = font;
+	ctx.fillStyle = '#fff';
+	ctx.textBaseline = 'top';
+	lines.forEach((line, i) => ctx.fillText(line, pad, pad + i * step));
+	const {data, width, height} = ctx.getImageData(0, 0, canvas.width, canvas.height);
+	let top = height, bottom = -1, left = width, right = -1;
+	for (let y = 0; y < height; y++) {
+		for (let x = 0; x < width; x++) {
+			if (data[(y * width + x) * 4 + 3]) {
+				top = Math.min(top, y);
+				bottom = Math.max(bottom, y);
+				left = Math.min(left, x);
+				right = Math.max(right, x);
+			}
+		}
+	}
+	const mask = {width: right - left + 1, height: bottom - top + 1};
+	mask.data = new Uint8Array(mask.width * mask.height);
+	for (let y = 0; y < mask.height; y++) {
+		for (let x = 0; x < mask.width; x++) {
+			mask.data[y * mask.width + x] = data[((top + y) * width + left + x) * 4 + 3];
+		}
+	}
+	return mask;
+}
 
 // How far each pixel is from the octopus, counting diagonals as 1: 0 on it, up to 3. Not from the arms in
 // front of the picture: the glow stays behind, and around the paw out of the picture, only its outline.
@@ -140,19 +188,43 @@ function drawStar(img, x, y, size) {
 }
 
 class Canvas {
-	constructor() {
-		this.pixels = Array.from({length: SIZE * SIZE}, () => C.bg);
+	constructor(width = SIZE, height = SIZE) {
+		this.width = width;
+		this.height = height;
+		this.pixels = Array.from({length: width * height}, () => C.bg);
 	}
 
 	set(x, y, rgb) {
-		if (x >= 0 && x < SIZE && y >= 0 && y < SIZE) {
-			this.pixels[y * SIZE + x] = rgb;
+		if (x >= 0 && x < this.width && y >= 0 && y < this.height) {
+			this.pixels[y * this.width + x] = rgb;
 		}
 	}
 }
 
 /**
- * One frame.
+ * How much the glow behind the octopus lights a pixel, from its centre in the scene: above 1, twice.
+ */
+function glow(x, y) {
+	return (65 - Math.hypot(x - 61.5, (y - 60.5) * 1.1)) / 12.5;
+}
+
+/**
+ * The shadow on the floor, smaller as the octopus floats up, for a scene at ox, oy.
+ */
+function drawShadow(img, ox, oy, dy) {
+	const sw = 27.5 + dy * 2, sy = 107;
+	for (let y = sy - 3; y < sy + 4; y++) {
+		for (let x = 0; x < SIZE; x++) {
+			const e = ((x - 66.5) / sw) ** 2 + ((y - sy) / 2.8) ** 2;
+			if (e < 0.55 || (e < 1 && (x + y) % 2 === 0)) {
+				img.set(ox + x, oy + y, C.shadow);
+			}
+		}
+	}
+}
+
+/**
+ * The icon: one frame.
  *
  * @param {number} dy How high the octopus floats, in px (0 or less).
  * @param {number|null} shine Where the shine sweeping across the picture is.
@@ -161,13 +233,10 @@ class Canvas {
  */
 function render(dy, shine, stars) {
 	const img = new Canvas();
-	const put = (x, y, col) => img.set(x, y + dy, typeof col === 'string' ? C[col] : col);
-
 	// The glow behind the octopus, in dithered steps.
 	for (let y = 0; y < SIZE; y++) {
 		for (let x = 0; x < SIZE; x++) {
-			const t = (65 - Math.hypot(x - 61.5, (y - 60.5) * 1.1)) / 12.5;
-			const th = BAYER[y % 4][x % 4];
+			const t = glow(x, y), th = BAYER[y % 4][x % 4];
 			if (t > 1 + th) {
 				img.set(x, y, C.g2);
 			} else if (t > th) {
@@ -175,16 +244,17 @@ function render(dy, shine, stars) {
 			}
 		}
 	}
-	// The shadow on the floor, smaller as the octopus floats up.
-	const sw = 27.5 + dy * 2, sy = 107;
-	for (let y = sy - 3; y < Math.min(sy + 4, SIZE); y++) {
-		for (let x = 0; x < SIZE; x++) {
-			const e = ((x - 66.5) / sw) ** 2 + ((y - sy) / 2.8) ** 2;
-			if (e < 0.55 || (e < 1 && (x + y) % 2 === 0)) {
-				img.set(x, y, C.shadow);
-			}
-		}
-	}
+	drawShadow(img, 0, 0, dy);
+	drawScene(img, 0, 0, dy, shine, stars);
+	return img;
+}
+
+/**
+ * The octopus hugging its picture, with the stars, its 128 px square at ox, oy.
+ */
+function drawScene(img, ox, oy, dy, shine, stars) {
+	const put = (x, y, col) => img.set(ox + x, oy + y + dy, typeof col === 'string' ? C[col] : col);
+
 	// The violet glow around the octopus: a ring, then a dithered one. Not by the picture, where its cyan
 	// halo is alone.
 	for (let y = 0; y < SIZE; y++) {
@@ -267,7 +337,153 @@ function render(dy, shine, stars) {
 		}
 	}
 	// The stars twinkle in place: they do not float.
-	STARS.forEach(([x, y], i) => drawStar(img, x, y, stars[i]));
+	STARS.forEach(([x, y], i) => drawStar(img, ox + x, oy + y, stars[i]));
+}
+
+// The banner, drawn at half its 772x250: the night of the header of the page (tokens.css), the texts on the left.
+const BANNER = {width: 386, height: 125, scene: [254, 1]};
+const NIGHT = [[27, 11, 59], [34, 12, 68], [42, 14, 79], [51, 15, 95], [61, 17, 112], [72, 20, 128], [84, 24, 144]];
+// The texts as in the header of the page, drawn at the 1544x500 of the banner: OIO in the gradient of the
+// logo, the name in white, the tagline in cyan.
+const MASK_SCALE = 4;
+const TEXTS = [
+	{mask: textMask(['OIO'], 36, 800), colour: (u) => [255, 60, 172].map((c, i) => Math.round(c + ([123, 47, 247][i] - c) * u))},
+	{mask: textMask(['Octopus Image Optimizer'], 13, 600), colour: () => [236, 230, 250]},
+	{mask: textMask(['Squeezes images. Spills no ink, sends no bill.'], 8, 500), colour: () => C.c},
+];
+
+// What OIO is about, under the tagline: a pixel icon on a round chip, and its label. The icons are drawn
+// right on the grid of the banner, in the CHIP px of their disc, one drawing by colour, each pixel inked or
+// not: their strokes, 1 px wide on the half px, fill whole pixels.
+const ICONS = {
+	server: {
+		c: (ctx) => {
+			ctx.beginPath();
+			ctx.roundRect(3.5, 3.5, 8, 8, 1);
+			ctx.moveTo(3.5, 7.5);
+			ctx.lineTo(11.5, 7.5);
+			ctx.stroke();
+		},
+		w: (ctx) => [5, 9].forEach((y) => ctx.fillRect(5, y, 1, 1)),
+		l: (ctx) => [5, 9].forEach((y) => ctx.fillRect(7, y, 2, 1)),
+	},
+	lock: {
+		c: (ctx) => {
+			ctx.beginPath();
+			ctx.moveTo(5.5, 7.5);
+			ctx.arc(7.5, 5.5, 2, Math.PI, 0);
+			ctx.lineTo(9.5, 7.5);
+			ctx.stroke();
+			ctx.beginPath();
+			ctx.roundRect(3.5, 7.5, 8, 4, 1);
+			ctx.stroke();
+		},
+		l: (ctx) => {
+			ctx.fillRect(4, 8, 7, 3);
+			// The keyhole, out of the fill.
+			ctx.clearRect(7, 8, 1, 2);
+		},
+	},
+	image: {
+		c: (ctx) => {
+			ctx.beginPath();
+			ctx.roundRect(3.5, 4.5, 8, 6, 1);
+			ctx.stroke();
+		},
+		l: (ctx) => {
+			ctx.beginPath();
+			ctx.moveTo(4, 10);
+			ctx.lineTo(6.5, 7);
+			ctx.lineTo(8, 8.5);
+			ctx.lineTo(9, 7.5);
+			ctx.lineTo(11, 9.5);
+			ctx.lineTo(11, 10);
+			ctx.closePath();
+			ctx.fill();
+		},
+		w: (ctx) => ctx.fillRect(8, 6, 2, 1),
+	},
+};
+const ICON_COLOURS = {c: C.c, l: C.m2, w: C.w};
+
+/**
+ * The pixels of an icon of the chips, over the CHIP px of its disc: those inked at least half by each of
+ * its drawings, the last colour over the others.
+ *
+ * @param {Object<string, function(CanvasRenderingContext2D): void>} drawings
+ * @return {Array<[number, number, number[]]>} x, y and colour.
+ */
+function iconPixels(drawings) {
+	return Object.entries(drawings).flatMap(([letter, draw]) => {
+		const ctx = createCanvas(CHIP, CHIP).getContext('2d');
+		ctx.fillStyle = '#fff';
+		ctx.strokeStyle = '#fff';
+		ctx.lineWidth = 1;
+		draw(ctx);
+		const {data} = ctx.getImageData(0, 0, CHIP, CHIP);
+		return [...Array(CHIP * CHIP).keys()].filter((p) => data[p * 4 + 3] >= 128).map((p) => [p % CHIP, Math.floor(p / CHIP), ICON_COLOURS[letter]]);
+	});
+}
+const FEATURES = [['server', ['Runs on', 'your server']], ['lock', ['Nothing', 'sent away']], ['image', ['WebP &', 'AVIF']]];
+const CHIPS = [];
+
+// The title, the name, the tagline and the chips, one under the other from x 28, the space above each in GAPS,
+// and the whole centred in the height of the banner.
+const LEFT = 28, GAPS = [0, 7, 6, 14], CHIP = 15;
+const heights = [...TEXTS.map(({mask}) => mask.height / MASK_SCALE), CHIP];
+let blockY = Math.round((BANNER.height - heights.reduce((sum, h, i) => sum + h + GAPS[i], 0)) / 2);
+TEXTS.forEach((text, i) => {
+	blockY += GAPS[i];
+	text.at = [LEFT, Math.round(blockY)];
+	blockY += heights[i];
+});
+const chipY = Math.round(blockY + GAPS[3]);
+let chipX = LEFT;
+for (const [icon, lines] of FEATURES) {
+	const mask = textMask(lines, 5.5, 500, 1.3);
+	CHIPS.push({pixels: iconPixels(ICONS[icon]), at: [chipX, chipY]});
+	TEXTS.push({mask, at: [chipX + CHIP + 4, chipY + Math.round((CHIP - mask.height / MASK_SCALE) / 2)], colour: () => [215, 205, 240]});
+	chipX += CHIP + 4 + Math.ceil(mask.width / MASK_SCALE) + 10;
+}
+const SKY = [[8, 12], [62, 13], [131, 21], [178, 9], [233, 26], [248, 112], [142, 116], [41, 117], [206, 118], [11, 72], [96, 6], [300, 8]];
+
+function banner() {
+	const img = new Canvas(BANNER.width, BANNER.height);
+	const [ox, oy] = BANNER.scene;
+	for (let y = 0; y < BANNER.height; y++) {
+		for (let x = 0; x < BANNER.width; x++) {
+			// At 120deg as in CSS: night, then night-2 at 55 %, night-3 at the end; lighter by the glow behind the octopus.
+			const t = (x * 0.866 + y * 0.5) / (BANNER.width * 0.866 + BANNER.height * 0.5);
+			const level = t < 0.55 ? (t / 0.55) * 2 : 2 + ((t - 0.55) / 0.45) * 2;
+			const th = BAYER[y % 4][x % 4], g = glow(x - ox, y - oy);
+			const lit = Math.floor(level + th) + (g > th ? 1 : 0) + (g > 1 + th ? 1 : 0);
+			img.set(x, y, NIGHT[Math.min(NIGHT.length - 1, lit)]);
+		}
+	}
+	SKY.forEach(([x, y]) => img.set(x, y, [150, 130, 210]));
+	drawStar(img, 200, 14, 1);
+	drawStar(img, 247, 30, 1);
+	// The chips: a disc a little lighter than the night, ringed in violet, the icon on it; a line between two.
+	CHIPS.forEach(({pixels, at: [cx, cy]}, n) => {
+		for (let j = 0; j < 15; j++) {
+			for (let i = 0; i < 15; i++) {
+				const d = Math.hypot(i - 7, j - 7);
+				if (d <= 6.6) {
+					img.set(cx + i, cy + j, NIGHT[5]);
+				} else if (d <= 7.4) {
+					img.set(cx + i, cy + j, C.glow2);
+				}
+			}
+		}
+		pixels.forEach(([x, y, colour]) => img.set(cx + x, cy + y, colour));
+		if (n > 0) {
+			for (let j = 3; j < 12; j++) {
+				img.set(cx - 5, cy + j, NIGHT[4]);
+			}
+		}
+	});
+	drawShadow(img, ox, oy, 0);
+	drawScene(img, ox, oy, 0, null, [2, 1, 2, 1]);
 	return img;
 }
 
@@ -293,26 +509,62 @@ function frames() {
  */
 function indexed(canvases, scale) {
 	const palette = [], lookup = new Map();
-	const size = SIZE * scale;
+	const width = canvases[0].width * scale, height = canvases[0].height * scale;
 	const images = canvases.map((img) => {
-		const index = new Uint8Array(size * size);
-		for (let y = 0; y < size; y++) {
-			for (let x = 0; x < size; x++) {
-				const rgb = img.pixels[Math.floor(y / scale) * SIZE + Math.floor(x / scale)];
+		const index = new Uint8Array(width * height);
+		for (let y = 0; y < height; y++) {
+			for (let x = 0; x < width; x++) {
+				const rgb = img.pixels[Math.floor(y / scale) * img.width + Math.floor(x / scale)];
 				const key = rgb.join();
 				if (!lookup.has(key)) {
 					lookup.set(key, palette.length);
 					palette.push(rgb);
 				}
-				index[y * size + x] = lookup.get(key);
+				index[y * width + x] = lookup.get(key);
 			}
 		}
 		return index;
 	});
 	if (palette.length > 256) {
-		throw new Error(`The logo has ${palette.length} colours, a GIF holds 256.`);
+		throw new Error(`The image has ${palette.length} colours, an indexed one holds 256.`);
 	}
-	return {palette, images, size};
+	return {palette, images, width, height};
+}
+
+/**
+ * The banner, scaled up by an integer, with its texts over it: a truecolour PNG, the smooth texts having
+ * more colours than an indexed one holds.
+ */
+function bannerPng(canvas, scale) {
+	const width = canvas.width * scale, height = canvas.height * scale;
+	const rgb = new Uint8Array(width * height * 3);
+	for (let y = 0; y < height; y++) {
+		for (let x = 0; x < width; x++) {
+			rgb.set(canvas.pixels[Math.floor(y / scale) * canvas.width + Math.floor(x / scale)], (y * width + x) * 3);
+		}
+	}
+	// Each pixel of the banner takes the mean of the mask under it.
+	const k = MASK_SCALE / scale;
+	for (const {mask, at: [tx, ty], colour} of TEXTS) {
+		const columns = Math.floor(mask.width / k);
+		for (let my = 0; my < Math.floor(mask.height / k); my++) {
+			for (let mx = 0; mx < columns; mx++) {
+				let sum = 0;
+				for (let j = 0; j < k; j++) {
+					for (let i = 0; i < k; i++) {
+						sum += mask.data[(my * k + j) * mask.width + mx * k + i];
+					}
+				}
+				const alpha = sum / (k * k * 255);
+				if (!alpha || tx * scale + mx >= width || ty * scale + my >= height) {
+					continue;
+				}
+				const p = ((ty * scale + my) * width + tx * scale + mx) * 3;
+				colour(mx / columns).forEach((c, i) => (rgb[p + i] = Math.round(rgb[p + i] + (c - rgb[p + i]) * alpha)));
+			}
+		}
+	}
+	return encodePng(width, height, 2, null, rgb, width * 3);
 }
 
 function chunk(type, data) {
@@ -327,19 +579,27 @@ function chunk(type, data) {
  * An indexed PNG: a few kilobytes for a few dozen colours.
  */
 function png(canvas, scale) {
-	const {palette, images: [index], size} = indexed([canvas], scale);
+	const {palette, images: [index], width, height} = indexed([canvas], scale);
+	return encodePng(width, height, 3, palette, index, width);
+}
+
+/**
+ * @param {number} type 3 indexed, with its palette; 2 truecolour.
+ * @param {Uint8Array} data The rows one after another, of rowBytes each.
+ */
+function encodePng(width, height, type, palette, data, rowBytes) {
 	const header = Buffer.alloc(13);
-	header.writeUInt32BE(size, 0);
-	header.writeUInt32BE(size, 4);
-	header.set([8, 3, 0, 0, 0], 8); // 8 bits, indexed colour
-	const raw = Buffer.alloc(size * (size + 1));
-	for (let y = 0; y < size; y++) {
-		raw.set(index.subarray(y * size, (y + 1) * size), y * (size + 1) + 1); // filter 0 on each row
+	header.writeUInt32BE(width, 0);
+	header.writeUInt32BE(height, 4);
+	header.set([8, type, 0, 0, 0], 8); // 8 bits
+	const raw = Buffer.alloc(height * (rowBytes + 1));
+	for (let y = 0; y < height; y++) {
+		raw.set(data.subarray(y * rowBytes, (y + 1) * rowBytes), y * (rowBytes + 1) + 1); // filter 0 on each row
 	}
 	return Buffer.concat([
 		Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]),
 		chunk('IHDR', header),
-		chunk('PLTE', Buffer.from(palette.flat())),
+		...(palette ? [chunk('PLTE', Buffer.from(palette.flat()))] : []),
 		chunk('IDAT', deflateSync(Buffer.from(raw), {level: 9})),
 		chunk('IEND', Buffer.alloc(0)),
 	]);
@@ -350,7 +610,7 @@ function png(canvas, scale) {
  * and each frame leaves what did not change transparent over the one before.
  */
 function gif(canvases, scale) {
-	const {palette, images, size} = indexed(canvases, scale);
+	const {palette, images, width, height} = indexed(canvases, scale);
 	if (palette.length > 255) {
 		throw new Error(`The logo has ${palette.length} colours, a GIF holds 255 and the transparent one.`);
 	}
@@ -368,7 +628,7 @@ function gif(canvases, scale) {
 	runs.forEach(({index, delay}, i) => {
 		const previous = i > 0 ? runs[i - 1].index : null;
 		const pixels = previous ? index.map((value, p) => (value === previous[p] ? unchanged : value)) : index;
-		encoder.writeFrame(pixels, size, size, {
+		encoder.writeFrame(pixels, width, height, {
 			palette: i === 0 ? [...palette, [0, 0, 0]] : undefined,
 			delay,
 			repeat: 0,
@@ -388,4 +648,10 @@ for (const scale of [1, 2]) {
 	writeFileSync(new URL(`${name}.png`, IMAGES), png(still, scale));
 	writeFileSync(new URL(`${name}.gif`, IMAGES), gif(animation, scale));
 	console.log(`assets/images/${name}.png, assets/images/${name}.gif`);
+}
+const wide = banner();
+for (const scale of [2, 4]) {
+	const name = `banner-${BANNER.width * scale}x${BANNER.height * scale}`;
+	writeFileSync(new URL(`${name}.png`, IMAGES), bannerPng(wide, scale));
+	console.log(`assets/images/${name}.png`);
 }
