@@ -290,9 +290,9 @@ single site and on a network, at each push and before each release.
 
 ### Translations
 
-OIO is translated in French, in `languages/`. Once OIO is on WordPress.org, its translations come from
-[translate.wordpress.org](https://translate.wordpress.org/), and come before the ones of `languages/`. After changing
-a text, update the template and the translations with [WP-CLI](https://wp-cli.org/):
+OIO is written in English and translated in French, in `languages/`. Once OIO is on WordPress.org, its translations
+come from [translate.wordpress.org](https://translate.wordpress.org/), and come before the ones of `languages/`. After
+changing a text, update the template and the translations with [WP-CLI](https://wp-cli.org/):
 
 ```bash
 composer translations   # The .pot, then the .po, .mo, .l10n.php and .json of each language.
@@ -300,7 +300,7 @@ composer translations   # The .pot, then the .po, .mo, .l10n.php and .json of ea
 
 ## Support
 
-OIO is free, and will stay so. If it saves you time or bytes, you can buy me a coffee:
+OIO is free, and will stay so. If it saves you time or bytes, you can buy me a coffee ☕:
 
 - **PayPal**: [paypal.me/striffly](https://paypal.me/striffly/5EUR)
 - **Bitcoin**: `bc1q3j7gxxykpu9zp3sgxyallw0hq0sr659zl35wre`
