@@ -27,7 +27,6 @@ use OIO\Package\Lock;
 use OIO\Package\Optimiser;
 use OIO\Package\Stats;
 use OIO\Package\Status;
-use OIO\OIO;
 use OIO\Services\JPG;
 use OIO\Services\PNG;
 use OIO\Services\WebP;
@@ -45,7 +44,7 @@ class OIO_CLI extends WP_CLI_Command
 	public function version()
 	{
 		$this->print_welcome();
-		WP_CLI::log(OIO::boot()->version);
+		WP_CLI::log(OIO_VERSION);
 	}
 
 	/**

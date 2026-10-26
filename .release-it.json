@@ -21,8 +21,7 @@
   "plugins": {
     "@release-it/bumper": {
       "out": [
-        "octopus-image-optimizer.php",
-        "core/OIO.php"
+        "octopus-image-optimizer.php"
       ]
     }
   },

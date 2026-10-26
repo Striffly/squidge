@@ -24,13 +24,6 @@ if (!defined('ABSPATH')) {
 final class OIO
 {
 	/**
-	 * The plugin version number.
-	 *
-	 * @var string
-	 */
-	var $version = '0.1.4';
-
-	/**
 	 * The instance of OIO.
 	 *
 	 * @var null
@@ -68,12 +61,7 @@ final class OIO
 		$base = dirname(__FILE__);
 		$this->define('OIO_URL', plugin_dir_url($base));
 		$this->define('OIO_PATH', plugin_dir_path($base));
-		$this->define('OIO_BASENAME', plugin_basename(dirname($base)));
 		$this->define('OIO_TEMPLATE_PATH', dirname($base) . DIRECTORY_SEPARATOR . 'templates');
-		$this->define('OIO_VERSION', $this->version);
-		$uploadData = wp_upload_dir();
-		$this->define('OIO_UPLOAD_DIR', $uploadData['basedir']);
-		$this->define('OIO_UPLOAD_URL', $uploadData['baseurl']);
 		new Admin\Fields();
 		new Admin\Upload();
 		new Admin\Notices();
