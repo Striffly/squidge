@@ -1432,7 +1432,9 @@
 	cursor: pointer;
 }
 
-.octopus-page .octopus-choice__input {
+/* Disabled too: WordPress shows the disabled radio buttons at .7. */
+.octopus-page .octopus-choice__input,
+.octopus-page .octopus-choice__input:disabled {
 	position: absolute;
 	width: 1px;
 	height: 1px;
@@ -1460,6 +1462,29 @@
 
 .octopus-choice__input:focus-visible + .octopus-choice__label {
 	box-shadow: 0 0 0 2px #fff, 0 0 0 4px var(--octopus-violet);
+}
+
+/* A value or a setting nothing can use, e.g. without pngquant: greyed. */
+.octopus-choice__option--disabled,
+.octopus-field--disabled .octopus-choice__option {
+	cursor: not-allowed;
+}
+
+.octopus-choice__option--disabled .octopus-choice__label,
+.octopus-choice__option--disabled:hover .octopus-choice__label {
+	color: var(--octopus-neutral);
+	text-decoration: line-through;
+	text-decoration-color: rgba(140, 143, 148, .6);
+}
+
+.octopus-field--disabled .octopus-field__label,
+.octopus-field--disabled .octopus-field__control,
+.octopus-field--disabled .octopus-field__help {
+	opacity: .5;
+}
+
+.octopus-field--disabled .octopus-field__input {
+	cursor: not-allowed;
 }
 
 /* 12. Settings: format cards

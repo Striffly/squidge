@@ -733,7 +733,7 @@ class SettingsPage
 						<summary class="octopus-format__summary"><?php esc_html_e('Settings', 'octopus-image-optimizer'); ?></summary>
 						<div class="octopus-format__fields octopus-fields">
 							<?php foreach ($fields as $name => $field) : ?>
-								<?php $this->render_field($name, $field); ?>
+								<?php $this->render_field($name, self::availability($field, $format)); ?>
 							<?php endforeach; ?>
 							<?php foreach ($format['optional'] as $name => $use) : ?>
 								<?php if ($format['installed'] && !$format['extras'][$name]) : ?>
@@ -1022,6 +1022,34 @@ class SettingsPage
 	}
 
 	/**
+	 * Greys a setting of a format that nothing can use:
+	 * all of them without a library or an image editor
+	 * making the format, those of a missing optional
+	 * library (e.g. pngquant), and the values needing
+	 * one. A field disabled is not sent: it keeps its
+	 * value.
+	 *
+	 * @param array $field
+	 * @param array $format See formats().
+	 * @return array The field, with disabled and disabled_options.
+	 * @since 1.0.0
+	 */
+	private static function availability($field, $format)
+	{
+		$missing = function ($library) use ($format) {
+			return empty($format['extras'][$library]);
+		};
+		$field['disabled'] = !$format['engine'] || (!empty($field['needs']) && $missing($field['needs']));
+		$field['disabled_options'] = [];
+		foreach (isset($field['option_needs']) ? $field['option_needs'] : [] as $option => $library) {
+			if ($missing($library)) {
+				$field['disabled_options'][$option] = $library;
+			}
+		}
+		return $field;
+	}
+
+	/**
 	 * Renders an option field: a toggle for a checkbox,
 	 * a label and its control otherwise.
 	 *
@@ -1036,6 +1064,7 @@ class SettingsPage
 		$value = Settings::get($name);
 		$setting = Settings::FIELDS[$name];
 		$tags = ['strong' => [], 'code' => []];
+		$disabled = !empty($field['disabled']) ? ' disabled' : '';
 		// A field shown while another one has a value, e.g. the lossy quality (settings.js).
 		$when = '';
 		if (!empty($field['when'])) {
@@ -1044,8 +1073,9 @@ class SettingsPage
 
 		// The label names the control without being a <label>: hovering it would hover the control.
 		printf(
-			'<div class="octopus-field%s"%s><span class="octopus-field__label" id="%s-label">%s</span>',
+			'<div class="octopus-field%s%s"%s><span class="octopus-field__label" id="%s-label">%s</span>',
 			$field['type'] === 'checkbox' ? ' octopus-field--toggle' : '',
+			$disabled ? ' octopus-field--disabled' : '',
 			$when, // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Escaped above.
 			esc_attr($id),
 			esc_html($field['label'])
@@ -1061,22 +1091,30 @@ class SettingsPage
 			echo '<div class="octopus-field__control">';
 			if ($field['type'] === 'number') {
 				printf(
-					'<input type="number" class="octopus-field__input" id="%s" name="%s" value="%s" min="%d" max="%d" step="1" aria-labelledby="%s-label">',
-					esc_attr($id), esc_attr($input), esc_attr($value), (int)$setting['min'], (int)$setting['max'], esc_attr($id)
+					'<input type="number" class="octopus-field__input" id="%s" name="%s" value="%s" min="%d" max="%d" step="1" aria-labelledby="%s-label"%s>',
+					esc_attr($id), esc_attr($input), esc_attr($value), (int)$setting['min'], (int)$setting['max'], esc_attr($id), esc_attr($disabled)
 				);
 			} elseif ($field['type'] === 'select') {
-				printf('<select class="octopus-field__input" id="%s" name="%s" aria-labelledby="%s-label">', esc_attr($id), esc_attr($input), esc_attr($id));
+				printf('<select class="octopus-field__input" id="%s" name="%s" aria-labelledby="%s-label"%s>', esc_attr($id), esc_attr($input), esc_attr($id), esc_attr($disabled));
 				foreach ($field['options'] as $option => $label) {
 					printf('<option value="%s" %s>%s</option>', esc_attr($option), selected((string)$value, (string)$option, false), esc_html($label));
 				}
 				echo '</select>';
 			} elseif ($field['type'] === 'choice') {
-				// Every value in sight, as buttons side by side: radio buttons underneath.
+				// Every value in sight, as buttons side by side: radio buttons underneath. A value
+				// needing a missing library is greyed, the first other one chosen, as the encoder does.
+				$off = $field['disabled_options'] ?? [];
+				if (isset($off[$value])) {
+					$value = key(array_diff_key($field['options'], $off));
+				}
 				printf('<div class="octopus-choice" role="radiogroup" aria-labelledby="%s-label">', esc_attr($id));
 				foreach ($field['options'] as $option => $label) {
 					printf(
-						'<label class="octopus-choice__option"><input type="radio" class="octopus-choice__input" name="%s" value="%s" %s><span class="octopus-choice__label">%s</span></label>',
-						esc_attr($input), esc_attr($option), checked($value, $option, false), esc_html($label)
+						'<label class="octopus-choice__option%s"%s><input type="radio" class="octopus-choice__input" name="%s" value="%s" %s%s><span class="octopus-choice__label">%s</span></label>',
+						isset($off[$option]) ? ' octopus-choice__option--disabled' : '',
+						/* translators: %s: a library, e.g. pngquant. */
+						isset($off[$option]) ? sprintf(' title="%s"', esc_attr(sprintf(__('%s not installed', 'octopus-image-optimizer'), $off[$option]))) : '', // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Escaped here.
+						esc_attr($input), esc_attr($option), checked($value, $option, false), esc_attr($disabled || isset($off[$option]) ? ' disabled' : ''), esc_html($label)
 					);
 				}
 				echo '</div>';
@@ -1160,6 +1198,7 @@ class SettingsPage
 							'lossless' => __('Lossless', 'octopus-image-optimizer'),
 							'lossy' => __('Lossy (pngquant)', 'octopus-image-optimizer'),
 						],
+						'option_needs' => ['lossy' => 'pngquant'],
 						'help' => __('Lossy: often 60 to 80 % lighter, for graphics and screenshots. Needs pngquant.', 'octopus-image-optimizer'),
 					],
 					'png_level' => [
@@ -1172,6 +1211,7 @@ class SettingsPage
 						'type' => 'number',
 						'label' => __('Lossy quality', 'octopus-image-optimizer'),
 						'when' => ['png_compression', 'lossy'],
+						'needs' => 'pngquant',
 						'help' => __('The quality pngquant aims at, 80 by default.', 'octopus-image-optimizer'),
 					],
 				],
