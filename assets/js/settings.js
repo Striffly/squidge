@@ -30,8 +30,10 @@
 
 	const page = document.querySelector('.js-octopus-page');
 	if (page) {
-		// Without JS, the panels show one after another, without tabs.
+		// Without JS, the panels show one after another, without tabs. The page sets it before it paints, after its tabs.
 		page.classList.add('octopus-page--js');
 		new Screen(page, componentList, window.octopusSettings);
+		// What waits for its component shows from now on, e.g. the Bitcoin address.
+		page.classList.add('octopus-page--ready');
 	}
 })();

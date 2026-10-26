@@ -48,6 +48,15 @@
 	container-type: inline-size;
 }
 
+/* While the scripts load, only the panel of the tab picked before the page paints (data-tab of the page) shows. */
+.octopus-page[data-tab="overview"] .octopus-panel:not([data-panel="overview"]),
+.octopus-page[data-tab="optimise"] .octopus-panel:not([data-panel="optimise"]),
+.octopus-page[data-tab="delivery"] .octopus-panel:not([data-panel="delivery"]),
+.octopus-page[data-tab="settings"] .octopus-panel:not([data-panel="settings"]),
+.octopus-page[data-tab="maintenance"] .octopus-panel:not([data-panel="maintenance"]) {
+	display: none;
+}
+
 .octopus-heading {
 	margin: var(--octopus-space-6) 0 var(--octopus-space-3);
 	font-family: var(--octopus-font-display);
@@ -371,7 +380,9 @@
 	border-radius: var(--octopus-radius);
 	background: var(--octopus-surface);
 
-	&[hidden] {
+	/* With JS, it waits behind its button (Wallet.js), rather than show while the scripts load. */
+	&[hidden],
+	.octopus-page--js:not(.octopus-page--ready) & {
 		display: none;
 	}
 }

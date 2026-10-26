@@ -61,6 +61,8 @@
 			this.panels.forEach((panel) => {
 				panel.hidden = panel.dataset.panel !== name;
 			});
+			// The page picked a tab before it painted: it follows.
+			this.view.el.dataset.tab = name;
 			this.current = name;
 			Tabs.store(name);
 			this.view.emit('tab:shown', name);

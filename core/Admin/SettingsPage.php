@@ -138,6 +138,19 @@ class SettingsPage
 			'ajaxurl' => admin_url('admin-ajax.php'),
 			'nonce' => wp_create_nonce(JobsAjax::NONCE),
 		]);
+		add_action('admin_head', [$this, 'preload_font']);
+	}
+
+	/**
+	 * Preloads the display font (tokens.css), so that
+	 * the titles and the figures do not show in another
+	 * font first, then move once it is loaded.
+	 *
+	 * @since 1.0.0
+	 */
+	public function preload_font()
+	{
+		printf('<link rel="preload" href="%s" as="font" type="font/woff2" crossorigin>' . "\n", esc_url(OCTOPUS_URL . 'assets/fonts/unbounded-variable.woff2'));
 	}
 
 	/**
@@ -212,6 +225,27 @@ class SettingsPage
 					</a>
 				<?php endforeach; ?>
 			</nav>
+			<?php
+			// Before the page paints, picks the tab as Tabs.js will, so that the other panels never show while the scripts load.
+			wp_print_inline_script_tag(
+				"(() => {
+					const page = document.currentScript.closest('.js-octopus-page');
+					const tabs = [...page.querySelectorAll('.js-octopus-tab')];
+					let name = location.hash.slice(1);
+					try {
+						name ||= sessionStorage.getItem('octopus-tab');
+					} catch {
+						// Not kept.
+					}
+					if (!tabs.some((tab) => tab.dataset.tab === name)) {
+						name = 'overview';
+					}
+					page.classList.add('octopus-page--js');
+					page.dataset.tab = name;
+					tabs.forEach((tab) => tab.classList.toggle('octopus-tabs__tab--active', tab.dataset.tab === name));
+				})();"
+			);
+			?>
 
 			<?php if ($jobs) : ?>
 				<?php $this->render_job(); ?>
