@@ -22,7 +22,7 @@ if (!defined('ABSPATH')) {
 	exit; // Exit if accessed directly
 }
 
-// The version of OIO, set by npm run release with the header above.
+// The version of OIO, set by bun run release with the header above.
 define('OCTOPUS_VERSION', '0.1.4');
 define('OCTOPUS_FILE', __FILE__);
 

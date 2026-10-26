@@ -1,5 +1,5 @@
 # Builds the zip of the plugin and publishes the GitHub release when
-# `npm run release` pushes a version tag, once the tests and Plugin
+# `bun run release` pushes a version tag, once the tests and Plugin
 # Check pass.
 name: Release
 
@@ -33,19 +33,25 @@ jobs:
           tools: composer
           coverage: none
 
-      # @wordpress/scripts needs Node.js 22.22.2, 24.15.0 or later.
+      # Bun installs the dependencies and runs the scripts, Node.js runs
+      # @wordpress/scripts and release-it, which need Node.js 22.22.2,
+      # 24.15.0 or later.
       - name: Set up Node.js
         uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 24
-          cache: npm
 
-      - name: Install the npm dependencies
-        run: npm ci
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
+        with:
+          bun-version: 1.4.3
+
+      - name: Install the dependencies
+        run: bun install --frozen-lockfile
 
       # composer install, license check, then plugin-zip.
       - name: Build the zip
-        run: npm run release:zip
+        run: bun run release:zip
 
       # The zip keeps its name, so that
       # releases/latest/download/octopus-image-optimizer.zip always works.
