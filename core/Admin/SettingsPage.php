@@ -300,7 +300,7 @@ class SettingsPage
 				<span aria-hidden="true">☕</span>
 				<?php
 				/* translators: Followed by the links to PayPal and Bitcoin. */
-				esc_html_e('Buy me a coffee:', 'octopus-image-optimizer');
+				esc_html_e('OIO is free, and will stay so. If it saves you time or bytes, you can buy me a coffee:', 'octopus-image-optimizer');
 				?>
 				<a href="<?php echo esc_url(self::PAYPAL); ?>" target="_blank" rel="noopener">PayPal</a>
 				<span aria-hidden="true">&middot;</span>
