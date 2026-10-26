@@ -389,3 +389,85 @@
 			});
 	});
 })();
+
+/**
+ * Copy buttons on the code: the rules of the server,
+ * the theme helper, the install commands. Copies with
+ * the clipboard API, or selects the code where it is
+ * not available (http without a secure context).
+ */
+(function () {
+	var page = document.querySelector('.oio-page');
+	if (!page) {
+		return;
+	}
+	var status = document.createElement('span');
+	status.className = 'screen-reader-text';
+	status.setAttribute('aria-live', 'polite');
+	page.appendChild(status);
+
+	function button(code, modifier) {
+		var copy = document.createElement('button');
+		copy.type = 'button';
+		copy.className = 'oio-copy' + (modifier ? ' oio-copy--' + modifier : '');
+		copy.textContent = 'Copy';
+		copy.oioCode = code;
+		return copy;
+	}
+
+	// The blocks get their button at the top right, the commands after them.
+	page.querySelectorAll('pre.oio-code').forEach(function (pre) {
+		var block = document.createElement('div');
+		block.className = 'oio-code-block';
+		pre.parentNode.insertBefore(block, pre);
+		block.append(pre, button(pre, ''));
+	});
+	page.querySelectorAll('.oio-install__list code').forEach(function (code) {
+		code.after(button(code, 'inline'));
+	});
+
+	function select(code) {
+		var range = document.createRange();
+		range.selectNodeContents(code);
+		var selection = window.getSelection();
+		selection.removeAllRanges();
+		selection.addRange(range);
+	}
+
+	function copy(code) {
+		var text = code.textContent;
+		if (navigator.clipboard && window.isSecureContext) {
+			return navigator.clipboard.writeText(text).then(function () {
+				return true;
+			}, function () {
+				return false;
+			});
+		}
+		select(code);
+		var done = false;
+		try {
+			done = document.execCommand('copy');
+		} catch (e) {}
+		return Promise.resolve(done);
+	}
+
+	page.addEventListener('click', function (event) {
+		var target = event.target.closest('.oio-copy');
+		if (!target) {
+			return;
+		}
+		copy(target.oioCode).then(function (done) {
+			if (!done) {
+				// The code stays selected, to copy by hand.
+				select(target.oioCode);
+			}
+			target.textContent = done ? 'Copied' : 'Press Ctrl+C';
+			status.textContent = done ? 'Copied to the clipboard.' : 'The code is selected: press Ctrl+C to copy it.';
+			clearTimeout(target.oioTimer);
+			target.oioTimer = setTimeout(function () {
+				target.textContent = 'Copy';
+				status.textContent = '';
+			}, 2000);
+		});
+	});
+})();

@@ -1361,6 +1361,53 @@
 	color: inherit;
 }
 
+/* Copy buttons (admin.js): at the top right of a block, after a command. */
+.oio-code-block {
+	position: relative;
+}
+
+.oio-code-block .oio-code {
+	padding-right: 88px;
+}
+
+.oio-copy {
+	padding: 2px 12px;
+	border: 1px solid var(--oio-violet);
+	border-radius: 999px;
+	background: var(--oio-surface);
+	color: var(--oio-violet-dark);
+	font-size: var(--oio-size-small);
+	font-weight: 600;
+	line-height: 20px;
+	cursor: pointer;
+	transition: background-color var(--oio-transition), color var(--oio-transition);
+}
+
+.oio-copy:hover,
+.oio-copy:focus-visible {
+	background: var(--oio-violet-soft);
+}
+
+.oio-copy:focus-visible {
+	outline: 2px solid var(--oio-violet);
+	outline-offset: 1px;
+}
+
+.oio-code-block .oio-copy {
+	position: absolute;
+	top: var(--oio-space-2);
+	right: var(--oio-space-2);
+	border-color: rgba(255, 255, 255, .3);
+	background: rgba(255, 255, 255, .08);
+	color: #e9e5f5;
+}
+
+.oio-code-block .oio-copy:hover,
+.oio-code-block .oio-copy:focus-visible {
+	background: rgba(255, 255, 255, .18);
+	color: #fff;
+}
+
 /* 14. Delivery: steps, methods, folds and test
    ========================================================================== */
 
@@ -1678,7 +1725,8 @@
 	color: var(--oio-text-soft);
 }
 
-.oio-fold__content .oio-code + .oio-fold__text {
+.oio-fold__content .oio-code + .oio-fold__text,
+.oio-fold__content .oio-code-block + .oio-fold__text {
 	margin: var(--oio-space-3) 0 0;
 }
 
