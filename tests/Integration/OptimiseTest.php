@@ -1,0 +1,315 @@
+<?php
+
+/**
+ * OptimiseTest
+ *
+ * Optimising an image on upload with the libraries,
+ * and undoing it: the originals come back byte for
+ * byte.
+ *
+ * @package     OIO
+ * @author      Clément Gayot
+ * @repo        https://github.com/Striffly/octopus-image-optimizer
+ *
+ */
+
+namespace OIO\Tests\Integration;
+
+use OIO\Log\Errors;
+use OIO\Package\Cleaner;
+use OIO\Package\Optimiser;
+use OIO\Package\Service;
+use OIO\Package\Stats;
+use OIO\Package\Status;
+use OIO\Services\AVIF;
+use OIO\Services\JPG;
+use OIO\Services\PNG;
+use OIO\Services\WebP;
+use OIO\Tests\TestCase;
+
+class OptimiseTest extends TestCase
+{
+	/**
+	 * Needs the libraries. The AVIF files are made at a
+	 * low quality, so that they are lighter than the
+	 * WebP files on the small fixtures and are kept.
+	 */
+	public function set_up()
+	{
+		parent::set_up();
+		$this->require_libraries('cwebp', 'avifenc', 'jpegoptim', 'optipng');
+		self::set('oio_avif_quality', 30);
+	}
+
+	public function test_upload_makes_the_webp_and_avif_files_of_every_size()
+	{
+		$id = $this->upload('photo.jpg');
+
+		$this->assertCount(3, self::files($id), 'The photo has its main file and 2 thumbnails.');
+		$this->assert_versions($id, '.webp', 'RIFF', 0);
+		$this->assert_versions($id, '.avif', 'ftypavif', 4);
+		$this->assertSame(Status::OPTIMISED, Status::of($id));
+		$this->assertSame('quality:80', get_post_meta($id, WebP::meta_key(), true));
+		$this->assertSame('quality:30', get_post_meta($id, AVIF::meta_key(), true));
+	}
+
+	public function test_upload_compresses_the_jpg_files_and_keeps_their_originals()
+	{
+		$id = $this->upload('photo.jpg');
+
+		$main = get_attached_file($id);
+		$this->assertFileEquals(self::fixture('photo.jpg'), Service::backup_path($main));
+		foreach (self::files($id) as $file) {
+			$backup = Service::backup_path($file);
+			$this->assertFileExists($backup);
+			$this->assertLessThan(filesize($backup), filesize($file), $file);
+			// jpegoptim --all-progressive: a progressive frame (SOF2).
+			$this->assertStringContainsString("\xFF\xC2", file_get_contents($file), $file);
+		}
+	}
+
+	public function test_the_folder_of_the_originals_is_denied_to_the_web()
+	{
+		$this->upload('photo.jpg');
+
+		$dir = Service::backup_dir();
+		$this->assertStringContainsString('Require all denied', file_get_contents($dir . '/.htaccess'));
+		$this->assertFileExists($dir . '/index.php');
+	}
+
+	public function test_the_metadata_has_the_sizes_of_the_compressed_files()
+	{
+		$id = $this->upload('photo.jpg');
+
+		clearstatcache();
+		$metadata = wp_get_attachment_metadata($id);
+		$main = get_attached_file($id);
+		$this->assertSame(filesize($main), $metadata['filesize']);
+		foreach ($metadata['sizes'] as $size) {
+			$this->assertSame(filesize(dirname($main) . '/' . $size['file']), $size['filesize'], $size['file']);
+		}
+	}
+
+	public function test_the_bytes_saved_are_measured()
+	{
+		$id = $this->upload('photo.jpg');
+
+		// The browsers take the AVIF first, then the WebP, then the JPG.
+		clearstatcache();
+		$original = $compressed = $modern = $extra = 0;
+		foreach (self::files($id) as $file) {
+			$original += filesize(Service::backup_path($file));
+			$compressed += filesize($file);
+			$served = filesize($file);
+			foreach (['.webp', '.avif'] as $extension) {
+				if (file_exists($file . $extension)) {
+					$served = filesize($file . $extension);
+					$extra += $served;
+				}
+			}
+			$modern += $served;
+		}
+		$this->assertSame(compact('original', 'compressed', 'modern', 'extra'), Stats::of($id));
+
+		$this->upload('photo.jpg');
+		$totals = Stats::totals(true);
+		$this->assertSame(2, $totals['images']);
+		$this->assertSame(2 * $original, $totals['original']);
+	}
+
+	public function test_restore_brings_the_originals_back_byte_for_byte()
+	{
+		$id = $this->upload('photo.jpg');
+		$files = self::files($id);
+		$originals = self::hashes(array_map([Service::class, 'backup_path'], $files));
+
+		$this->assertTrue(Cleaner::restore($id));
+
+		$this->assertSame(array_values($originals), array_values(self::hashes($files)));
+		$this->assertFileEquals(self::fixture('photo.jpg'), get_attached_file($id));
+		foreach ($files as $file) {
+			$this->assertFileDoesNotExist($file . '.webp');
+			$this->assertFileDoesNotExist($file . '.avif');
+			$this->assertFileDoesNotExist(Service::backup_path($file));
+		}
+		$this->assertSame([], preg_grep('/^_oio_/', array_keys(get_post_meta($id))));
+		clearstatcache();
+		$this->assertSame(filesize(self::fixture('photo.jpg')), wp_get_attachment_metadata($id)['filesize']);
+		$this->assertSame(Status::TO_OPTIMISE, Status::of($id));
+	}
+
+	public function test_remove_formats_keeps_the_compressed_images()
+	{
+		$id = $this->upload('photo.jpg');
+		$files = self::files($id);
+		$compressed = self::hashes($files);
+
+		$this->assertTrue(Cleaner::remove_formats($id));
+
+		$this->assertSame($compressed, self::hashes($files));
+		foreach ($files as $file) {
+			$this->assertFileDoesNotExist($file . '.webp');
+			$this->assertFileDoesNotExist($file . '.avif');
+			$this->assertFileExists(Service::backup_path($file));
+		}
+		$this->assertSame('', get_post_meta($id, WebP::meta_key(), true));
+		$this->assertSame('quality:80', get_post_meta($id, JPG::meta_key(), true));
+		$this->assertSame(Status::TO_OPTIMISE, Status::of($id));
+	}
+
+	public function test_png_with_optipng()
+	{
+		self::hide_libraries('oxipng');
+		$this->assertSame('optipng', PNG::library());
+
+		$this->assert_png_compressed($this->upload('graphic.png'));
+	}
+
+	public function test_png_with_oxipng()
+	{
+		$this->require_libraries('oxipng');
+		$this->assertSame('oxipng', PNG::library());
+
+		$this->assert_png_compressed($this->upload('graphic.png'));
+	}
+
+	public function test_png_lossy_with_pngquant()
+	{
+		$this->require_libraries('pngquant');
+		$lossless = filesize(get_attached_file($this->upload('graphic.png')));
+
+		self::set('oio_png_lossy', true);
+		$id = $this->upload('graphic.png');
+
+		$this->assertSame('level:2,lossy:80', get_post_meta($id, PNG::meta_key(), true));
+		clearstatcache();
+		$this->assertLessThan($lossless, filesize(get_attached_file($id)));
+		$this->assert_png_compressed($id);
+	}
+
+	public function test_the_files_heavier_than_the_image_are_deleted_and_count_as_done()
+	{
+		// 16 x 16 pixels: an AVIF file has more headers than pixels.
+		$id = $this->upload('tiny.png');
+		$file = get_attached_file($id);
+
+		$this->assertFileDoesNotExist($file . '.avif');
+		$this->assertContains(_wp_relative_upload_path($file) . '.avif', Optimiser::heavier($id));
+		$this->assertSame(Status::OPTIMISED, Status::of($id));
+
+		// Done: not made again by the next optimisation.
+		Optimiser::attachment($id, null, Optimiser::settings());
+		$this->assertFileDoesNotExist($file . '.avif');
+	}
+
+	public function test_an_avif_heavier_than_its_webp_is_deleted()
+	{
+		self::set('oio_avif_quality', 100);
+		$id = $this->upload('photo.jpg');
+		$file = get_attached_file($id);
+
+		$this->assertFileExists($file . '.webp');
+		$this->assertFileDoesNotExist($file . '.avif');
+		$this->assertContains(_wp_relative_upload_path($file) . '.avif', Optimiser::heavier($id));
+	}
+
+	public function test_an_image_wordpress_cannot_read_is_an_error()
+	{
+		$id = $this->upload('damaged.jpg');
+
+		$this->assertSame(Status::ERROR, Status::of($id));
+		$errors = Errors::for_attachment($id);
+		$this->assertNotEmpty($errors);
+		$this->assertStringContainsString('cannot read the image', wp_json_encode($errors));
+	}
+
+	public function test_new_settings_are_applied_from_the_originals()
+	{
+		$id = $this->upload('photo.jpg');
+		$originals = self::hashes(array_map([Service::class, 'backup_path'], self::files($id)));
+		$webp = filesize(get_attached_file($id) . '.webp');
+
+		self::set('oio_webp_quality', 40);
+		$this->assertSame(Status::OUTDATED, Status::of($id));
+		$this->assertTrue(Optimiser::update($id));
+
+		$this->assertSame(Status::OPTIMISED, Status::of($id));
+		$this->assertSame('quality:40', get_post_meta($id, WebP::meta_key(), true));
+		clearstatcache();
+		$this->assertLessThan($webp, filesize(get_attached_file($id) . '.webp'));
+		$this->assertSame($originals, self::hashes(array_map([Service::class, 'backup_path'], self::files($id))));
+	}
+
+	public function test_a_new_thumbnail_size_is_made_and_optimised()
+	{
+		$id = $this->upload('photo.jpg');
+
+		add_image_size('oio-test', 200, 100, true);
+		$this->assertSame(Status::OUTDATED, Status::of($id));
+		$this->assertTrue(Optimiser::update($id));
+
+		$metadata = wp_get_attachment_metadata($id);
+		$this->assertArrayHasKey('oio-test', $metadata['sizes']);
+		$this->assertFileExists(dirname(get_attached_file($id)) . '/' . $metadata['sizes']['oio-test']['file'] . '.webp');
+		$this->assertSame(Status::OPTIMISED, Status::of($id));
+	}
+
+	public function test_the_maximum_size_scales_the_image_and_back()
+	{
+		self::set('oio_max_size', 400);
+		$id = $this->upload('photo.jpg');
+		$scaled = get_attached_file($id);
+		$this->assertStringEndsWith('photo-scaled.jpg', $scaled);
+		$this->assertSame(400, wp_get_attachment_metadata($id)['width']);
+		$this->assertFileExists($scaled . '.webp');
+
+		// No maximum any more: the image uploaded is the main file again.
+		self::set('oio_max_size', 0);
+		$this->assertSame(Status::OUTDATED, Status::of($id));
+		$this->assertTrue(Optimiser::update($id));
+
+		$main = get_attached_file($id);
+		$this->assertStringEndsWith('/photo.jpg', $main);
+		$this->assertSame(640, wp_get_attachment_metadata($id)['width']);
+		$this->assertFileExists($main . '.webp');
+		foreach ([$scaled, $scaled . '.webp', $scaled . '.avif', Service::backup_path($scaled)] as $file) {
+			$this->assertFileDoesNotExist($file);
+		}
+		$this->assertFileEquals(self::fixture('photo.jpg'), Service::backup_path($main));
+		$this->assertSame(Status::OPTIMISED, Status::of($id));
+	}
+
+	public function test_deleting_the_image_deletes_its_files()
+	{
+		$id = $this->upload('photo.jpg');
+
+		wp_delete_attachment($id, true);
+
+		$left = [];
+		$files = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($this->uploads, \FilesystemIterator::SKIP_DOTS));
+		foreach ($files as $file) {
+			$left[] = substr($file->getPathname(), strlen($this->uploads) + 1);
+		}
+		sort($left);
+		$this->assertSame(['oio-originals/.htaccess', 'oio-originals/index.php'], $left);
+	}
+
+	/**
+	 * Checks that the PNG files of an image are lighter
+	 * than their originals, still PNG files, with a WebP
+	 * version unless it was heavier.
+	 *
+	 * @param int $id
+	 */
+	private function assert_png_compressed($id)
+	{
+		clearstatcache();
+		foreach (self::files($id) as $file) {
+			$this->assertLessThan(filesize(Service::backup_path($file)), filesize($file), $file);
+			$this->assertSame('image/png', wp_getimagesize($file)['mime'], $file);
+			$webp = $file . '.webp';
+			$this->assertTrue(file_exists($webp) || in_array(_wp_relative_upload_path($webp), Optimiser::heavier($id), true), $webp);
+		}
+		$this->assertSame(Status::OPTIMISED, Status::of($id));
+	}
+}
