@@ -23,8 +23,9 @@
  * 12. Settings: format cards
  * 13. Install instructions, code
  * 14. Delivery: steps, methods, folds and test
- * 15. WordPress components
- * 16. Small screens
+ * 15. Support
+ * 16. WordPress components
+ * 17. Small screens
  *
  * @author Clément Gayot
  * @author Ainsley Clark (Squidge, original author)
@@ -1891,7 +1892,58 @@
 	display: none;
 }
 
-/* 15. WordPress components
+/* 15. Support
+   ========================================================================== */
+
+/* At the bottom right of every tab, quiet: a line of small links under a
+   separator, the Bitcoin address under it once asked for. */
+.octopus-support {
+	margin-top: var(--octopus-space-6);
+	padding-top: var(--octopus-space-3);
+	border-top: 1px solid var(--octopus-border);
+	text-align: right;
+}
+
+.octopus-support__links {
+	margin: 0;
+	color: var(--octopus-muted);
+	font-size: var(--octopus-size-small);
+}
+
+.octopus-support__links a,
+.octopus-page .octopus-support__toggle {
+	color: var(--octopus-violet-dark);
+	font-size: inherit;
+}
+
+.octopus-support__wallet {
+	display: inline-flex;
+	flex-direction: column;
+	align-items: center;
+	gap: var(--octopus-space-2);
+	max-width: 100%;
+	margin-top: var(--octopus-space-2);
+	padding: var(--octopus-space-3);
+	border: 1px solid var(--octopus-border);
+	border-radius: var(--octopus-radius);
+	background: var(--octopus-surface);
+}
+
+.octopus-support__wallet[hidden] {
+	display: none;
+}
+
+.octopus-support__qr img {
+	display: block;
+}
+
+.octopus-support__address {
+	max-width: 100%;
+	font-size: 11px;
+	word-break: break-all;
+}
+
+/* 16. WordPress components
    ========================================================================== */
 
 /* The buttons keep their WordPress classes, in the colours of the logo. */
@@ -1939,7 +1991,7 @@
 	opacity: .55;
 }
 
-/* 16. Small screens
+/* 17. Small screens
    ========================================================================== */
 
 @media (max-width: 782px) {

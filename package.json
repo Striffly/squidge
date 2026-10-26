@@ -17,6 +17,7 @@
     "assets/*.js",
     "assets/fonts",
     "assets/icon-128x128.png",
+    "assets/bitcoin.svg",
     "vendor-prefixed",
     "!vendor-prefixed/**/tests",
     "!vendor-prefixed/**/bin",

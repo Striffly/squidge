@@ -74,6 +74,23 @@
 	}
 	page.classList.add('octopus-page--js');
 	show(initial || 'overview');
+	// The Bitcoin address of the support, behind its button. The link of the
+	// plugins page to buy a coffee opens it.
+	var wallet = document.getElementById('octopus-support-wallet');
+	var walletButton = page.querySelector('[aria-controls="octopus-support-wallet"]');
+	function showWallet(open) {
+		wallet.hidden = !open;
+		walletButton.setAttribute('aria-expanded', open ? 'true' : 'false');
+	}
+	if (wallet && walletButton) {
+		showWallet(initial === 'support');
+		walletButton.addEventListener('click', function () {
+			showWallet(wallet.hidden);
+		});
+		if (initial === 'support') {
+			wallet.scrollIntoView({block: 'center'});
+		}
+	}
 
 	// The full help of a field, behind its "?" button.
 	page.querySelectorAll('.octopus-help__text').forEach(function (text) {
@@ -552,7 +569,7 @@
 		pre.parentNode.insertBefore(block, pre);
 		block.append(pre, button(pre, ''));
 	});
-	page.querySelectorAll('.octopus-install__list code').forEach(function (code) {
+	page.querySelectorAll('.octopus-install__list code, .octopus-support__address').forEach(function (code) {
 		code.after(button(code, 'inline'));
 	});
 

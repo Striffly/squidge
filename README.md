@@ -298,6 +298,15 @@ a text, update the template and the translations with [WP-CLI](https://wp-cli.or
 composer translations   # The .pot, then the .po, .mo, .l10n.php and .json of each language.
 ```
 
+## Support
+
+OIO is free, and will stay so. If it saves you time or bytes, you can buy me a coffee:
+
+- **PayPal**: [paypal.me/striffly](https://paypal.me/striffly/5EUR)
+- **Bitcoin**: `bc1q3j7gxxykpu9zp3sgxyallw0hq0sr659zl35wre`
+
+<img src="assets/bitcoin.svg" alt="QR code of the Bitcoin address" width="160">
+
 ## Credits
 
 OIO is developed by [Clément Gayot](https://github.com/Striffly).

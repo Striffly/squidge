@@ -1,5 +1,6 @@
 === OIO – Octopus Image Optimizer ===
 Contributors: striffly
+Donate link: https://github.com/Striffly/octopus-image-optimizer#support
 Tags: webp, avif, image optimization, compress images, performance
 Requires at least: 6.0
 Tested up to: 7.1

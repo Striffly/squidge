@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-10-26T19:06:50+00:00\n"
+"POT-Creation-Date: 2026-10-26T19:26:38+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: octopus-image-optimizer\n"
@@ -101,7 +101,7 @@ msgid "Optimise again"
 msgstr ""
 
 #: core/Admin/MediaColumn.php:177
-#: core/Admin/SettingsPage.php:124
+#: core/Admin/SettingsPage.php:133
 msgid "Optimise"
 msgstr ""
 
@@ -203,551 +203,564 @@ msgstr ""
 msgid "an unexpected error occurred, see the technical details."
 msgstr ""
 
-#: core/Admin/PluginsScreen.php:67
-#: core/Admin/SettingsPage.php:126
-#: core/Admin/SettingsPage.php:682
+#: core/Admin/PluginsScreen.php:68
+#: core/Admin/SettingsPage.php:135
+#: core/Admin/SettingsPage.php:727
 msgid "Settings"
 msgstr ""
 
-#: core/Admin/SettingsPage.php:94
+#: core/Admin/PluginsScreen.php:85
+msgid "Buy me a coffee"
+msgstr ""
+
+#: core/Admin/SettingsPage.php:103
 msgid "Image Optimizer"
 msgstr ""
 
-#: core/Admin/SettingsPage.php:123
+#: core/Admin/SettingsPage.php:132
 msgid "Overview"
 msgstr ""
 
-#: core/Admin/SettingsPage.php:125
+#: core/Admin/SettingsPage.php:134
 msgid "Delivery"
 msgstr ""
 
-#: core/Admin/SettingsPage.php:127
+#: core/Admin/SettingsPage.php:136
 msgid "Maintenance"
 msgstr ""
 
-#: core/Admin/SettingsPage.php:137
+#: core/Admin/SettingsPage.php:146
 msgid "Squeezes images. Spills no ink, sends no bill."
 msgstr ""
 
-#: core/Admin/SettingsPage.php:149
+#: core/Admin/SettingsPage.php:158
 msgid "A format has no library"
 msgstr ""
 
-#: core/Admin/SettingsPage.php:236
+#. translators: Followed by the links to PayPal and Bitcoin.
+#: core/Admin/SettingsPage.php:215
+msgid "Buy me a coffee:"
+msgstr ""
+
+#: core/Admin/SettingsPage.php:223
+msgid "QR code of the Bitcoin address"
+msgstr ""
+
+#: core/Admin/SettingsPage.php:281
 msgid "PHP cannot run programs on this server."
 msgstr ""
 
 #. translators: 1: proc_open(), 2: exec(), 3: disable_functions
-#: core/Admin/SettingsPage.php:240
+#: core/Admin/SettingsPage.php:285
 #, php-format
 msgid "%1$s and %2$s are disabled (%3$s): the libraries cannot run, even installed, so the JPG and PNG images are not compressed. Ask your host to enable %1$s. Meanwhile, GD or Imagick make the WebP and AVIF when they can."
 msgstr ""
 
 #. translators: %s: a size, e.g. 12.5 MB.
-#: core/Admin/SettingsPage.php:255
+#: core/Admin/SettingsPage.php:300
 #, php-format
 msgid "%s saved"
 msgstr ""
 
 #. translators: %s: a reduction, e.g. −48 %.
-#: core/Admin/SettingsPage.php:261
+#: core/Admin/SettingsPage.php:306
 #, php-format
 msgid "%s on what the site serves"
 msgstr ""
 
 #. translators: %s: a reduction, e.g. −62 %.
-#: core/Admin/SettingsPage.php:267
+#: core/Admin/SettingsPage.php:312
 #, php-format
 msgid "%s with WebP and AVIF served"
 msgstr ""
 
 #. translators: 1: the size of the originals, 2: the size of the WebP and AVIF files.
-#: core/Admin/SettingsPage.php:276
+#: core/Admin/SettingsPage.php:321
 #, php-format
 msgid "Disk used by OIO: originals %1$s, WebP and AVIF %2$s"
 msgstr ""
 
-#: core/Admin/SettingsPage.php:284
+#: core/Admin/SettingsPage.php:329
 msgid "Ready to squeeze"
 msgstr ""
 
-#: core/Admin/SettingsPage.php:285
+#: core/Admin/SettingsPage.php:330
 msgid "OIO optimises your images on your own server: free, unlimited, and they never leave it."
 msgstr ""
 
 #. translators: %s: the number of images.
-#: core/Admin/SettingsPage.php:299
+#: core/Admin/SettingsPage.php:344
 #, php-format
 msgid "%s JPG or PNG image in the media library."
 msgid_plural "%s JPG and PNG images in the media library."
 msgstr[0] ""
 msgstr[1] ""
 
-#: core/Admin/SettingsPage.php:301
-#: core/Admin/SettingsPage.php:378
-#: core/Admin/SettingsPage.php:483
+#: core/Admin/SettingsPage.php:346
+#: core/Admin/SettingsPage.php:423
+#: core/Admin/SettingsPage.php:528
 msgid "Optimise the media library"
 msgstr ""
 
-#: core/Admin/SettingsPage.php:305
+#: core/Admin/SettingsPage.php:350
 msgid "Formats"
 msgstr ""
 
-#: core/Admin/SettingsPage.php:334
-#: core/Admin/SettingsPage.php:357
+#: core/Admin/SettingsPage.php:379
+#: core/Admin/SettingsPage.php:402
 msgid "installed"
 msgstr ""
 
 #. translators: %s: a library, e.g. cwebp.
-#: core/Admin/SettingsPage.php:339
+#: core/Admin/SettingsPage.php:384
 #, php-format
 msgid "%s not installed"
 msgstr ""
 
 #. translators: %s: a library, e.g. cwebp.
-#: core/Admin/SettingsPage.php:341
+#: core/Admin/SettingsPage.php:386
 #, php-format
 msgid "%s cannot run"
 msgstr ""
 
-#: core/Admin/SettingsPage.php:344
-#: core/Admin/SettingsPage.php:357
+#: core/Admin/SettingsPage.php:389
+#: core/Admin/SettingsPage.php:402
 msgid "not installed"
 msgstr ""
 
-#: core/Admin/SettingsPage.php:344
-#: core/Admin/SettingsPage.php:357
+#: core/Admin/SettingsPage.php:389
+#: core/Admin/SettingsPage.php:402
 msgid "cannot run"
 msgstr ""
 
-#: core/Admin/SettingsPage.php:379
+#: core/Admin/SettingsPage.php:424
 msgid "These jobs run in the background, page closed or not, with the lowest priority on the server."
 msgstr ""
 
-#: core/Admin/SettingsPage.php:387
+#: core/Admin/SettingsPage.php:432
 msgid "All your images are optimised."
 msgstr ""
 
-#: core/Admin/SettingsPage.php:387
+#: core/Admin/SettingsPage.php:432
 msgid "Nothing left to do: the new ones are optimised on upload."
 msgstr ""
 
-#: core/Admin/SettingsPage.php:392
+#: core/Admin/SettingsPage.php:437
 msgid "New images"
 msgstr ""
 
-#: core/Admin/SettingsPage.php:394
+#: core/Admin/SettingsPage.php:439
 msgid "Not optimised yet, or their optimisation failed."
 msgstr ""
 
-#: core/Admin/SettingsPage.php:395
+#: core/Admin/SettingsPage.php:440
 msgid "Optimise new images"
 msgstr ""
 
-#: core/Admin/SettingsPage.php:399
+#: core/Admin/SettingsPage.php:444
 msgid "Outdated images"
 msgstr ""
 
-#: core/Admin/SettingsPage.php:401
+#: core/Admin/SettingsPage.php:446
 msgid "Optimised before a quality, a format, the maximum size or the thumbnail sizes changed. Optimised again from their originals."
 msgstr ""
 
-#: core/Admin/SettingsPage.php:402
+#: core/Admin/SettingsPage.php:447
 msgid "Re-optimise outdated images"
 msgstr ""
 
-#: core/Admin/SettingsPage.php:406
+#: core/Admin/SettingsPage.php:451
 msgid "All images"
 msgstr ""
 
-#: core/Admin/SettingsPage.php:408
+#: core/Admin/SettingsPage.php:453
 msgid "Every image optimised again from its original, with its thumbnails made again."
 msgstr ""
 
-#: core/Admin/SettingsPage.php:409
+#: core/Admin/SettingsPage.php:454
 msgid "Re-optimise all images from their originals, with their thumbnails? This can take a while."
 msgstr ""
 
-#: core/Admin/SettingsPage.php:409
+#: core/Admin/SettingsPage.php:454
 msgid "Re-optimise all images"
 msgstr ""
 
-#: core/Admin/SettingsPage.php:416
+#: core/Admin/SettingsPage.php:461
 msgid "New uploads are optimised right away."
 msgstr ""
 
-#: core/Admin/SettingsPage.php:417
+#: core/Admin/SettingsPage.php:462
 msgid "See each image in the Media library"
 msgstr ""
 
-#: core/Admin/SettingsPage.php:439
+#: core/Admin/SettingsPage.php:484
 msgid "Your server"
 msgstr ""
 
 #. translators: %s: the server, e.g. nginx.
-#: core/Admin/SettingsPage.php:447
+#: core/Admin/SettingsPage.php:492
 #, php-format
 msgid "%s: add the rules below to its configuration, then tick this box."
 msgstr ""
 
 #. translators: 1: the server, e.g. nginx, 2: .htaccess.
-#: core/Admin/SettingsPage.php:449
+#: core/Admin/SettingsPage.php:494
 #, php-format
 msgid "%1$s does not read %2$s files: add the rules below to its configuration, then tick this box so that OIO counts the bytes saved. The HTML does not change, and every image is served, CSS backgrounds and custom themes included."
 msgstr ""
 
-#: core/Admin/SettingsPage.php:457
+#: core/Admin/SettingsPage.php:502
 msgid "Generate"
 msgstr ""
 
-#: core/Admin/SettingsPage.php:458
+#: core/Admin/SettingsPage.php:503
 msgid "The WebP and AVIF versions are made while the images are optimised."
 msgstr ""
 
 #. translators: %s: the number of images.
-#: core/Admin/SettingsPage.php:466
+#: core/Admin/SettingsPage.php:511
 #, php-format
 msgid "of %s image has its WebP or AVIF version"
 msgid_plural "of %s images have their WebP or AVIF version"
 msgstr[0] ""
 msgstr[1] ""
 
-#: core/Admin/SettingsPage.php:505
-#: core/Admin/SettingsPage.php:707
+#: core/Admin/SettingsPage.php:550
+#: core/Admin/SettingsPage.php:752
 msgid "Save changes"
 msgstr ""
 
-#: core/Admin/SettingsPage.php:513
+#: core/Admin/SettingsPage.php:558
 msgid "Test"
 msgstr ""
 
-#: core/Admin/SettingsPage.php:514
+#: core/Admin/SettingsPage.php:559
 msgid "Requests an optimised image as a browser, after saving."
 msgstr ""
 
-#: core/Admin/SettingsPage.php:519
+#: core/Admin/SettingsPage.php:564
 msgid "Are the WebP and AVIF files served with their type?"
 msgstr ""
 
-#: core/Admin/SettingsPage.php:520
+#: core/Admin/SettingsPage.php:565
 msgid "Does the server answer the image with them?"
 msgstr ""
 
-#: core/Admin/SettingsPage.php:521
+#: core/Admin/SettingsPage.php:566
 msgid "Are the originals kept private?"
 msgstr ""
 
-#: core/Admin/SettingsPage.php:523
+#: core/Admin/SettingsPage.php:568
 msgid "Run the test"
 msgstr ""
 
-#: core/Admin/SettingsPage.php:533
+#: core/Admin/SettingsPage.php:578
 msgid "Test results"
 msgstr ""
 
-#: core/Admin/SettingsPage.php:542
+#: core/Admin/SettingsPage.php:587
 msgid "Rules and code"
 msgstr ""
 
-#: core/Admin/SettingsPage.php:547
-#: core/Admin/SettingsPage.php:563
+#: core/Admin/SettingsPage.php:592
+#: core/Admin/SettingsPage.php:608
 msgid "Rewrite rules for Apache and LiteSpeed"
 msgstr ""
 
-#: core/Admin/SettingsPage.php:548
+#: core/Admin/SettingsPage.php:593
 msgid "Written in uploads/.htaccess"
 msgstr ""
 
-#: core/Admin/SettingsPage.php:548
+#: core/Admin/SettingsPage.php:593
 msgid "Not written"
 msgstr ""
 
 #. translators: %s: uploads/.htaccess
-#: core/Admin/SettingsPage.php:554
+#: core/Admin/SettingsPage.php:599
 #, php-format
 msgid "OIO writes them in %s when the server option is on, and removes them when it is off."
 msgstr ""
 
 #. translators: %s: uploads/.htaccess
-#: core/Admin/SettingsPage.php:568
+#: core/Admin/SettingsPage.php:613
 #, php-format
 msgid "In %s, written by OIO when the server option is on."
 msgstr ""
 
-#: core/Admin/SettingsPage.php:576
+#: core/Admin/SettingsPage.php:621
 msgid "Rewrite rules for nginx"
 msgstr ""
 
-#: core/Admin/SettingsPage.php:578
+#: core/Admin/SettingsPage.php:623
 msgid "Add them to the configuration of the site, reload nginx, then tick the server option."
 msgstr ""
 
 #. translators: %s: a library, e.g. cwebp.
-#: core/Admin/SettingsPage.php:664
+#: core/Admin/SettingsPage.php:709
 #, php-format
 msgid "Recommended: install %s"
 msgstr ""
 
 #. translators: %s: a library, e.g. cwebp.
-#: core/Admin/SettingsPage.php:675
+#: core/Admin/SettingsPage.php:720
 #, php-format
 msgid "How to install %s"
 msgstr ""
 
 #. translators: 1: a library, e.g. pngquant, 2: what it is for, e.g. lossy compression.
-#: core/Admin/SettingsPage.php:693
+#: core/Admin/SettingsPage.php:738
 #, php-format
 msgid "How to install %1$s, for the %2$s"
 msgstr ""
 
-#: core/Admin/SettingsPage.php:727
-#: core/Admin/SettingsPage.php:739
+#: core/Admin/SettingsPage.php:772
+#: core/Admin/SettingsPage.php:784
 msgid "Remove WebP and AVIF"
 msgstr ""
 
 #. translators: %s: the number of images.
-#: core/Admin/SettingsPage.php:731
+#: core/Admin/SettingsPage.php:776
 #, php-format
 msgid "Deletes the WebP and AVIF files of the %s images processed. The JPG and PNG files stay compressed, and the originals kept."
 msgstr ""
 
-#: core/Admin/SettingsPage.php:738
+#: core/Admin/SettingsPage.php:783
 msgid "I understand the WebP and AVIF files are deleted, until the images are optimised again."
 msgstr ""
 
-#: core/Admin/SettingsPage.php:750
-#: core/Admin/SettingsPage.php:757
+#: core/Admin/SettingsPage.php:795
+#: core/Admin/SettingsPage.php:802
 #: assets/plugins.js:87
 msgid "Restore original images"
 msgstr ""
 
-#: core/Admin/SettingsPage.php:751
+#: core/Admin/SettingsPage.php:796
 msgid "Puts the original images back and deletes every file made by OIO (WebP, AVIF, backups). Do it before deleting OIO: deleting it keeps the files as they are."
 msgstr ""
 
-#: core/Admin/SettingsPage.php:756
+#: core/Admin/SettingsPage.php:801
 msgid "I understand the images are no longer optimised, and their WebP and AVIF files are deleted."
 msgstr ""
 
 #. translators: 1: composer install, 2: wp octopus run
-#: core/Admin/SettingsPage.php:778
+#: core/Admin/SettingsPage.php:823
 #, php-format
 msgid "The background jobs need the dependencies of OIO: run %1$s in its folder. WP-CLI (%2$s) works without them."
 msgstr ""
 
-#: core/Admin/SettingsPage.php:800
+#: core/Admin/SettingsPage.php:845
 msgid "Pause"
 msgstr ""
 
-#: core/Admin/SettingsPage.php:801
+#: core/Admin/SettingsPage.php:846
 msgid "Resume"
 msgstr ""
 
-#: core/Admin/SettingsPage.php:802
+#: core/Admin/SettingsPage.php:847
 #: assets/plugins.js:105
 msgid "Cancel"
 msgstr ""
 
-#: core/Admin/SettingsPage.php:815
+#: core/Admin/SettingsPage.php:860
 msgid "Dismiss"
 msgstr ""
 
 #. translators: %s: octopus_image()
-#: core/Admin/SettingsPage.php:838
+#: core/Admin/SettingsPage.php:883
 #, php-format
 msgid "Custom themes: the %s helper"
 msgstr ""
 
 #. translators: 1: <picture>, 2: octopus_image()
-#: core/Admin/SettingsPage.php:846
+#: core/Admin/SettingsPage.php:891
 #, php-format
 msgid "Images output with your own markup (e.g. from an ACF field) are not wrapped in a %1$s by the HTML option: serve them from the server, or use the %2$s helper, which returns their %1$s whatever the options."
 msgstr ""
 
 #. translators: 1: <picture>, 2: true, 3: data-src, 4: data-srcset, 5: function_exists()
-#: core/Admin/SettingsPage.php:854
+#: core/Admin/SettingsPage.php:899
 #, php-format
 msgid "The second argument is the class of the %1$s element. Pass %2$s as third argument to output %3$s and %4$s for a JavaScript lazy loader. Keep the %5$s check: without it, the pages break while OIO is deactivated."
 msgstr ""
 
-#: core/Admin/SettingsPage.php:924
+#: core/Admin/SettingsPage.php:969
 msgctxt "images"
 msgid "Optimised"
 msgstr ""
 
-#: core/Admin/SettingsPage.php:925
+#: core/Admin/SettingsPage.php:970
 msgctxt "images"
 msgid "To optimise"
 msgstr ""
 
-#: core/Admin/SettingsPage.php:926
+#: core/Admin/SettingsPage.php:971
 msgctxt "images"
 msgid "Older settings"
 msgstr ""
 
-#: core/Admin/SettingsPage.php:927
+#: core/Admin/SettingsPage.php:972
 msgctxt "images"
 msgid "Error"
 msgstr ""
 
-#: core/Admin/SettingsPage.php:941
+#: core/Admin/SettingsPage.php:986
 msgid "Active"
 msgstr ""
 
-#: core/Admin/SettingsPage.php:942
+#: core/Admin/SettingsPage.php:987
 msgid "Library unavailable"
 msgstr ""
 
-#: core/Admin/SettingsPage.php:943
+#: core/Admin/SettingsPage.php:988
 msgid "Disabled"
 msgstr ""
 
 #. translators: %s: the label of a setting.
-#: core/Admin/SettingsPage.php:1046
+#: core/Admin/SettingsPage.php:1091
 #, php-format
 msgid "More about: %s"
 msgstr ""
 
-#: core/Admin/SettingsPage.php:1084
+#: core/Admin/SettingsPage.php:1129
 msgid "Compress JPG images"
 msgstr ""
 
-#: core/Admin/SettingsPage.php:1085
+#: core/Admin/SettingsPage.php:1130
 msgid "Compresses the JPG images in place with jpegoptim, and makes them progressive. Their originals are kept."
 msgstr ""
 
-#: core/Admin/SettingsPage.php:1089
-#: core/Admin/SettingsPage.php:1142
-#: core/Admin/SettingsPage.php:1161
+#: core/Admin/SettingsPage.php:1134
+#: core/Admin/SettingsPage.php:1187
+#: core/Admin/SettingsPage.php:1206
 msgid "Quality"
 msgstr ""
 
-#: core/Admin/SettingsPage.php:1090
-#: core/Admin/SettingsPage.php:1143
+#: core/Admin/SettingsPage.php:1135
+#: core/Admin/SettingsPage.php:1188
 msgid "From 0 to 100, 80 by default."
 msgstr ""
 
-#: core/Admin/SettingsPage.php:1098
+#: core/Admin/SettingsPage.php:1143
 msgid "lossy compression"
 msgstr ""
 
-#: core/Admin/SettingsPage.php:1102
+#: core/Admin/SettingsPage.php:1147
 msgid "Compress PNG images"
 msgstr ""
 
-#: core/Admin/SettingsPage.php:1103
+#: core/Admin/SettingsPage.php:1148
 msgid "Compresses the PNG images in place with oxipng or optipng, after pngquant when lossy. Their originals are kept."
 msgstr ""
 
-#: core/Admin/SettingsPage.php:1107
+#: core/Admin/SettingsPage.php:1152
 msgid "Compression"
 msgstr ""
 
-#: core/Admin/SettingsPage.php:1109
+#: core/Admin/SettingsPage.php:1154
 msgid "Lossless"
 msgstr ""
 
-#: core/Admin/SettingsPage.php:1110
+#: core/Admin/SettingsPage.php:1155
 msgid "Lossy (pngquant)"
 msgstr ""
 
-#: core/Admin/SettingsPage.php:1112
+#: core/Admin/SettingsPage.php:1157
 msgid "Lossy: often 60 to 80 % lighter, for graphics and screenshots. Needs pngquant."
 msgstr ""
 
-#: core/Admin/SettingsPage.php:1116
+#: core/Admin/SettingsPage.php:1161
 msgid "Optimisation level"
 msgstr ""
 
-#: core/Admin/SettingsPage.php:1118
+#: core/Admin/SettingsPage.php:1163
 msgid "From o0 (fastest) to o7 (smallest files), o2 by default."
 msgstr ""
 
-#: core/Admin/SettingsPage.php:1122
+#: core/Admin/SettingsPage.php:1167
 msgid "Lossy quality"
 msgstr ""
 
-#: core/Admin/SettingsPage.php:1124
+#: core/Admin/SettingsPage.php:1169
 msgid "The quality pngquant aims at, 80 by default."
 msgstr ""
 
 #. translators: %s: GD or Imagick.
-#: core/Admin/SettingsPage.php:1133
+#: core/Admin/SettingsPage.php:1178
 #, php-format
 msgid "%s makes the WebP files for now, in the PHP process. cwebp runs apart from PHP, and makes the PNG graphics and screenshots much lighter."
 msgstr ""
 
-#: core/Admin/SettingsPage.php:1137
+#: core/Admin/SettingsPage.php:1182
 msgid "Make WebP versions"
 msgstr ""
 
-#: core/Admin/SettingsPage.php:1138
+#: core/Admin/SettingsPage.php:1183
 msgid "Makes a WebP version of each image and thumbnail (<code>photo.jpg.webp</code>), lighter than the JPG or PNG."
 msgstr ""
 
 #. translators: %s: GD or Imagick.
-#: core/Admin/SettingsPage.php:1152
+#: core/Admin/SettingsPage.php:1197
 #, php-format
 msgid "%s makes the AVIF files for now, in the PHP process. avifenc runs apart from PHP, on several threads, and keeps the colours of the PNG images sharper."
 msgstr ""
 
-#: core/Admin/SettingsPage.php:1156
+#: core/Admin/SettingsPage.php:1201
 msgid "Make AVIF versions"
 msgstr ""
 
-#: core/Admin/SettingsPage.php:1157
+#: core/Admin/SettingsPage.php:1202
 msgid "Makes an AVIF version of each image and thumbnail (<code>photo.jpg.avif</code>), often the lightest. Kept only when lighter than the WebP and the JPG or PNG."
 msgstr ""
 
-#: core/Admin/SettingsPage.php:1162
+#: core/Admin/SettingsPage.php:1207
 msgid "From 0 to 100 (lossless), 70 by default."
 msgstr ""
 
-#: core/Admin/SettingsPage.php:1167
+#: core/Admin/SettingsPage.php:1212
 msgid "Image size"
 msgstr ""
 
-#: core/Admin/SettingsPage.php:1168
+#: core/Admin/SettingsPage.php:1213
 msgid "WordPress scales the big images down on upload, and keeps the image uploaded as their original."
 msgstr ""
 
-#: core/Admin/SettingsPage.php:1172
+#: core/Admin/SettingsPage.php:1217
 msgid "Maximum image size"
 msgstr ""
 
-#: core/Admin/SettingsPage.php:1174
+#: core/Admin/SettingsPage.php:1219
 msgid "Longest side, 2560 by default. <strong>0 means no limit: huge images can exhaust the server.</strong>"
 msgstr ""
 
-#: core/Admin/SettingsPage.php:1179
+#: core/Admin/SettingsPage.php:1224
 msgid "Serve"
 msgstr ""
 
-#: core/Admin/SettingsPage.php:1180
+#: core/Admin/SettingsPage.php:1225
 msgid "Each browser gets the lightest version it reads: AVIF, then WebP, or the JPG or PNG for older ones. Choose one way, or both."
 msgstr ""
 
-#: core/Admin/SettingsPage.php:1184
+#: core/Admin/SettingsPage.php:1229
 msgid "In the HTML, with <picture>"
 msgstr ""
 
-#: core/Admin/SettingsPage.php:1185
+#: core/Admin/SettingsPage.php:1230
 msgid "Wraps the images of the content in a <code>&lt;picture&gt;</code>. Untick it if the layout breaks."
 msgstr ""
 
-#: core/Admin/SettingsPage.php:1186
+#: core/Admin/SettingsPage.php:1231
 msgid "Images of the post content, featured images and galleries are wrapped in a <code>&lt;picture&gt;</code> tag offering the AVIF and WebP versions. Works on every server. <strong>Untick this if your theme layout breaks around images.</strong>"
 msgstr ""
 
-#: core/Admin/SettingsPage.php:1190
+#: core/Admin/SettingsPage.php:1235
 msgid "From the server, with rewrite rules"
 msgstr ""
 
-#: core/Admin/SettingsPage.php:1191
+#: core/Admin/SettingsPage.php:1236
 msgid "Every image, CSS backgrounds included, the HTML unchanged."
 msgstr ""
 
-#: core/Admin/SettingsPage.php:1192
+#: core/Admin/SettingsPage.php:1237
 msgid "The server answers <code>photo.jpg</code> with <code>photo.jpg.avif</code> or <code>.webp</code> when the browser reads them. The HTML does not change, and every image is served, CSS backgrounds and custom themes included. A CDN must vary its cache on the <code>Accept</code> header."
 msgstr ""
 
@@ -1065,60 +1078,60 @@ msgstr ""
 msgid "Before deactivating OIO"
 msgstr ""
 
-#: assets/settings.js:153
+#: assets/settings.js:170
 msgid "Optimising"
 msgstr ""
 
-#: assets/settings.js:154
+#: assets/settings.js:171
 msgid "Removing WebP and AVIF"
 msgstr ""
 
-#: assets/settings.js:155
+#: assets/settings.js:172
 msgid "Restoring the originals"
 msgstr ""
 
-#: assets/settings.js:160
+#: assets/settings.js:177
 msgid "Optimisation complete"
 msgstr ""
 
-#: assets/settings.js:161
+#: assets/settings.js:178
 msgid "Optimisation cancelled"
 msgstr ""
 
 #. translators: %s: the number of images.
-#: assets/settings.js:164
+#: assets/settings.js:181
 #, js-format
 msgid "%s image optimised"
 msgid_plural "%s images optimised"
 msgstr[0] ""
 msgstr[1] ""
 
-#: assets/settings.js:168
+#: assets/settings.js:185
 msgid "WebP and AVIF files removed"
 msgstr ""
 
-#: assets/settings.js:169
+#: assets/settings.js:186
 msgid "Removal cancelled"
 msgstr ""
 
 #. translators: %s: the number of images.
-#: assets/settings.js:172
+#: assets/settings.js:189
 #, js-format
 msgid "%s image cleaned up"
 msgid_plural "%s images cleaned up"
 msgstr[0] ""
 msgstr[1] ""
 
-#: assets/settings.js:176
+#: assets/settings.js:193
 msgid "Original images restored"
 msgstr ""
 
-#: assets/settings.js:177
+#: assets/settings.js:194
 msgid "Restore cancelled"
 msgstr ""
 
 #. translators: %s: the number of images.
-#: assets/settings.js:180
+#: assets/settings.js:197
 #, js-format
 msgid "%s image restored"
 msgid_plural "%s images restored"
@@ -1126,55 +1139,55 @@ msgstr[0] ""
 msgstr[1] ""
 
 #. translators: 1: hours, 2: minutes.
-#: assets/settings.js:314
+#: assets/settings.js:331
 #, js-format
 msgid "%1$d h %2$d min"
 msgstr ""
 
 #. translators: 1: minutes, 2: seconds.
-#: assets/settings.js:318
+#: assets/settings.js:335
 #, js-format
 msgid "%1$d min %2$d s"
 msgstr ""
 
 #. translators: %d: seconds.
-#: assets/settings.js:321
+#: assets/settings.js:338
 #, js-format
 msgid "%d s"
 msgstr ""
 
 #. translators: 1: what was done, e.g. 12 images optimised, 2: a duration, e.g. 2 min 5 s.
-#: assets/settings.js:327
+#: assets/settings.js:344
 #, js-format
 msgid "%1$s in %2$s"
 msgstr ""
 
 #. translators: 1: the number of images processed, 2: the number of images.
-#: assets/settings.js:338
+#: assets/settings.js:355
 #, js-format
 msgid "Stopped after %1$s of %2$s image"
 msgid_plural "Stopped after %1$s of %2$s images"
 msgstr[0] ""
 msgstr[1] ""
 
-#: assets/settings.js:339
+#: assets/settings.js:356
 msgid "The images already processed stay processed."
 msgstr ""
 
 #. translators: %s: the number of images.
-#: assets/settings.js:345
+#: assets/settings.js:362
 #, js-format
 msgid "%s could not be optimised:"
 msgid_plural "%s could not be optimised:"
 msgstr[0] ""
 msgstr[1] ""
 
-#: assets/settings.js:348
+#: assets/settings.js:365
 msgid "see the errors in the Media library"
 msgstr ""
 
 #. translators: %s: the number of images.
-#: assets/settings.js:353
+#: assets/settings.js:370
 #, js-format
 msgid "%s had no original to restore, it stays compressed."
 msgid_plural "%s had no original to restore, they stay compressed."
@@ -1182,7 +1195,7 @@ msgstr[0] ""
 msgstr[1] ""
 
 #. translators: 1: the number of images processed, 2: the number of images.
-#: assets/settings.js:374
+#: assets/settings.js:391
 #, js-format
 msgid "%1$s / %2$s image"
 msgid_plural "%1$s / %2$s images"
@@ -1190,39 +1203,39 @@ msgstr[0] ""
 msgstr[1] ""
 
 #. translators: 1: the progress, e.g. 3 / 12 images, 2: the number of images with errors.
-#: assets/settings.js:377
+#: assets/settings.js:394
 #, js-format
 msgid "%1$s, %2$s with errors"
 msgid_plural "%1$s, %2$s with errors"
 msgstr[0] ""
 msgstr[1] ""
 
-#: assets/settings.js:379
+#: assets/settings.js:396
 msgid "Paused:"
 msgstr ""
 
-#: assets/settings.js:379
+#: assets/settings.js:396
 msgid "Processing"
 msgstr ""
 
-#: assets/settings.js:423
+#: assets/settings.js:440
 msgid "The job could not start."
 msgstr ""
 
-#: assets/settings.js:432
+#: assets/settings.js:449
 msgid "Cancel the job? The images already processed stay processed."
 msgstr ""
 
-#: assets/settings.js:477
+#: assets/settings.js:494
 msgid "Testing…"
 msgstr ""
 
-#: assets/settings.js:487
+#: assets/settings.js:504
 msgid "The test failed."
 msgstr ""
 
 #. translators: 1: the number of checks failed, 2: the number of checks.
-#: assets/settings.js:497
+#: assets/settings.js:514
 #, js-format
 msgid "%1$s of %2$s check failed: see the results below."
 msgid_plural "%1$s of %2$s checks failed: see the results below."
@@ -1230,7 +1243,7 @@ msgstr[0] ""
 msgstr[1] ""
 
 #. translators: %s: the number of checks.
-#: assets/settings.js:500
+#: assets/settings.js:517
 #, js-format
 msgid "The %s check passed."
 msgid_plural "All %s checks passed."
@@ -1238,32 +1251,32 @@ msgstr[0] ""
 msgstr[1] ""
 
 #. translators: %s: the file of an image.
-#: assets/settings.js:503
+#: assets/settings.js:520
 #, js-format
 msgid "Tested on %s."
 msgstr ""
 
-#: assets/settings.js:517
+#: assets/settings.js:534
 msgid "Run the test again"
 msgstr ""
 
-#: assets/settings.js:543
-#: assets/settings.js:598
+#: assets/settings.js:560
+#: assets/settings.js:615
 msgid "Copy"
 msgstr ""
 
-#: assets/settings.js:594
+#: assets/settings.js:611
 msgid "Copied"
 msgstr ""
 
-#: assets/settings.js:594
+#: assets/settings.js:611
 msgid "Press Ctrl+C"
 msgstr ""
 
-#: assets/settings.js:595
+#: assets/settings.js:612
 msgid "Copied to the clipboard."
 msgstr ""
 
-#: assets/settings.js:595
+#: assets/settings.js:612
 msgid "The code is selected: press Ctrl+C to copy it."
 msgstr ""

@@ -52,6 +52,7 @@ class PluginsScreen
 		add_action('wp_ajax_' . self::NONCE, [$this, 'info']);
 		add_action('switch_theme', [$this, 'forget_theme']);
 		add_filter('plugin_action_links_' . plugin_basename(OCTOPUS_FILE), [$this, 'settings_link']);
+		add_filter('plugin_row_meta', [$this, 'support_link'], 10, 2);
 	}
 
 	/**
@@ -66,6 +67,24 @@ class PluginsScreen
 	{
 		$links[] = sprintf('<a href="%s">%s</a>', esc_url(SettingsPage::page_url()), esc_html__('Settings', 'octopus-image-optimizer'));
 		return $links;
+	}
+
+	/**
+	 * Adds a link to buy a coffee to the author, after
+	 * the details of OIO in the list of the plugins: it
+	 * opens the bottom of the settings page.
+	 *
+	 * @param string[] $meta
+	 * @param string $file
+	 * @return string[]
+	 * @since 1.0.0
+	 */
+	public function support_link($meta, $file)
+	{
+		if ($file === plugin_basename(OCTOPUS_FILE) && current_user_can('manage_options')) {
+			$meta[] = sprintf('<a href="%s">☕ %s</a>', esc_url(SettingsPage::page_url() . '#support'), esc_html__('Buy me a coffee', 'octopus-image-optimizer'));
+		}
+		return $meta;
 	}
 
 	/**
