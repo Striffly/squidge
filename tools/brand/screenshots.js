@@ -4,7 +4,7 @@
  * Dresses the screenshots of WordPress.org: each capture of
  * the admin, 1408x880 at 2x, rounded and shadowed on the
  * night of the header of the page, written to
- * assets/images/screenshot-1.png and on, in the order given.
+ * .wordpress-org/screenshot-1.png and on, in the order given.
  *
  * bun tools/brand/screenshots.js overview.png optimise.png ...
  */
@@ -12,7 +12,7 @@
 import {writeFileSync} from 'node:fs';
 import {createCanvas, loadImage} from '@napi-rs/canvas';
 
-const IMAGES = new URL('../../assets/images/', import.meta.url);
+const WORDPRESS_ORG = new URL('../../.wordpress-org/', import.meta.url);
 const WIDTH = 2400, HEIGHT = 1560, SHOT = 2160, RADIUS = 28;
 
 /**
@@ -67,6 +67,6 @@ async function dress(path) {
 
 for (const [i, path] of process.argv.slice(2).entries()) {
 	const name = `screenshot-${i + 1}.png`;
-	writeFileSync(new URL(name, IMAGES), await dress(path));
-	console.log(`assets/images/${name}`);
+	writeFileSync(new URL(name, WORDPRESS_ORG), await dress(path));
+	console.log(`.wordpress-org/${name}`);
 }

@@ -1,5 +1,5 @@
 <p align="left">
-    <img alt="OIO – Octopus Image Optimizer: squeezes images, spills no ink, sends no bill." src="assets/images/banner-1544x500.png" width="772">
+    <img alt="OIO – Octopus Image Optimizer: squeezes images, spills no ink, sends no bill." src=".wordpress-org/banner-1544x500.png" width="772">
 </p>
 
 # OIO – Octopus Image Optimizer
@@ -49,18 +49,18 @@ For themes, `octopus_image()` and `octopus_image_sources()` give the `<picture>`
 
 ## Screenshots
 
-![The overview: the bytes saved, the status of the images and the libraries of each format.](assets/images/screenshot-1.png)
+![The overview: the bytes saved, the status of the images and the libraries of each format.](.wordpress-org/screenshot-1.png)
 
 <details>
 <summary>The optimisation, the delivery, the settings and the media library</summary>
 
-![The optimisation of the media library in the background, with its progress.](assets/images/screenshot-2.png)
+![The optimisation of the media library in the background, with its progress.](.wordpress-org/screenshot-2.png)
 
-![The delivery of WebP and AVIF on the site, and its test.](assets/images/screenshot-3.png)
+![The delivery of WebP and AVIF on the site, and its test.](.wordpress-org/screenshot-3.png)
 
-![The settings of each format: quality, compression, library.](assets/images/screenshot-4.png)
+![The settings of each format: quality, compression, library.](.wordpress-org/screenshot-4.png)
 
-![The status and the bytes saved of each image, in the media library.](assets/images/screenshot-5.png)
+![The status and the bytes saved of each image, in the media library.](.wordpress-org/screenshot-5.png)
 
 </details>
 
@@ -339,8 +339,10 @@ composer translations   # The .pot, then the .po, .mo, .l10n.php and .json of ea
 
 The logo and the banner of WordPress.org are drawn by `tools/brand/build.js`: the octopus and the arms it wraps in
 front of the picture come from the pixel grids of `tools/brand/sprites/`, one letter per colour, and the script draws
-the rest, the animation and the texts of the banner, in Unbounded. It writes the still PNGs and the floating GIFs of
-`assets/images/`, at 128 and 256 px, and the banners, at 772x250 and 1544x500.
+the rest, the animation and the texts of the banner, in Unbounded. It writes the still PNGs and the floating GIFs, at
+128 and 256 px, in `assets/images/` for the plugin and in `.wordpress-org/`, and the banners, at 772x250 and
+1544x500. `.wordpress-org/` holds the assets of the page of OIO on WordPress.org, as the `assets/` folder of its SVN:
+the icons, the banners and the screenshots.
 
 ```bash
 bun run brand
