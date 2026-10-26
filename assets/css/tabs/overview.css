@@ -40,6 +40,27 @@
 		color: transparent;
 	}
 
+	/* Rolling up from 0 (Savings.js), the size stays, invisible without its gradient, to hold its place in any font,
+	   and its data-value shows over it, at its end: the text after it stays still. */
+	& .octopus-savings__rolling {
+		position: relative;
+		background: none;
+
+		&::before {
+			content: attr(data-value);
+			content: attr(data-value) / "";
+			position: absolute;
+			inset-block-start: 0;
+			inset-inline-end: 0;
+			/* As high as the box of the size, its text on the same baseline. */
+			line-height: normal;
+			white-space: nowrap;
+			background: var(--octopus-gradient);
+			-webkit-background-clip: text;
+			background-clip: text;
+		}
+	}
+
 	@media (max-width: 782px) {
 		font-size: 26px;
 	}

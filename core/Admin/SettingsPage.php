@@ -81,6 +81,7 @@ class SettingsPage
 	const SCRIPTS = [
 		'utils/Api',
 		'utils/Confetti',
+		'utils/Roll',
 		'views/Screen',
 		'components/Component',
 		'components/Tabs',
@@ -387,6 +388,18 @@ class SettingsPage
 						$this->printf_html(__('%s saved', 'octopus-image-optimizer'), '<span class="js-octopus-savings-value" data-savings="saved">' . esc_html($savings['saved']) . '</span>');
 						?>
 					</p>
+					<?php
+					// Before the page paints, shows 0 over the size: it rolls up the first time the overview shows (Savings.js).
+					wp_print_inline_script_tag(
+						"(() => {
+							const saved = document.currentScript.previousElementSibling.querySelector('.js-octopus-savings-value');
+							if (!matchMedia('(prefers-reduced-motion: reduce)').matches) {
+								saved.dataset.value = saved.textContent.replace(/\d(?:[\d.,\s]*\d)?/, (number) => (/[.,]\d$/.test(number) ? '0' + number.at(-2) + '0' : '0'));
+								saved.classList.add('octopus-savings__rolling');
+							}
+						})();"
+					);
+					?>
 					<p class="octopus-savings__detail">
 						<?php
 						/* translators: %s: a reduction, e.g. −48 %. */
