@@ -12,7 +12,6 @@
  * Requires PHP:    8.2
  * License:         GPLv3 or later
  * License URI:     https://www.gnu.org/licenses/gpl-3.0.html
- * Update URI:      https://github.com/Striffly/octopus-image-optimizer
  *
  * @package         OIO
  * @repo            https://github.com/Striffly/octopus-image-optimizer
