@@ -11,13 +11,13 @@
  *
  */
 
-namespace OIO\Tests\Integration;
+namespace Octopus\Tests\Integration;
 
 use Exception;
-use OIO\Package\Cleaner;
-use OIO\Package\Lock;
-use OIO\Package\Optimiser;
-use OIO\Tests\TestCase;
+use Octopus\Package\Cleaner;
+use Octopus\Package\Lock;
+use Octopus\Package\Optimiser;
+use Octopus\Tests\TestCase;
 
 class LockTest extends TestCase
 {

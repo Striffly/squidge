@@ -1,9 +1,9 @@
 # Runs OIO on a Windows server: WordPress on SQLite (no MySQL), cwebp,
-# avifenc and oxipng from their official Windows builds, then `wp oio
-# run` and `wp oio restore` on a few images.
+# avifenc and oxipng from their official Windows builds, then `wp octopus
+# run` and `wp octopus restore` on a few images.
 #
 # jpegoptim has no reliable official Windows build: it is not
-# installed, `wp oio health` reports it missing and the JPG files are
+# installed, `wp octopus health` reports it missing and the JPG files are
 # not compressed. The job checks the WebP and AVIF files, that the PNG
 # files are compressed, and that the JPG and PNG files come out of the
 # restore as they were imported.
@@ -134,7 +134,7 @@ jobs:
           wp core install --url=http://localhost --title=OIO --admin_user=admin --admin_password=admin --admin_email=admin@example.com --skip-email
           wp plugin activate sqlite-database-integration
 
-      # OIO is activated after the import, so that `wp oio run` does the
+      # OIO is activated after the import, so that `wp octopus run` does the
       # work, not the upload.
       - name: Install OIO and import images
         working-directory: wordpress
@@ -149,7 +149,7 @@ jobs:
         working-directory: wordpress
         run: |
           $PSNativeCommandUseErrorActionPreference = $true
-          $health = wp oio health | Out-String
+          $health = wp octopus health | Out-String
           $health
           foreach ($library in 'cwebp', 'avifenc', 'oxipng') {
             if ($health -notmatch "$library active") { throw "OIO does not find $library." }
@@ -162,7 +162,7 @@ jobs:
           $uploads = (Resolve-Path wp-content\uploads).Path
           function Get-Images {
             Get-ChildItem $uploads -Recurse -File -Include *.jpg, *.jpeg, *.png |
-              Where-Object { $_.FullName -notlike '*\oio-originals\*' }
+              Where-Object { $_.FullName -notlike '*\octopus-originals\*' }
           }
           function Get-Formats {
             Get-ChildItem $uploads -Recurse -File -Include *.webp, *.avif
@@ -173,11 +173,11 @@ jobs:
           $hashes = @{}
           foreach ($image in $images) { $hashes[$image.FullName] = (Get-FileHash $image.FullName).Hash }
 
-          wp oio run
+          wp octopus run
           # A WebP or AVIF file heavier than the image, or an AVIF heavier than
-          # its WebP, is deleted by OIO and listed in the _oio_heavier meta.
+          # its WebP, is deleted by OIO and listed in the _octopus_heavier meta.
           $list = Join-Path $env:RUNNER_TEMP 'heavier.php'
-          Set-Content $list '<?php foreach (get_posts(["post_type" => "attachment", "fields" => "ids", "numberposts" => -1]) as $id) { foreach (OIO\Package\Optimiser::heavier($id) as $file) { echo $file, PHP_EOL; } }'
+          Set-Content $list '<?php foreach (get_posts(["post_type" => "attachment", "fields" => "ids", "numberposts" => -1]) as $id) { foreach (Octopus\Package\Optimiser::heavier($id) as $file) { echo $file, PHP_EOL; } }'
           $heavier = @(wp eval-file $list)
           $missing = foreach ($image in $images) {
             foreach ($extension in '.webp', '.avif') {
@@ -195,7 +195,7 @@ jobs:
           if ($same) { throw "Not compressed by oxipng:`n$($same -join "`n")" }
           Write-Output "$($pngs.Count) PNG files compressed by oxipng."
 
-          wp oio restore
+          wp octopus restore
           $left = Get-Formats
           if ($left) { throw "Not removed by the restore:`n$($left.FullName -join "`n")" }
           $changed = foreach ($image in $images) {

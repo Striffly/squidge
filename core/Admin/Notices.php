@@ -15,10 +15,10 @@
  *
  */
 
-namespace OIO\Admin;
+namespace Octopus\Admin;
 
-use OIO\Log\Errors;
-use OIO\Package\Optimiser;
+use Octopus\Log\Errors;
+use Octopus\Package\Optimiser;
 
 if (!defined('ABSPATH')) {
 	exit; // Exit if accessed directly
@@ -31,7 +31,7 @@ class Notices
 	 *
 	 * @var string
 	 */
-	const NONCE = 'oio_dismiss_errors';
+	const NONCE = 'octopus_dismiss_errors';
 
 	/**
 	 * Screens where the notice is shown: media library,
@@ -120,7 +120,7 @@ class Notices
 			return;
 		}
 		?>
-		<div class="notice notice-warning is-dismissible oio-errors-notice">
+		<div class="notice notice-warning is-dismissible octopus-errors-notice">
 			<p><strong>Octopus Image Optimizer</strong> could not fully optimise some images:</p>
 			<ul>
 				<?php foreach ($this->items_html($errors) as $html) : ?>
@@ -158,7 +158,7 @@ class Notices
 		$items = [];
 		foreach ($groups as $group) {
 			$items[] = sprintf(
-				'%s &mdash; %s failed: %s <details class="oio-error-details"><summary>Technical details</summary><code>%s</code></details>',
+				'%s &mdash; %s failed: %s <details class="octopus-error-details"><summary>Technical details</summary><code>%s</code></details>',
 				$this->image_html($group['id'], $group['file']),
 				esc_html(implode(' and ', $group['actions'])),
 				esc_html($group['reason']),
@@ -219,12 +219,12 @@ class Notices
 		if (!$this->is_notice_screen()) {
 			return;
 		}
-		wp_enqueue_script('oio-media', OIO_URL . 'assets/media.js', ['jquery'], filemtime(OIO_PATH . 'assets/media.js'), true);
-		wp_localize_script('oio-media', 'oioMedia', [
+		wp_enqueue_script('octopus-media', OCTOPUS_URL . 'assets/media.js', ['jquery'], filemtime(OCTOPUS_PATH . 'assets/media.js'), true);
+		wp_localize_script('octopus-media', 'octopusMedia', [
 			'action' => self::NONCE,
 			'nonce' => wp_create_nonce(self::NONCE),
 		]);
-		wp_add_inline_style('wp-admin', '.oio-error-details{display:inline}.oio-error-details summary{display:inline;margin-left:4px;color:#646970;font-size:12px;cursor:pointer}.oio-error-details[open]{display:block}.oio-error-details code{display:block;margin:4px 0 0;font-size:12px}');
+		wp_add_inline_style('wp-admin', '.octopus-error-details{display:inline}.octopus-error-details summary{display:inline;margin-left:4px;color:#646970;font-size:12px;cursor:pointer}.octopus-error-details[open]{display:block}.octopus-error-details code{display:block;margin:4px 0 0;font-size:12px}');
 	}
 
 	/**
@@ -262,7 +262,7 @@ class Notices
 		}
 		$errors = Errors::for_attachment($attachment->ID);
 		if (!empty($errors)) {
-			$response['oioErrors'] = $this->items_html($errors);
+			$response['octopusErrors'] = $this->items_html($errors);
 		}
 		return $response;
 	}

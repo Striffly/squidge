@@ -14,11 +14,11 @@
  *
  */
 
-namespace OIO\Admin;
+namespace Octopus\Admin;
 
-use OIO\Package\Cleaner;
-use OIO\Package\Job;
-use OIO\Package\Status;
+use Octopus\Package\Cleaner;
+use Octopus\Package\Job;
+use Octopus\Package\Status;
 
 if (!defined('ABSPATH')) {
 	exit; // Exit if accessed directly
@@ -31,7 +31,7 @@ class Tools
 	 *
 	 * @var string
 	 */
-	const NONCE = 'oio_job';
+	const NONCE = 'octopus_job';
 
 	/**
 	 * The jobs that can be started: their action, their
@@ -55,9 +55,9 @@ class Tools
 	 */
 	public function __construct()
 	{
-		add_action('wp_ajax_oio_job_start', [$this, 'start']);
-		add_action('wp_ajax_oio_job_status', [$this, 'status']);
-		add_action('wp_ajax_oio_job_control', [$this, 'control']);
+		add_action('wp_ajax_octopus_job_start', [$this, 'start']);
+		add_action('wp_ajax_octopus_job_status', [$this, 'status']);
+		add_action('wp_ajax_octopus_job_control', [$this, 'control']);
 	}
 
 	/**

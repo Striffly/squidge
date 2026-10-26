@@ -13,14 +13,14 @@
  *
  */
 
-namespace OIO\Tests\Integration;
+namespace Octopus\Tests\Integration;
 
-use OIO\Package\Job;
-use OIO\Package\Optimiser;
-use OIO\Package\Service;
-use OIO\Package\Status;
-use OIO\Services\WebP;
-use OIO\Tests\TestCase;
+use Octopus\Package\Job;
+use Octopus\Package\Optimiser;
+use Octopus\Package\Service;
+use Octopus\Package\Status;
+use Octopus\Services\WebP;
+use Octopus\Tests\TestCase;
 use ReflectionMethod;
 use ReflectionProperty;
 
@@ -76,7 +76,7 @@ class JobTest extends TestCase
 	public function test_the_outdated_images_are_optimised_again()
 	{
 		$id = $this->upload('photo.jpg');
-		self::set('oio_webp_quality', 40);
+		self::set('octopus_webp_quality', 40);
 
 		$this->job->start(Job::OPTIMISE, [$id], Job::MODE_OUTDATED);
 		$this->run_job();
@@ -101,7 +101,7 @@ class JobTest extends TestCase
 
 	public function test_the_queue_is_kept_under_the_identifier_of_the_site()
 	{
-		$identifier = is_multisite() ? 'oio_' . get_current_blog_id() . '_job' : 'oio_job';
+		$identifier = is_multisite() ? 'octopus_' . get_current_blog_id() . '_job' : 'octopus_job';
 		$this->assertSame($identifier, self::identifier($this->job));
 
 		$this->job->start(Job::REMOVE_FORMATS, [1, 2]);
@@ -121,7 +121,7 @@ class JobTest extends TestCase
 		$job = new Job();
 		restore_current_blog();
 
-		$this->assertSame('oio_' . $site . '_job', self::identifier($job));
+		$this->assertSame('octopus_' . $site . '_job', self::identifier($job));
 	}
 
 	/**

@@ -23,11 +23,11 @@ if (!defined('ABSPATH')) {
 }
 
 // The version of OIO, set by npm run release with the header above.
-define('OIO_VERSION', '0.1.4');
+define('OCTOPUS_VERSION', '0.1.4');
 
-// Autoload OIO classes (OIO\Foo\Bar => core/Foo/Bar.php).
+// Autoload OIO classes (Octopus\Foo\Bar => core/Foo/Bar.php).
 spl_autoload_register(function ($class) {
-	$prefix = 'OIO\\';
+	$prefix = 'Octopus\\';
 	if (strpos($class, $prefix) !== 0) {
 		return;
 	}
@@ -47,10 +47,10 @@ if (file_exists(__DIR__ . '/vendor-prefixed/autoload.php')) {
 }
 
 // Boot OIO (Once).
-OIO\OIO::boot();
+Octopus\Plugin::boot();
 
-register_activation_hook(__FILE__, ['OIO\\Lifecycle', 'activate']);
-register_deactivation_hook(__FILE__, ['OIO\\Lifecycle', 'deactivate']);
+register_activation_hook(__FILE__, ['Octopus\\Lifecycle', 'activate']);
+register_deactivation_hook(__FILE__, ['Octopus\\Lifecycle', 'deactivate']);
 
 // Require CLI.
 if (file_exists(__DIR__ . '/cli/Commands.php')) {
@@ -62,7 +62,7 @@ if (file_exists(__DIR__ . '/functions/functions.php')) {
 	require(__DIR__ . '/functions/functions.php');
 }
 
-if (!function_exists('oio_add_settings_link')) {
+if (!function_exists('octopus_add_settings_link')) {
 
 	/**
 	 * Add Settings Link.
@@ -72,12 +72,12 @@ if (!function_exists('oio_add_settings_link')) {
 	 * @since 0.1.0
 	 * @date 24/11/2021
 	 */
-	function oio_add_settings_link($links)
+	function octopus_add_settings_link($links)
 	{
 		$links[] = '<a href="' .
-			OIO\Admin\Fields::page_url() .
+			Octopus\Admin\Fields::page_url() .
 			'">' . __('Settings') . '</a>';
 		return $links;
 	}
-	add_filter('plugin_action_links_' . plugin_basename(__FILE__), 'oio_add_settings_link');
+	add_filter('plugin_action_links_' . plugin_basename(__FILE__), 'octopus_add_settings_link');
 }

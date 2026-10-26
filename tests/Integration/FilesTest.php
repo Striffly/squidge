@@ -13,11 +13,11 @@
  *
  */
 
-namespace OIO\Tests\Integration;
+namespace Octopus\Tests\Integration;
 
-use OIO\Package\Cleaner;
-use OIO\Package\Service;
-use OIO\Tests\TestCase;
+use Octopus\Package\Cleaner;
+use Octopus\Package\Service;
+use Octopus\Tests\TestCase;
 
 class FilesTest extends TestCase
 {
@@ -115,10 +115,10 @@ class FilesTest extends TestCase
 	public function test_the_file_names_reach_the_libraries_as_given()
 	{
 		$this->require_libraries('cwebp', 'avifenc', 'jpegoptim');
-		self::set('oio_avif_quality', 30);
+		self::set('octopus_avif_quality', 30);
 		// WordPress cleans the names of the files uploaded, not of the files
 		// added by other means (FTP, plugins, WP-CLI).
-		$name = "a b;touch oio-pwned;\$(touch oio-pwned)'\"`touch oio-pwned`.jpg";
+		$name = "a b;touch octopus-pwned;\$(touch octopus-pwned)'\"`touch octopus-pwned`.jpg";
 		$file = $this->uploads . '/2026/10/' . $name;
 		copy(self::fixture('photo.jpg'), $file);
 
@@ -130,7 +130,7 @@ class FilesTest extends TestCase
 		$this->assertFileExists($file . '.avif');
 		$this->assertFileEquals(self::fixture('photo.jpg'), Service::backup_path($file));
 		foreach ([getcwd(), $this->uploads, $this->uploads . '/2026/10', ABSPATH] as $dir) {
-			$this->assertFileDoesNotExist($dir . '/oio-pwned');
+			$this->assertFileDoesNotExist($dir . '/octopus-pwned');
 		}
 	}
 
@@ -138,7 +138,7 @@ class FilesTest extends TestCase
 	{
 		$this->require_libraries('jpegoptim');
 		$originals = $this->outside . '/originals';
-		add_filter('oio_backup_dir', function () use ($originals) {
+		add_filter('octopus_backup_dir', function () use ($originals) {
 			return $originals;
 		});
 
@@ -162,7 +162,7 @@ class FilesTest extends TestCase
 		$compressed = md5_file($main);
 
 		// The folder of the originals moved, and the filter was forgotten.
-		add_filter('oio_backup_dir', function () {
+		add_filter('octopus_backup_dir', function () {
 			return $this->outside . '/elsewhere';
 		});
 

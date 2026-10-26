@@ -16,13 +16,13 @@
  *
  */
 
-namespace OIO\Services;
+namespace Octopus\Services;
 
-use OIO\Log\Logger;
-use OIO\Package\Convertor;
-use OIO\Package\Optimiser;
-use OIO\Package\Service;
-use OIO\Types\Mimes;
+use Octopus\Log\Logger;
+use Octopus\Package\Convertor;
+use Octopus\Package\Optimiser;
+use Octopus\Package\Service;
+use Octopus\Types\Mimes;
 
 if (!defined('ABSPATH')) {
 	exit; // Exit if accessed directly
@@ -138,7 +138,7 @@ class PNG extends Service implements Convertor
 			return null;
 		}
 		require_once ABSPATH . 'wp-admin/includes/file.php';
-		$temp = wp_tempnam('oio.png');
+		$temp = wp_tempnam('octopus.png');
 		$range = max(0, $quality - 15) . '-' . $quality;
 		list($code, $output) = self::execute(array_merge(self::nice(), [self::binary('pngquant'), '--quality=' . $range, '--strip', '--skip-if-larger', '--force', '--output', $temp, '--', $original]));
 		clearstatcache();
@@ -204,7 +204,7 @@ class PNG extends Service implements Convertor
 	/**
 	 * Returns the number of threads of oxipng: 4 on
 	 * upload, 2 in background jobs, all in the CLI, as
-	 * avifenc. The oio_oxipng_threads filter sets it
+	 * avifenc. The octopus_oxipng_threads filter sets it
 	 * by context (see Optimiser::$context).
 	 *
 	 * @return string A number, or "all".
@@ -215,7 +215,7 @@ class PNG extends Service implements Convertor
 	{
 		$defaults = ['upload' => 4, 'background' => 2, 'cli' => 'all'];
 		$default = isset($defaults[Optimiser::$context]) ? $defaults[Optimiser::$context] : 4;
-		$threads = apply_filters('oio_oxipng_threads', $default, Optimiser::$context);
+		$threads = apply_filters('octopus_oxipng_threads', $default, Optimiser::$context);
 		return $threads === 'all' ? 'all' : (string)max(1, (int)$threads);
 	}
 

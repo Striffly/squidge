@@ -12,16 +12,16 @@
  *
  */
 
-namespace OIO\Tests\Integration;
+namespace Octopus\Tests\Integration;
 
-use OIO\Log\Errors;
-use OIO\Package\Service;
-use OIO\Package\Status;
-use OIO\Services\AVIF;
-use OIO\Services\JPG;
-use OIO\Services\PNG;
-use OIO\Services\WebP;
-use OIO\Tests\TestCase;
+use Octopus\Log\Errors;
+use Octopus\Package\Service;
+use Octopus\Package\Status;
+use Octopus\Services\AVIF;
+use Octopus\Services\JPG;
+use Octopus\Services\PNG;
+use Octopus\Services\WebP;
+use Octopus\Tests\TestCase;
 
 class LibrariesTest extends TestCase
 {
@@ -57,7 +57,7 @@ class LibrariesTest extends TestCase
 		copy($cwebp, $copy);
 		chmod($copy, 0755);
 		self::hide_libraries('cwebp');
-		add_filter('oio_binary_path', function ($path, $name) use ($copy) {
+		add_filter('octopus_binary_path', function ($path, $name) use ($copy) {
 			return $name === 'cwebp' ? $copy : $path;
 		}, 20, 2);
 		self::forget_libraries();
@@ -125,7 +125,7 @@ class LibrariesTest extends TestCase
 	{
 		$this->require_editor('image/avif');
 		self::hide_libraries('avifenc');
-		self::set('oio_avif_quality', 30);
+		self::set('octopus_avif_quality', 30);
 
 		$this->assertContains(AVIF::engine(), ['GD', 'Imagick']);
 		$id = $this->upload('photo.jpg');
@@ -156,7 +156,7 @@ class LibrariesTest extends TestCase
 		wp_mkdir_p(dirname($fake));
 		file_put_contents($fake, "#!/bin/sh\n" . $script . "\n");
 		chmod($fake, 0755);
-		add_filter('oio_binary_path', function ($path, $library) use ($name, $fake) {
+		add_filter('octopus_binary_path', function ($path, $library) use ($name, $fake) {
 			return $library === $name ? $fake : $path;
 		}, 10, 2);
 		self::forget_libraries();

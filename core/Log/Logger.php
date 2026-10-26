@@ -14,7 +14,7 @@
  *
  */
 
-namespace OIO\Log;
+namespace Octopus\Log;
 
 if (!defined('ABSPATH')) {
 	exit; // Exit if accessed directly

@@ -14,11 +14,11 @@
  *
  */
 
-namespace OIO;
+namespace Octopus;
 
-use OIO\Admin\Delivery;
-use OIO\Package\Job;
-use OIO\Package\Lock;
+use Octopus\Admin\Delivery;
+use Octopus\Package\Job;
+use Octopus\Package\Lock;
 
 if (!defined('ABSPATH')) {
 	exit; // Exit if accessed directly
@@ -57,7 +57,7 @@ class Lifecycle
 		self::each_site($network_wide, function () {
 			global $wpdb;
 			// The job of each site, see Job::__construct().
-			if (class_exists('OIO_Vendor_WP_Background_Process')) {
+			if (class_exists('Octopus_Vendor_WP_Background_Process')) {
 				(new Job())->stop();
 			}
 			$wpdb->query($wpdb->prepare("DELETE FROM {$wpdb->options} WHERE option_name LIKE %s", $wpdb->esc_like(Lock::PREFIX) . '%'));

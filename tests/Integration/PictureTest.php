@@ -12,10 +12,10 @@
  *
  */
 
-namespace OIO\Tests\Integration;
+namespace Octopus\Tests\Integration;
 
-use OIO\Package\Picture;
-use OIO\Tests\TestCase;
+use Octopus\Package\Picture;
+use Octopus\Tests\TestCase;
 
 class PictureTest extends TestCase
 {
@@ -46,10 +46,10 @@ class PictureTest extends TestCase
 		$html = Picture::render($this->img());
 
 		$this->assertSame(
-			'<picture class="oio-picture">'
+			'<picture class="octopus-picture">'
 			. '<source type="image/avif" srcset="' . $this->url . '/2026/10/photo.jpg.avif 640w, ' . $this->url . '/2026/10/photo-300x200.jpg 300w" sizes="(max-width: 640px) 100vw, 640px">'
 			. '<source type="image/webp" srcset="' . $this->url . '/2026/10/photo.jpg.webp 640w, ' . $this->url . '/2026/10/photo-300x200.jpg.webp 300w" sizes="(max-width: 640px) 100vw, 640px">'
-			. '<img data-oio src="' . $this->url . '/2026/10/photo.jpg" srcset="' . $this->url . '/2026/10/photo.jpg 640w, ' . $this->url . '/2026/10/photo-300x200.jpg 300w" sizes="(max-width: 640px) 100vw, 640px" alt="A photo">'
+			. '<img data-octopus src="' . $this->url . '/2026/10/photo.jpg" srcset="' . $this->url . '/2026/10/photo.jpg 640w, ' . $this->url . '/2026/10/photo-300x200.jpg 300w" sizes="(max-width: 640px) 100vw, 640px" alt="A photo">'
 			. '</picture>',
 			$html
 		);
@@ -66,7 +66,7 @@ class PictureTest extends TestCase
 	{
 		$html = Picture::render('<figure>' . $this->img() . '<figcaption>Caption</figcaption></figure>');
 
-		$this->assertStringStartsWith('<figure><picture class="oio-picture"><source', $html);
+		$this->assertStringStartsWith('<figure><picture class="octopus-picture"><source', $html);
 		$this->assertStringEndsWith('</picture><figcaption>Caption</figcaption></figure>', $html);
 	}
 
@@ -75,8 +75,8 @@ class PictureTest extends TestCase
 		$img = '<img src="' . $this->url . '/2026/10/other.jpg" alt="">';
 
 		// Marked as done, so that it is not looked up again.
-		$this->assertSame('<img data-oio src="' . $this->url . '/2026/10/other.jpg" alt="">', Picture::render($img));
-		$this->assertSame('<picture class="oio-picture hero"><img data-oio src="' . $this->url . '/2026/10/other.jpg" alt=""></picture>', Picture::render($img, 'hero'), 'Unless the <picture> is asked for, with its class.');
+		$this->assertSame('<img data-octopus src="' . $this->url . '/2026/10/other.jpg" alt="">', Picture::render($img));
+		$this->assertSame('<picture class="octopus-picture hero"><img data-octopus src="' . $this->url . '/2026/10/other.jpg" alt=""></picture>', Picture::render($img, 'hero'), 'Unless the <picture> is asked for, with its class.');
 	}
 
 	public function test_the_images_out_of_the_uploads_folder_are_left_alone()
@@ -107,28 +107,28 @@ class PictureTest extends TestCase
 		$this->assertStringNotContainsString('<picture', wp_get_attachment_image($id, 'full'));
 		$this->assertStringNotContainsString('<picture', apply_filters('the_content', $this->img()));
 
-		self::set('oio_display_formats', true);
-		$this->assertStringStartsWith('<picture class="oio-picture">', wp_get_attachment_image($id, 'full'));
-		$this->assertStringContainsString('<picture class="oio-picture">', apply_filters('the_content', '<p>' . $this->img(' class="wp-image-' . $id . '"') . '</p>'));
+		self::set('octopus_display_formats', true);
+		$this->assertStringStartsWith('<picture class="octopus-picture">', wp_get_attachment_image($id, 'full'));
+		$this->assertStringContainsString('<picture class="octopus-picture">', apply_filters('the_content', '<p>' . $this->img(' class="wp-image-' . $id . '"') . '</p>'));
 	}
 
 	public function test_the_images_of_the_admin_are_not_wrapped()
 	{
 		$id = $this->attachment();
-		self::set('oio_display_formats', true);
+		self::set('octopus_display_formats', true);
 		set_current_screen('upload');
 
 		$this->assertStringNotContainsString('<picture', wp_get_attachment_image($id, 'full'));
 	}
 
-	public function test_oio_image_always_offers_the_versions()
+	public function test_octopus_image_always_offers_the_versions()
 	{
 		$id = $this->attachment();
 
-		$html = oio_image($id, 'hero');
-		$this->assertStringStartsWith('<picture class="oio-picture hero"><source type="image/avif"', $html);
+		$html = octopus_image($id, 'hero');
+		$this->assertStringStartsWith('<picture class="octopus-picture hero"><source type="image/avif"', $html);
 
-		$lazy = oio_image($id, '', true);
+		$lazy = octopus_image($id, '', true);
 		$this->assertStringContainsString(' data-srcset="', $lazy);
 		$this->assertStringContainsString(' data-src="', $lazy);
 		$this->assertDoesNotMatchRegularExpression('/\s(src|srcset)=/', $lazy);

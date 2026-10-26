@@ -15,10 +15,10 @@
  *
  */
 
-namespace OIO\Admin;
+namespace Octopus\Admin;
 
-use OIO\Package\Optimiser;
-use OIO\Package\Service;
+use Octopus\Package\Optimiser;
+use Octopus\Package\Service;
 
 if (!defined('ABSPATH')) {
 	exit; // Exit if accessed directly
@@ -54,7 +54,7 @@ class Upload
 	 */
 	public function threshold()
 	{
-		$size = (int)Fields::get('oio_max_size');
+		$size = (int)Fields::get('octopus_max_size');
 		return $size > 0 ? $size : false;
 	}
 

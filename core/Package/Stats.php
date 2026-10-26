@@ -14,12 +14,12 @@
  *
  */
 
-namespace OIO\Package;
+namespace Octopus\Package;
 
-use OIO\Admin\Delivery;
-use OIO\Admin\Fields;
-use OIO\Services\AVIF;
-use OIO\Services\WebP;
+use Octopus\Admin\Delivery;
+use Octopus\Admin\Fields;
+use Octopus\Services\AVIF;
+use Octopus\Services\WebP;
 
 if (!defined('ABSPATH')) {
 	exit; // Exit if accessed directly
@@ -43,10 +43,10 @@ class Stats
 	 * @var array
 	 */
 	const KEYS = [
-		'original' => '_oio_bytes_original',
-		'compressed' => '_oio_bytes_compressed',
-		'modern' => '_oio_bytes_modern',
-		'extra' => '_oio_bytes_extra',
+		'original' => '_octopus_bytes_original',
+		'compressed' => '_octopus_bytes_compressed',
+		'modern' => '_octopus_bytes_modern',
+		'extra' => '_octopus_bytes_extra',
 	];
 
 	/**
@@ -222,7 +222,7 @@ class Stats
 	 */
 	public static function served()
 	{
-		return Fields::get('oio_display_formats') || Fields::get(Delivery::OPTION) ? 'modern' : 'compressed';
+		return Fields::get('octopus_display_formats') || Fields::get(Delivery::OPTION) ? 'modern' : 'compressed';
 	}
 
 	/**

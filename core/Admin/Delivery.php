@@ -18,11 +18,11 @@
  *
  */
 
-namespace OIO\Admin;
+namespace Octopus\Admin;
 
-use OIO\Package\Service;
-use OIO\Services\AVIF;
-use OIO\Services\WebP;
+use Octopus\Package\Service;
+use Octopus\Services\AVIF;
+use Octopus\Services\WebP;
 
 if (!defined('ABSPATH')) {
 	exit; // Exit if accessed directly
@@ -36,21 +36,21 @@ class Delivery
 	 *
 	 * @var string
 	 */
-	const OPTION = 'oio_rewrite_rules';
+	const OPTION = 'octopus_rewrite_rules';
 
 	/**
 	 * Marker of the rules in uploads/.htaccess.
 	 *
 	 * @var string
 	 */
-	const MARKER = 'OIO';
+	const MARKER = 'Octopus Image Optimizer';
 
 	/**
 	 * AJAX action of the test.
 	 *
 	 * @var string
 	 */
-	const TEST = 'oio_delivery_test';
+	const TEST = 'octopus_delivery_test';
 
 	/**
 	 * Writes or removes the rules when the option
@@ -119,10 +119,10 @@ class Delivery
 			'	RewriteEngine On',
 			'	RewriteCond %{HTTP_ACCEPT} image/avif',
 			'	RewriteCond %{REQUEST_FILENAME}.avif -f',
-			'	RewriteRule ^(.+)\.(jpe?g|png)$ $1.$2.avif [NC,T=image/avif,E=oio_accept:1,L]',
+			'	RewriteRule ^(.+)\.(jpe?g|png)$ $1.$2.avif [NC,T=image/avif,E=octopus_accept:1,L]',
 			'	RewriteCond %{HTTP_ACCEPT} image/webp',
 			'	RewriteCond %{REQUEST_FILENAME}.webp -f',
-			'	RewriteRule ^(.+)\.(jpe?g|png)$ $1.$2.webp [NC,T=image/webp,E=oio_accept:1,L]',
+			'	RewriteRule ^(.+)\.(jpe?g|png)$ $1.$2.webp [NC,T=image/webp,E=octopus_accept:1,L]',
 			'</IfModule>',
 			'<IfModule mod_headers.c>',
 			'	<FilesMatch "\.(jpe?g|png|webp|avif)$">',
@@ -145,7 +145,7 @@ class Delivery
 	{
 		$uploads = wp_parse_url(wp_get_upload_dir()['baseurl'], PHP_URL_PATH);
 		return "# In the http block (e.g. at the top of the site's file):\n"
-			. "map \$http_accept \$oio_suffix {\n"
+			. "map \$http_accept \$octopus_suffix {\n"
 			. "\tdefault \"\";\n"
 			. "\t\"~image/avif\" \".avif\";\n"
 			. "\t\"~image/webp\" \".webp\";\n"
@@ -153,7 +153,7 @@ class Delivery
 			. "# In the server block:\n"
 			. "location ~* ^" . $uploads . "/.+\\.(jpe?g|png)$ {\n"
 			. "\tadd_header Vary Accept;\n"
-			. "\ttry_files \$uri\$oio_suffix \$uri =404;\n"
+			. "\ttry_files \$uri\$octopus_suffix \$uri =404;\n"
 			. "}";
 	}
 
@@ -178,7 +178,7 @@ class Delivery
 		}
 		require_once ABSPATH . 'wp-admin/includes/misc.php';
 		if (!insert_with_markers(self::htaccess(), self::MARKER, self::apache_rules())) {
-			add_settings_error(Fields::PAGE, 'oio_rewrite_rules', 'OIO could not write the rules in uploads/.htaccess: copy them by hand from the Delivery tab.');
+			add_settings_error(Fields::PAGE, 'octopus_rewrite_rules', 'OIO could not write the rules in uploads/.htaccess: copy them by hand from the Delivery tab.');
 		}
 	}
 
@@ -322,7 +322,7 @@ class Delivery
 			'state' => $public ? 'fail' : 'ok',
 			'label' => $label,
 			'detail' => self::describe($response),
-			'advice' => $public ? 'Anyone can download them, with their metadata (GPS position of the photos). nginx: add <code>location ^~ ' . esc_html(wp_parse_url($uploads['baseurl'], PHP_URL_PATH)) . '/' . esc_html(Service::BACKUP_DIR) . '/ { deny all; }</code> to the server block, or move them with the <code>oio_backup_dir</code> filter.' : '',
+			'advice' => $public ? 'Anyone can download them, with their metadata (GPS position of the photos). nginx: add <code>location ^~ ' . esc_html(wp_parse_url($uploads['baseurl'], PHP_URL_PATH)) . '/' . esc_html(Service::BACKUP_DIR) . '/ { deny all; }</code> to the server block, or move them with the <code>octopus_backup_dir</code> filter.' : '',
 		];
 	}
 

@@ -9,7 +9,7 @@
  *
  * The files are kept: the compressed images, their WebP
  * and AVIF versions, and the originals in
- * uploads/oio-originals/. A request may time out
+ * uploads/octopus-originals/. A request may time out
  * before thousands of images are restored: use
  * "Restore original images" before deleting OIO.
  *
@@ -27,37 +27,37 @@ if (!defined('WP_UNINSTALL_PLUGIN')) {
 global $wpdb;
 
 /*
- * The names of OIO only: a pattern as wide as oio_% would also delete the
+ * The names of OIO only: a pattern as wide as octopus_% would also delete the
  * options of another plugin using this prefix.
  */
 
 // Recent errors, progress of the background job, cached theme scan and versions of the
 // libraries, locks of the images.
-$options = ['oio_errors', 'oio_job', 'oio_theme_calls', 'oio_versions'];
-$option_prefixes = ['oio_lock_'];
+$options = ['octopus_errors', 'octopus_job', 'octopus_theme_calls', 'octopus_versions'];
+$option_prefixes = ['octopus_lock_'];
 // The settings, by name: _ and the name of each field of Fields::sections(), as
 // WordPress does not load OIO here. A prefix would delete the options of another
-// plugin starting with _oio_.
+// plugin starting with _octopus_.
 $settings = [
-	'oio_jpg_enable',
-	'oio_jpg_quality',
-	'oio_png_enable',
-	'oio_png_quality',
-	'oio_png_lossy',
-	'oio_png_lossy_quality',
-	'oio_webp_enable',
-	'oio_webp_quality',
-	'oio_avif_enable',
-	'oio_avif_quality',
-	'oio_display_formats',
-	'oio_rewrite_rules',
-	'oio_max_size',
+	'octopus_jpg_enable',
+	'octopus_jpg_quality',
+	'octopus_png_enable',
+	'octopus_png_quality',
+	'octopus_png_lossy',
+	'octopus_png_lossy_quality',
+	'octopus_webp_enable',
+	'octopus_webp_quality',
+	'octopus_avif_enable',
+	'octopus_avif_quality',
+	'octopus_display_formats',
+	'octopus_rewrite_rules',
+	'octopus_max_size',
 ];
 foreach ($settings as $setting) {
 	$options[] = '_' . $setting;
 }
 // The background job library keeps its queue, status and lock in the site options,
-// under the identifier of the job: oio_job, or oio_2_job on the site 2 of a network.
+// under the identifier of the job: octopus_job, or octopus_2_job on the site 2 of a network.
 $site_options = [];
 $site_option_prefixes = [];
 $add_job = function ($identifier) use (&$site_options, &$site_option_prefixes) {
@@ -79,12 +79,12 @@ $clean_site = function () use ($wpdb, $options, $option_prefixes) {
 		$wpdb->query($wpdb->prepare("DELETE FROM {$wpdb->options} WHERE option_name LIKE %s", $wpdb->esc_like($prefix) . '%'));
 	}
 	// Meta of the attachments: settings used, files made, errors, sizes.
-	$wpdb->query($wpdb->prepare("DELETE FROM {$wpdb->postmeta} WHERE meta_key LIKE %s", $wpdb->esc_like('_oio_') . '%'));
+	$wpdb->query($wpdb->prepare("DELETE FROM {$wpdb->postmeta} WHERE meta_key LIKE %s", $wpdb->esc_like('_octopus_') . '%'));
 	// The rewrite rules of the delivery, in uploads/.htaccess, go with OIO.
 	$htaccess = wp_get_upload_dir()['basedir'] . DIRECTORY_SEPARATOR . '.htaccess';
 	if (is_file($htaccess) && is_writable($htaccess)) {
 		// As Delivery::remove_rules(): the block and its markers, the file if it held only them.
-		$cleaned = preg_replace('/\n*# BEGIN OIO\n.*?# END OIO\n?/s', "\n", (string)file_get_contents($htaccess), -1, $count);
+		$cleaned = preg_replace('/\n*# BEGIN Octopus Image Optimizer\n.*?# END Octopus Image Optimizer\n?/s', "\n", (string)file_get_contents($htaccess), -1, $count);
 		if ($count && trim($cleaned) === '') {
 			unlink($htaccess);
 		} elseif ($count) {
@@ -97,14 +97,14 @@ if (is_multisite()) {
 	foreach (get_sites(['fields' => 'ids', 'number' => 0]) as $site_id) {
 		switch_to_blog($site_id);
 		$clean_site();
-		$add_job('oio_' . $site_id . '_job');
+		$add_job('octopus_' . $site_id . '_job');
 		restore_current_blog();
 	}
 	$table = $wpdb->sitemeta;
 	$column = 'meta_key';
 } else {
 	$clean_site();
-	$add_job('oio_job');
+	$add_job('octopus_job');
 	$table = $wpdb->options;
 	$column = 'option_name';
 }

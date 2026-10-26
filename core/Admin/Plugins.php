@@ -6,7 +6,7 @@
  * Plugins warns on the plugins page before OIO
  * is deactivated: deleting it then does not restore
  * the originals, and the theme may call
- * oio_image(). WordPress only shows "Delete" for
+ * octopus_image(). WordPress only shows "Delete" for
  * inactive plugins, when OIO no longer runs.
  *
  * @package     OIO
@@ -16,10 +16,10 @@
  *
  */
 
-namespace OIO\Admin;
+namespace Octopus\Admin;
 
-use OIO\Package\Cleaner;
-use OIO\Package\Service;
+use Octopus\Package\Cleaner;
+use Octopus\Package\Service;
 
 if (!defined('ABSPATH')) {
 	exit; // Exit if accessed directly
@@ -32,14 +32,14 @@ class Plugins
 	 *
 	 * @var string
 	 */
-	const NONCE = 'oio_uninstall_info';
+	const NONCE = 'octopus_uninstall_info';
 
 	/**
 	 * Transient caching the theme files scan.
 	 *
 	 * @var string
 	 */
-	const THEME_TRANSIENT = 'oio_theme_calls';
+	const THEME_TRANSIENT = 'octopus_theme_calls';
 
 	/**
 	 * Adds the script of the plugins page and its request.
@@ -66,15 +66,15 @@ class Plugins
 		if ($hook !== 'plugins.php' || !current_user_can('activate_plugins')) {
 			return;
 		}
-		wp_enqueue_script('oio-plugins', OIO_URL . 'assets/plugins.js', [], filemtime(OIO_PATH . 'assets/plugins.js'), true);
-		wp_localize_script('oio-plugins', 'oioPlugins', [
-			'plugin' => plugin_basename(OIO_PATH . 'octopus-image-optimizer.php'),
+		wp_enqueue_script('octopus-plugins', OCTOPUS_URL . 'assets/plugins.js', [], filemtime(OCTOPUS_PATH . 'assets/plugins.js'), true);
+		wp_localize_script('octopus-plugins', 'octopusPlugins', [
+			'plugin' => plugin_basename(OCTOPUS_PATH . 'octopus-image-optimizer.php'),
 			'ajaxurl' => admin_url('admin-ajax.php'),
 			'nonce' => wp_create_nonce(self::NONCE),
 			'restoreUrl' => Fields::page_url() . '#overview',
 			'themeCalls' => $this->theme_calls(),
 		]);
-		wp_add_inline_style('wp-admin', '.oio-dialog{max-width:520px;padding:24px;border:0;border-radius:8px;box-shadow:0 10px 40px rgba(0,0,0,.25)}.oio-dialog::backdrop{background:rgba(0,0,0,.4)}.oio-dialog h2{margin-top:0}.oio-dialog__actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:20px}');
+		wp_add_inline_style('wp-admin', '.octopus-dialog{max-width:520px;padding:24px;border:0;border-radius:8px;box-shadow:0 10px 40px rgba(0,0,0,.25)}.octopus-dialog::backdrop{background:rgba(0,0,0,.4)}.octopus-dialog h2{margin-top:0}.octopus-dialog__actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:20px}');
 	}
 
 	/**
@@ -118,7 +118,7 @@ class Plugins
 
 	/**
 	 * Determines if the active theme, or its parent,
-	 * calls oio_image(): the pages using it break
+	 * calls octopus_image(): the pages using it break
 	 * while OIO is deactivated. Cached for 12 hours.
 	 *
 	 * @return bool
@@ -144,7 +144,7 @@ class Plugins
 
 	/**
 	 * Determines if a PHP or Blade file of a folder
-	 * calls oio_image(), outside the dependencies.
+	 * calls octopus_image(), outside the dependencies.
 	 *
 	 * @param string $dir
 	 * @return bool
@@ -163,7 +163,7 @@ class Plugins
 			}
 		);
 		foreach (new \RecursiveIteratorIterator($directories) as $file) {
-			if ($file->getExtension() === 'php' && strpos(file_get_contents($file->getPathname()), 'oio_image(') !== false) {
+			if ($file->getExtension() === 'php' && strpos(file_get_contents($file->getPathname()), 'octopus_image(') !== false) {
 				return true;
 			}
 		}

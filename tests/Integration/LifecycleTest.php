@@ -12,17 +12,17 @@
  *
  */
 
-namespace OIO\Tests\Integration;
+namespace Octopus\Tests\Integration;
 
-use OIO\Admin\Delivery;
-use OIO\Lifecycle;
-use OIO\Package\Job;
-use OIO\Package\Lock;
-use OIO\Tests\TestCase;
+use Octopus\Admin\Delivery;
+use Octopus\Lifecycle;
+use Octopus\Package\Job;
+use Octopus\Package\Lock;
+use Octopus\Tests\TestCase;
 
 class LifecycleTest extends TestCase
 {
-	public function test_deactivating_oio_stops_everything_it_runs()
+	public function test_deactivating_octopus_stops_everything_it_runs()
 	{
 		global $wpdb;
 		$job = $this->running_job();
@@ -51,7 +51,7 @@ class LifecycleTest extends TestCase
 		$this->assertFalse(get_option(Job::PROGRESS)['cancelled']);
 	}
 
-	public function test_activating_oio_writes_its_rules_again()
+	public function test_activating_octopus_writes_its_rules_again()
 	{
 		self::set(Delivery::OPTION, true);
 		Lifecycle::deactivate();
@@ -61,7 +61,7 @@ class LifecycleTest extends TestCase
 		$this->assertTrue(Delivery::rules_written());
 	}
 
-	public function test_deactivating_oio_on_a_network_stops_it_on_every_site()
+	public function test_deactivating_octopus_on_a_network_stops_it_on_every_site()
 	{
 		$this->skipWithoutMultisite();
 		$site = self::factory()->blog->create();

@@ -14,16 +14,16 @@
  *
  */
 
-namespace OIO\Package;
+namespace Octopus\Package;
 
 use Exception;
-use OIO\Admin\Fields;
-use OIO\Log\Errors;
-use OIO\Log\Logger;
-use OIO\Services\AVIF;
-use OIO\Services\JPG;
-use OIO\Services\PNG;
-use OIO\Services\WebP;
+use Octopus\Admin\Fields;
+use Octopus\Log\Errors;
+use Octopus\Log\Logger;
+use Octopus\Services\AVIF;
+use Octopus\Services\JPG;
+use Octopus\Services\PNG;
+use Octopus\Services\WebP;
 
 if (!defined('ABSPATH')) {
 	exit; // Exit if accessed directly
@@ -59,7 +59,7 @@ class Optimiser
 	 * the JPG or PNG, relative to the uploads folder:
 	 * they count as done.
 	 */
-	const HEAVIER_KEY = '_oio_heavier';
+	const HEAVIER_KEY = '_octopus_heavier';
 
 	/**
 	 * Set while WordPress regenerates the thumbnails of
@@ -74,8 +74,8 @@ class Optimiser
 	 * Where the images are optimised: "upload" during a
 	 * request of the admin (upload, media library
 	 * action), "background" in a background job, "cli"
-	 * in WP-CLI. Passed to the oio_nice, oio_avif_jobs
-	 * and oio_webp_mt filters.
+	 * in WP-CLI. Passed to the octopus_nice, octopus_avif_jobs
+	 * and octopus_webp_mt filters.
 	 *
 	 * @var string
 	 */
@@ -93,17 +93,17 @@ class Optimiser
 	public static function settings($enabled_only = true)
 	{
 		$settings = [
-			'webp' => ['quality' => Fields::get('oio_webp_quality')],
-			'avif' => ['quality' => Fields::get('oio_avif_quality')],
-			'jpg' => ['quality' => Fields::get('oio_jpg_quality')],
+			'webp' => ['quality' => Fields::get('octopus_webp_quality')],
+			'avif' => ['quality' => Fields::get('octopus_avif_quality')],
+			'jpg' => ['quality' => Fields::get('octopus_jpg_quality')],
 			'png' => [
-				'optimization' => Fields::get('oio_png_quality'),
-				'lossy' => Fields::get('oio_png_lossy'),
-				'lossy_quality' => Fields::get('oio_png_lossy_quality'),
+				'optimization' => Fields::get('octopus_png_quality'),
+				'lossy' => Fields::get('octopus_png_lossy'),
+				'lossy_quality' => Fields::get('octopus_png_lossy_quality'),
 			],
 		];
 		foreach (array_keys($settings) as $format) {
-			if ($enabled_only && !Fields::get('oio_' . $format . '_enable')) {
+			if ($enabled_only && !Fields::get('octopus_' . $format . '_enable')) {
 				unset($settings[$format]);
 			}
 		}

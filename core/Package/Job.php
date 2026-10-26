@@ -15,15 +15,15 @@
  *
  */
 
-namespace OIO\Package;
+namespace Octopus\Package;
 
-use OIO_Vendor_WP_Background_Process;
+use Octopus_Vendor_WP_Background_Process;
 
 if (!defined('ABSPATH')) {
 	exit; // Exit if accessed directly
 }
 
-class Job extends OIO_Vendor_WP_Background_Process
+class Job extends Octopus_Vendor_WP_Background_Process
 {
 	/**
 	 * Optimises the images.
@@ -55,12 +55,12 @@ class Job extends OIO_Vendor_WP_Background_Process
 	 *
 	 * @var string
 	 */
-	const PROGRESS = 'oio_job';
+	const PROGRESS = 'octopus_job';
 
 	/**
 	 * @var string
 	 */
-	protected $prefix = 'oio';
+	protected $prefix = 'octopus';
 
 	/**
 	 * @var string
@@ -79,7 +79,7 @@ class Job extends OIO_Vendor_WP_Background_Process
 	 * Sets the prefix of the job: the library keeps
 	 * its queue, status and lock in the site options,
 	 * shared by the sites of a network. Each site has
-	 * its own (oio_2_job), or a job started on a site
+	 * its own (octopus_2_job), or a job started on a site
 	 * would be run on another, with its image IDs.
 	 *
 	 * @since 1.0.0
@@ -88,7 +88,7 @@ class Job extends OIO_Vendor_WP_Background_Process
 	public function __construct()
 	{
 		if (is_multisite()) {
-			$this->prefix = 'oio_' . get_current_blog_id();
+			$this->prefix = 'octopus_' . get_current_blog_id();
 		}
 		parent::__construct();
 	}

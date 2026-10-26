@@ -16,7 +16,7 @@
  *
  */
 
-namespace OIO\Package;
+namespace Octopus\Package;
 
 if (!defined('ABSPATH')) {
 	exit; // Exit if accessed directly
@@ -30,7 +30,7 @@ class Picture
 	 *
 	 * @var string
 	 */
-	const MARKER = 'data-oio';
+	const MARKER = 'data-octopus';
 
 	/**
 	 * Modern formats, best first, as offered to the
@@ -78,7 +78,7 @@ class Picture
 		}
 
 		if ($sources !== '' || $picture_class !== null) {
-			$class = trim('oio-picture ' . $picture_class);
+			$class = trim('octopus-picture ' . $picture_class);
 			$new_img = sprintf('<picture class="%s">%s%s</picture>', esc_attr($class), $sources, $new_img);
 		}
 

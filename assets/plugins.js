@@ -4,11 +4,11 @@
  * Warning of the OIO row of the plugins page,
  * before deactivating OIO: its originals are not
  * restored if it is then deleted, and the theme may
- * call oio_image().
+ * call octopus_image().
  */
 
 (function () {
-	var settings = window.oioPlugins;
+	var settings = window.octopusPlugins;
 	var row = settings && document.querySelector('tr[data-plugin="' + settings.plugin + '"]');
 	if (!row) {
 		return;
@@ -16,10 +16,10 @@
 
 	function dialog(title, html, buttons) {
 		var element = document.createElement('dialog');
-		element.className = 'oio-dialog';
-		element.innerHTML = '<h2></h2><div class="oio-dialog__body"></div><div class="oio-dialog__actions"></div>';
+		element.className = 'octopus-dialog';
+		element.innerHTML = '<h2></h2><div class="octopus-dialog__body"></div><div class="octopus-dialog__actions"></div>';
 		element.querySelector('h2').textContent = title;
-		element.querySelector('.oio-dialog__body').innerHTML = html;
+		element.querySelector('.octopus-dialog__body').innerHTML = html;
 		buttons.forEach(function (button) {
 			var tag = button.href ? 'a' : 'button';
 			var action = document.createElement(tag);
@@ -36,7 +36,7 @@
 					}
 				});
 			}
-			element.querySelector('.oio-dialog__actions').appendChild(action);
+			element.querySelector('.octopus-dialog__actions').appendChild(action);
 		});
 		element.addEventListener('close', function () {
 			element.remove();
@@ -68,7 +68,7 @@
 	// WordPress only shows "Delete" for inactive plugins, when OIO no longer runs:
 	// deactivating is the last moment to warn about the originals.
 	intercept(row.querySelector('.deactivate a'), function (proceed) {
-		var body = new URLSearchParams({action: 'oio_uninstall_info', _ajax_nonce: settings.nonce});
+		var body = new URLSearchParams({action: 'octopus_uninstall_info', _ajax_nonce: settings.nonce});
 		fetch(settings.ajaxurl, {method: 'POST', credentials: 'same-origin', body: body})
 			.then(function (response) {
 				return response.json();
@@ -82,12 +82,12 @@
 				var html = '';
 				var buttons = [];
 				if (settings.themeCalls) {
-					html += '<p><strong>Your theme calls <code>oio_image()</code></strong>: the pages using it will break while OIO is deactivated.</p>';
+					html += '<p><strong>Your theme calls <code>octopus_image()</code></strong>: the pages using it will break while OIO is deactivated.</p>';
 				}
 				if (info.images) {
 					html += '<p>OIO has optimised <strong>' + Number(info.images).toLocaleString() + ' images</strong>.'
 						+ ' Deactivating or deleting OIO keeps them as they are: compressed, with their WebP and AVIF versions,'
-						+ ' and their originals in <code>uploads/oio-originals/</code>' + (info.size ? ' (' + info.size + ')' : '') + '.</p>'
+						+ ' and their originals in <code>uploads/octopus-originals/</code>' + (info.size ? ' (' + info.size + ')' : '') + '.</p>'
 						+ '<p>If you are going to delete OIO, run <strong>Restore original images</strong> first to get your original'
 						+ ' images back and remove every OIO file.</p>';
 					buttons.push({label: 'Restore original images', href: settings.restoreUrl, primary: true});

@@ -17,10 +17,10 @@ if (!defined('ABSPATH')) {
 	exit; // Exit if accessed directly
 }
 
-use OIO\Front\Display;
-use OIO\Package\Picture;
+use Octopus\Front\Display;
+use Octopus\Package\Picture;
 
-if (!function_exists('oio_image')) {
+if (!function_exists('octopus_image')) {
 
 	/**
 	 * Returns a <picture> element for an image of the media library: AVIF
@@ -37,10 +37,10 @@ if (!function_exists('oio_image')) {
 	 * @since 0.1.0
 	 * @date 24/11/2021
 	 */
-	function oio_image($image_id, $class = '', $lazy = false)
+	function octopus_image($image_id, $class = '', $lazy = false)
 	{
 		// The Display filter would wrap the image depending on the Display tab:
-		// oio_image() always offers the AVIF and WebP versions.
+		// octopus_image() always offers the AVIF and WebP versions.
 		Display::$bypass = true;
 		$html = wp_get_attachment_image($image_id, 'full');
 		Display::$bypass = false;

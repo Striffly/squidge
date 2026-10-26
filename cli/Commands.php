@@ -22,22 +22,22 @@ if (!defined('ABSPATH')) {
 	exit; // Exit if accessed directly
 }
 
-use OIO\Package\Cleaner;
-use OIO\Package\Lock;
-use OIO\Package\Optimiser;
-use OIO\Package\Stats;
-use OIO\Package\Status;
-use OIO\Services\JPG;
-use OIO\Services\PNG;
-use OIO\Services\WebP;
-use OIO\Services\AVIF;
+use Octopus\Package\Cleaner;
+use Octopus\Package\Lock;
+use Octopus\Package\Optimiser;
+use Octopus\Package\Stats;
+use Octopus\Package\Status;
+use Octopus\Services\JPG;
+use Octopus\Services\PNG;
+use Octopus\Services\WebP;
+use Octopus\Services\AVIF;
 
 /**
  * Optimises the images of the media library, removes
  * their WebP and AVIF files or restores their
  * originals.
  */
-class OIO_CLI extends WP_CLI_Command
+class Octopus_CLI extends WP_CLI_Command
 {
 
 	/**
@@ -49,7 +49,7 @@ class OIO_CLI extends WP_CLI_Command
 	public function version()
 	{
 		$this->print_welcome();
-		WP_CLI::log(OIO_VERSION);
+		WP_CLI::log(OCTOPUS_VERSION);
 	}
 
 	/**
@@ -119,10 +119,10 @@ class OIO_CLI extends WP_CLI_Command
 	 * ## EXAMPLES
 	 *
 	 *     # Optimise the new images.
-	 *     $ wp oio run
+	 *     $ wp octopus run
 	 *
 	 *     # Make the WebP files again at quality 75, and nothing else.
-	 *     $ wp oio run --webp --no-avif --no-jpg --no-png --quality=75 --force
+	 *     $ wp octopus run --webp --no-avif --no-jpg --no-png --quality=75 --force
 	 *
 	 * @param $args
 	 * @param $assoc_args
@@ -373,4 +373,4 @@ class OIO_CLI extends WP_CLI_Command
 /**
  * Add the main OIO command to the WP CLI.
  */
-WP_CLI::add_command('oio', 'OIO_CLI');
+WP_CLI::add_command('octopus', 'Octopus_CLI');

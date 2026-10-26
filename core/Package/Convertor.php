@@ -14,7 +14,7 @@
  *
  */
 
-namespace OIO\Package;
+namespace Octopus\Package;
 
 if (!defined('ABSPATH')) {
 	exit; // Exit if accessed directly

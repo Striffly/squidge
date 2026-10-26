@@ -13,11 +13,11 @@
  *
  */
 
-namespace OIO\Tests;
+namespace Octopus\Tests;
 
-use OIO\Admin\Fields;
-use OIO\Package\Optimiser;
-use OIO\Package\Service;
+use Octopus\Admin\Fields;
+use Octopus\Package\Optimiser;
+use Octopus\Package\Service;
 use ReflectionProperty;
 use WP_UnitTestCase;
 
@@ -36,7 +36,7 @@ abstract class TestCase extends WP_UnitTestCase
 	public function set_up()
 	{
 		parent::set_up();
-		$this->uploads = sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'oio-tests-' . wp_generate_password(12, false) . DIRECTORY_SEPARATOR . 'uploads';
+		$this->uploads = sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'octopus-tests-' . wp_generate_password(12, false) . DIRECTORY_SEPARATOR . 'uploads';
 		wp_mkdir_p($this->uploads);
 		add_filter('upload_dir', [$this, 'upload_dir']);
 		Optimiser::$context = 'upload';
@@ -109,11 +109,11 @@ abstract class TestCase extends WP_UnitTestCase
 	{
 		$settings = Optimiser::SERVICES;
 		foreach (array_keys($settings) as $format) {
-			self::set('oio_' . $format . '_enable', false);
+			self::set('octopus_' . $format . '_enable', false);
 		}
 		$id = $this->upload($name);
 		foreach (array_keys($settings) as $format) {
-			self::set('oio_' . $format . '_enable', true);
+			self::set('octopus_' . $format . '_enable', true);
 		}
 		return $id;
 	}
@@ -180,7 +180,7 @@ abstract class TestCase extends WP_UnitTestCase
 	 * Saves a setting of the options page, as the form
 	 * does.
 	 *
-	 * @param string $name The field, e.g. oio_jpg_quality.
+	 * @param string $name The field, e.g. octopus_jpg_quality.
 	 * @param mixed $value True or false for a checkbox.
 	 */
 	protected static function set($name, $value)
@@ -199,7 +199,7 @@ abstract class TestCase extends WP_UnitTestCase
 	 */
 	protected static function hide_libraries(...$names)
 	{
-		add_filter('oio_binary_path', function ($path, $name) use ($names) {
+		add_filter('octopus_binary_path', function ($path, $name) use ($names) {
 			return in_array($name, $names, true) ? false : $path;
 		}, 10, 2);
 		self::forget_libraries();

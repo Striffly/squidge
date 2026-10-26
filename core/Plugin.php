@@ -1,9 +1,9 @@
 <?php
 
 /**
- * OIO
+ * Plugin
  *
- * Main OIO class.
+ * Main class of OIO: boots it once.
  *
  * @package     OIO
  * @author      Clément Gayot
@@ -13,15 +13,15 @@
  *
  */
 
-namespace OIO;
+namespace Octopus;
 
-use OIO\Admin;
+use Octopus\Admin;
 
 if (!defined('ABSPATH')) {
 	exit; // Exit if accessed directly
 }
 
-final class OIO
+final class Plugin
 {
 	/**
 	 * The instance of OIO.
@@ -41,9 +41,9 @@ final class OIO
 	public static function boot()
 	{
 		if (self::$instance == null) {
-			$oio = new OIO();
-			$oio->initialize();
-			self::$instance = $oio;
+			$plugin = new Plugin();
+			$plugin->initialize();
+			self::$instance = $plugin;
 		}
 		return self::$instance;
 	}
@@ -59,9 +59,9 @@ final class OIO
 	private function initialize()
 	{
 		$base = dirname(__FILE__);
-		$this->define('OIO_URL', plugin_dir_url($base));
-		$this->define('OIO_PATH', plugin_dir_path($base));
-		$this->define('OIO_TEMPLATE_PATH', dirname($base) . DIRECTORY_SEPARATOR . 'templates');
+		$this->define('OCTOPUS_URL', plugin_dir_url($base));
+		$this->define('OCTOPUS_PATH', plugin_dir_path($base));
+		$this->define('OCTOPUS_TEMPLATE_PATH', dirname($base) . DIRECTORY_SEPARATOR . 'templates');
 		new Admin\Fields();
 		new Admin\Upload();
 		new Admin\Notices();
@@ -69,7 +69,7 @@ final class OIO
 		new Admin\Plugins();
 		new Admin\Delivery();
 		// The background jobs need the dependencies of composer install.
-		if (class_exists('OIO_Vendor_WP_Background_Process')) {
+		if (class_exists('Octopus_Vendor_WP_Background_Process')) {
 			Package\Job::instance();
 			new Admin\Tools();
 		}

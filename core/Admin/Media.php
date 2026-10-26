@@ -14,12 +14,12 @@
  *
  */
 
-namespace OIO\Admin;
+namespace Octopus\Admin;
 
-use OIO\Package\Cleaner;
-use OIO\Package\Optimiser;
-use OIO\Package\Stats;
-use OIO\Package\Status;
+use Octopus\Package\Cleaner;
+use Octopus\Package\Optimiser;
+use Octopus\Package\Stats;
+use Octopus\Package\Status;
 
 if (!defined('ABSPATH')) {
 	exit; // Exit if accessed directly
@@ -32,21 +32,21 @@ class Media
 	 *
 	 * @var string
 	 */
-	const ACTION = 'oio_optimise';
+	const ACTION = 'octopus_optimise';
 
 	/**
 	 * Action restoring the original of one image.
 	 *
 	 * @var string
 	 */
-	const RESTORE = 'oio_restore';
+	const RESTORE = 'octopus_restore';
 
 	/**
 	 * Query args of the notices after an action.
 	 *
 	 * @var string[]
 	 */
-	const NOTICES = ['oio_optimised', 'oio_restored', 'oio_busy'];
+	const NOTICES = ['octopus_optimised', 'octopus_restored', 'octopus_busy'];
 
 	/**
 	 * Labels of the statuses, as shown to the user.
@@ -100,7 +100,7 @@ class Media
 	 */
 	public function columns($columns)
 	{
-		$columns['oio'] = 'Optimisation';
+		$columns['octopus'] = 'Optimisation';
 		return $columns;
 	}
 
@@ -116,7 +116,7 @@ class Media
 	 */
 	public function column($name, $id)
 	{
-		if ($name !== 'oio') {
+		if ($name !== 'octopus') {
 			return;
 		}
 		if (!$this->is_image($id)) {
@@ -124,11 +124,11 @@ class Media
 			return;
 		}
 		$status = Status::of($id);
-		printf('<span class="oio-status-label oio-status-label--%s">%s</span>', esc_attr($status), esc_html(self::LABELS[$status]));
+		printf('<span class="octopus-status-label octopus-status-label--%s">%s</span>', esc_attr($status), esc_html(self::LABELS[$status]));
 		$bytes = Stats::of($id);
 		$reduction = $bytes ? Stats::reduction($bytes, Stats::served()) : null;
 		if ($reduction !== null) {
-			printf(' <span class="oio-saved" title="%s">&middot; %s</span>', esc_attr($this->details($bytes)), esc_html($reduction));
+			printf(' <span class="octopus-saved" title="%s">&middot; %s</span>', esc_attr($this->details($bytes)), esc_html($reduction));
 		}
 	}
 
@@ -203,7 +203,7 @@ class Media
 		}
 
 		$redirect = remove_query_arg(self::NOTICES, wp_get_referer() ?: admin_url('upload.php?mode=list'));
-		wp_safe_redirect(add_query_arg($done === null ? 'oio_busy' : 'oio_optimised', $id, $redirect));
+		wp_safe_redirect(add_query_arg($done === null ? 'octopus_busy' : 'octopus_optimised', $id, $redirect));
 		exit;
 	}
 
@@ -218,7 +218,7 @@ class Media
 	private function is_processed($id)
 	{
 		foreach (array_keys(get_post_meta($id)) as $key) {
-			if (strpos($key, '_oio_') === 0) {
+			if (strpos($key, '_octopus_') === 0) {
 				return true;
 			}
 		}
@@ -243,9 +243,9 @@ class Media
 
 		$redirect = remove_query_arg(self::NOTICES, wp_get_referer() ?: admin_url('upload.php?mode=list'));
 		if ($restored === null) {
-			$redirect = add_query_arg('oio_busy', $id, $redirect);
+			$redirect = add_query_arg('octopus_busy', $id, $redirect);
 		} else {
-			$redirect = add_query_arg('oio_restored', $restored ? $id : -$id, $redirect);
+			$redirect = add_query_arg('octopus_restored', $restored ? $id : -$id, $redirect);
 		}
 		wp_safe_redirect($redirect);
 		exit;
@@ -263,15 +263,15 @@ class Media
 		if (!current_user_can('upload_files')) {
 			return;
 		}
-		if (!empty($_GET['oio_busy'])) {
-			$id = (int)$_GET['oio_busy'];
+		if (!empty($_GET['octopus_busy'])) {
+			$id = (int)$_GET['octopus_busy'];
 			if (current_user_can('edit_post', $id)) {
 				printf('<div class="notice notice-warning is-dismissible"><p><strong>Octopus Image Optimizer</strong> is already processing %s, try again in a moment.</p></div>', esc_html(get_the_title($id)));
 			}
 			return;
 		}
-		if (!empty($_GET['oio_restored'])) {
-			$id = (int)$_GET['oio_restored'];
+		if (!empty($_GET['octopus_restored'])) {
+			$id = (int)$_GET['octopus_restored'];
 			if (!current_user_can('edit_post', abs($id))) {
 				return;
 			}
@@ -282,10 +282,10 @@ class Media
 			}
 			return;
 		}
-		if (empty($_GET['oio_optimised'])) {
+		if (empty($_GET['octopus_optimised'])) {
 			return;
 		}
-		$id = (int)$_GET['oio_optimised'];
+		$id = (int)$_GET['octopus_optimised'];
 		if (!current_user_can('edit_post', $id) || Status::of($id) === Status::ERROR) {
 			return;
 		}
@@ -305,6 +305,6 @@ class Media
 		if ($hook !== 'upload.php') {
 			return;
 		}
-		wp_add_inline_style('wp-admin', '.column-oio{width:170px}.oio-saved{white-space:nowrap}.oio-status-label::before{content:"";display:inline-block;width:8px;height:8px;margin-right:6px;border-radius:50%;background:#a7aaad}.oio-status-label--optimised::before{background:#00a32a}.oio-status-label--outdated::before{background:#dba617}.oio-status-label--error::before{background:#d63638}');
+		wp_add_inline_style('wp-admin', '.column-octopus{width:170px}.octopus-saved{white-space:nowrap}.octopus-status-label::before{content:"";display:inline-block;width:8px;height:8px;margin-right:6px;border-radius:50%;background:#a7aaad}.octopus-status-label--optimised::before{background:#00a32a}.octopus-status-label--outdated::before{background:#dba617}.octopus-status-label--error::before{background:#d63638}');
 	}
 }

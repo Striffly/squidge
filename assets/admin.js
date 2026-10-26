@@ -9,14 +9,14 @@
  */
 
 (function () {
-	var page = document.querySelector('.oio-page');
+	var page = document.querySelector('.octopus-page');
 	if (!page) {
 		return;
 	}
 
-	var tabs = page.querySelectorAll('.oio-tabs__tab');
+	var tabs = page.querySelectorAll('.octopus-tabs__tab');
 	var panels = page.querySelectorAll('[data-panel]');
-	var storageKey = 'oio-tab';
+	var storageKey = 'octopus-tab';
 
 	function exists(name) {
 		return !!page.querySelector('[data-panel="' + name + '"]');
@@ -28,7 +28,7 @@
 		}
 		tabs.forEach(function (tab) {
 			var active = tab.getAttribute('data-tab') === name;
-			tab.classList.toggle('oio-tabs__tab--active', active);
+			tab.classList.toggle('octopus-tabs__tab--active', active);
 			tab.setAttribute('aria-selected', active ? 'true' : 'false');
 			// On small screens the tabs scroll sideways: the active one comes into view.
 			var bar = tab.parentNode;
@@ -58,7 +58,7 @@
 		var target = link.getAttribute('data-target') && document.getElementById(link.getAttribute('data-target'));
 		if (target) {
 			// Its folded settings open with it.
-			target.querySelectorAll('.oio-format__settings').forEach(function (fold) {
+			target.querySelectorAll('.octopus-format__settings').forEach(function (fold) {
 				fold.open = true;
 			});
 			target.scrollIntoView({behavior: 'smooth', block: 'start'});
@@ -72,15 +72,15 @@
 			initial = sessionStorage.getItem(storageKey);
 		} catch (e) {}
 	}
-	page.classList.add('oio-page--js');
+	page.classList.add('octopus-page--js');
 	show(initial || 'overview');
 
 	// The full help of a field, behind its "?" button.
-	page.querySelectorAll('.oio-help__text').forEach(function (text) {
+	page.querySelectorAll('.octopus-help__text').forEach(function (text) {
 		text.hidden = true;
 	});
 	page.addEventListener('click', function (event) {
-		var toggle = event.target.closest('.oio-help__toggle');
+		var toggle = event.target.closest('.octopus-help__toggle');
 		if (!toggle) {
 			return;
 		}
@@ -97,7 +97,7 @@
 		});
 	}
 	page.addEventListener('change', function (event) {
-		if (event.target.matches('.oio-toggle__input')) {
+		if (event.target.matches('.octopus-toggle__input')) {
 			showSubOptions();
 		}
 	});
@@ -129,18 +129,18 @@
  * box ticked first.
  */
 (function () {
-	var page = document.querySelector('.oio-page');
-	var box = document.querySelector('.oio-job');
-	var settings = window.oioJob;
+	var page = document.querySelector('.octopus-page');
+	var box = document.querySelector('.octopus-job');
+	var settings = window.octopusJob;
 	if (!page || !box || !settings) {
 		return;
 	}
 
-	var label = box.querySelector('.oio-job__label');
-	var bar = box.querySelector('.oio-job__bar');
-	var percentLabel = box.querySelector('.oio-job__percent');
-	var resultTitle = box.querySelector('.oio-result__title');
-	var resultDetail = box.querySelector('.oio-result__detail');
+	var label = box.querySelector('.octopus-job__label');
+	var bar = box.querySelector('.octopus-job__bar');
+	var percentLabel = box.querySelector('.octopus-job__percent');
+	var resultTitle = box.querySelector('.octopus-result__title');
+	var resultDetail = box.querySelector('.octopus-result__detail');
 	var counts = null;
 	var busy = false;
 	var timer = null;
@@ -195,16 +195,16 @@
 
 	// The bytes saved, formatted by the server.
 	function showSavings(savings) {
-		var savingsBox = document.querySelector('.oio-savings');
+		var savingsBox = document.querySelector('.octopus-savings');
 		if (!savingsBox || !savings) {
 			return;
 		}
-		savingsBox.querySelector('.oio-savings__main').hidden = !savings.images;
-		savingsBox.querySelector('.oio-savings__empty').hidden = !!savings.images;
+		savingsBox.querySelector('.octopus-savings__main').hidden = !savings.images;
+		savingsBox.querySelector('.octopus-savings__empty').hidden = !!savings.images;
 		savingsBox.querySelectorAll('[data-savings]').forEach(function (element) {
 			element.textContent = savings[element.getAttribute('data-savings')];
 		});
-		savingsBox.querySelector('.oio-savings__hint').hidden = !savings.hint;
+		savingsBox.querySelector('.octopus-savings__hint').hidden = !savings.hint;
 	}
 
 	function duration(seconds) {
@@ -245,7 +245,7 @@
 		box.hidden = false;
 		box.setAttribute('data-state', state);
 		busy = state !== 'idle';
-		page.classList.toggle('oio-page--busy', busy);
+		page.classList.toggle('octopus-page--busy', busy);
 		showCounts(data.counts);
 		showSavings(data.savings);
 
@@ -268,7 +268,7 @@
 	}
 
 	function refresh() {
-		request('oio_job_status').then(function (response) {
+		request('octopus_job_status').then(function (response) {
 			if (response.success) {
 				render(response.data);
 			}
@@ -283,13 +283,13 @@
 
 	page.addEventListener('click', function (event) {
 		var start = event.target.closest('[data-job]');
-		var control = event.target.closest('.oio-job [data-control]');
+		var control = event.target.closest('.octopus-job [data-control]');
 		if (start) {
 			var job = start.getAttribute('data-job');
 			if (start.hasAttribute('data-confirm') && !window.confirm(start.getAttribute('data-confirm'))) {
 				return;
 			}
-			request('oio_job_start', {job: job}).then(function (response) {
+			request('octopus_job_start', {job: job}).then(function (response) {
 				if (response.success) {
 					// The box is ticked again for the next time.
 					var tick = page.querySelector('[data-confirm-for="' + job + '"]');
@@ -311,7 +311,7 @@
 			if (command === 'cancel' && !window.confirm('Cancel the job? The images already processed stay processed.')) {
 				return;
 			}
-			request('oio_job_control', {command: command}).then(function (response) {
+			request('octopus_job_control', {command: command}).then(function (response) {
 				if (response.success) {
 					render(response.data);
 				}
@@ -329,14 +329,14 @@
  */
 (function () {
 	var button = document.querySelector('[data-delivery-test]');
-	var settings = window.oioJob;
+	var settings = window.octopusJob;
 	if (!button || !settings) {
 		return;
 	}
-	var result = document.querySelector('.oio-test__result');
-	var sample = result.querySelector('.oio-test__sample');
-	var list = result.querySelector('.oio-checks');
-	var summary = document.querySelector('.oio-test__summary');
+	var result = document.querySelector('.octopus-test__result');
+	var sample = result.querySelector('.octopus-test__sample');
+	var list = result.querySelector('.octopus-checks');
+	var summary = document.querySelector('.octopus-test__summary');
 
 	// The verdict, next to the button: the results may be below the fold.
 	function showSummary(text, state) {
@@ -344,14 +344,14 @@
 			return;
 		}
 		summary.textContent = text;
-		summary.className = 'oio-test__summary oio-test__summary--' + state;
+		summary.className = 'octopus-test__summary octopus-test__summary--' + state;
 		summary.hidden = false;
 	}
 
 	button.addEventListener('click', function () {
 		button.disabled = true;
 		button.textContent = 'Testing…';
-		var body = new URLSearchParams({action: 'oio_delivery_test', _ajax_nonce: settings.nonce});
+		var body = new URLSearchParams({action: 'octopus_delivery_test', _ajax_nonce: settings.nonce});
 		fetch(settings.ajaxurl, {method: 'POST', credentials: 'same-origin', body: body})
 			.then(function (response) {
 				return response.json();
@@ -374,12 +374,12 @@
 				sample.textContent = 'Tested on ' + response.data.sample + '.';
 				response.data.checks.forEach(function (check) {
 					var item = document.createElement('li');
-					item.className = 'oio-checks__item oio-checks__item--' + check.state;
-					item.innerHTML = '<span class="oio-checks__icon dashicons" aria-hidden="true"></span>'
-						+ '<span class="oio-checks__label"></span><span class="oio-checks__detail"></span><span class="oio-checks__advice"></span>';
-					item.querySelector('.oio-checks__label').textContent = check.label;
-					item.querySelector('.oio-checks__detail').textContent = check.detail;
-					item.querySelector('.oio-checks__advice').innerHTML = check.advice;
+					item.className = 'octopus-checks__item octopus-checks__item--' + check.state;
+					item.innerHTML = '<span class="octopus-checks__icon dashicons" aria-hidden="true"></span>'
+						+ '<span class="octopus-checks__label"></span><span class="octopus-checks__detail"></span><span class="octopus-checks__advice"></span>';
+					item.querySelector('.octopus-checks__label').textContent = check.label;
+					item.querySelector('.octopus-checks__detail').textContent = check.detail;
+					item.querySelector('.octopus-checks__advice').innerHTML = check.advice;
 					list.appendChild(item);
 				});
 			})
@@ -397,7 +397,7 @@
  * not available (http without a secure context).
  */
 (function () {
-	var page = document.querySelector('.oio-page');
+	var page = document.querySelector('.octopus-page');
 	if (!page) {
 		return;
 	}
@@ -409,20 +409,20 @@
 	function button(code, modifier) {
 		var copy = document.createElement('button');
 		copy.type = 'button';
-		copy.className = 'oio-copy' + (modifier ? ' oio-copy--' + modifier : '');
+		copy.className = 'octopus-copy' + (modifier ? ' octopus-copy--' + modifier : '');
 		copy.textContent = 'Copy';
-		copy.oioCode = code;
+		copy.octopusCode = code;
 		return copy;
 	}
 
 	// The blocks get their button at the top right, the commands after them.
-	page.querySelectorAll('pre.oio-code').forEach(function (pre) {
+	page.querySelectorAll('pre.octopus-code').forEach(function (pre) {
 		var block = document.createElement('div');
-		block.className = 'oio-code-block';
+		block.className = 'octopus-code-block';
 		pre.parentNode.insertBefore(block, pre);
 		block.append(pre, button(pre, ''));
 	});
-	page.querySelectorAll('.oio-install__list code').forEach(function (code) {
+	page.querySelectorAll('.octopus-install__list code').forEach(function (code) {
 		code.after(button(code, 'inline'));
 	});
 
@@ -452,19 +452,19 @@
 	}
 
 	page.addEventListener('click', function (event) {
-		var target = event.target.closest('.oio-copy');
+		var target = event.target.closest('.octopus-copy');
 		if (!target) {
 			return;
 		}
-		copy(target.oioCode).then(function (done) {
+		copy(target.octopusCode).then(function (done) {
 			if (!done) {
 				// The code stays selected, to copy by hand.
-				select(target.oioCode);
+				select(target.octopusCode);
 			}
 			target.textContent = done ? 'Copied' : 'Press Ctrl+C';
 			status.textContent = done ? 'Copied to the clipboard.' : 'The code is selected: press Ctrl+C to copy it.';
-			clearTimeout(target.oioTimer);
-			target.oioTimer = setTimeout(function () {
+			clearTimeout(target.octopusTimer);
+			target.octopusTimer = setTimeout(function () {
 				target.textContent = 'Copy';
 				status.textContent = '';
 			}, 2000);

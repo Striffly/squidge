@@ -16,13 +16,13 @@
  *
  */
 
-namespace OIO\Services;
+namespace Octopus\Services;
 
-use OIO\Log\Logger;
-use OIO\Package\Convertor;
-use OIO\Package\Optimiser;
-use OIO\Package\Service;
-use OIO\Types\Mimes;
+use Octopus\Log\Logger;
+use Octopus\Package\Convertor;
+use Octopus\Package\Optimiser;
+use Octopus\Package\Service;
+use Octopus\Types\Mimes;
 
 if (!defined('ABSPATH')) {
 	exit; // Exit if accessed directly
@@ -131,7 +131,7 @@ class WebP extends Service implements Convertor
 	 * Determines if cwebp uses a second thread: on
 	 * upload and in the CLI, not in background jobs,
 	 * where the requests of the site go first. The
-	 * oio_webp_mt filter sets it by context (see
+	 * octopus_webp_mt filter sets it by context (see
 	 * Optimiser::$context).
 	 *
 	 * @return bool
@@ -140,7 +140,7 @@ class WebP extends Service implements Convertor
 	 */
 	private static function multithreading()
 	{
-		return (bool)apply_filters('oio_webp_mt', Optimiser::$context !== 'background', Optimiser::$context);
+		return (bool)apply_filters('octopus_webp_mt', Optimiser::$context !== 'background', Optimiser::$context);
 	}
 
 	/**

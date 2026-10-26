@@ -23,19 +23,19 @@ if (!defined('ABSPATH')) {
 <!-- =====================
 	AVIF
 	===================== -->
-<ul class="oio-install__list">
+<ul class="octopus-install__list">
 	<li>
-		<span class="oio-install__os">Linux</span>
+		<span class="octopus-install__os">Linux</span>
 		Dependant on your distro, you may need to build from source.
 		<a href="https://aomediacodec.github.io/av1-avif/" target="_blank" rel="noopener">More information</a>
 	</li>
 	<li>
-		<span class="oio-install__os">Mac</span>
+		<span class="octopus-install__os">Mac</span>
 		<code>brew install libavif</code>
 		<a href="https://formulae.brew.sh/formula/libavif" target="_blank" rel="noopener">More information</a>
 	</li>
 	<li>
-		<span class="oio-install__os">Windows</span>
+		<span class="octopus-install__os">Windows</span>
 		<a href="https://github.com/AOMediaCodec/libavif/releases" target="_blank" rel="noopener">Download for Windows</a>
 	</li>
 </ul>

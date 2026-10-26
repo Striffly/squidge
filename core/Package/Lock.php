@@ -15,7 +15,7 @@
  *
  */
 
-namespace OIO\Package;
+namespace Octopus\Package;
 
 if (!defined('ABSPATH')) {
 	exit; // Exit if accessed directly
@@ -28,7 +28,7 @@ class Lock
 	 *
 	 * @var string
 	 */
-	const PREFIX = 'oio_lock_';
+	const PREFIX = 'octopus_lock_';
 
 	/**
 	 * Duration after which a lock is stale, in seconds:

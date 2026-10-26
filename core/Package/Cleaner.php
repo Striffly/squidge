@@ -15,13 +15,13 @@
  *
  */
 
-namespace OIO\Package;
+namespace Octopus\Package;
 
-use OIO\Log\Errors;
-use OIO\Services\AVIF;
-use OIO\Services\JPG;
-use OIO\Services\PNG;
-use OIO\Services\WebP;
+use Octopus\Log\Errors;
+use Octopus\Services\AVIF;
+use Octopus\Services\JPG;
+use Octopus\Services\PNG;
+use Octopus\Services\WebP;
 
 if (!defined('ABSPATH')) {
 	exit; // Exit if accessed directly
@@ -43,7 +43,7 @@ class Cleaner
 		global $wpdb;
 		$ids = $wpdb->get_col($wpdb->prepare(
 			"SELECT DISTINCT post_id FROM {$wpdb->postmeta} WHERE meta_key LIKE %s ORDER BY post_id",
-			$wpdb->esc_like('_oio_') . '%'
+			$wpdb->esc_like('_octopus_') . '%'
 		));
 		return array_map('intval', $ids);
 	}
@@ -126,7 +126,7 @@ class Cleaner
 				self::unlink($path);
 			}
 			foreach (array_keys(get_post_meta($id)) as $key) {
-				if (strpos($key, '_oio_') === 0) {
+				if (strpos($key, '_octopus_') === 0) {
 					delete_post_meta($id, $key);
 				}
 			}

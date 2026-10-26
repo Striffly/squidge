@@ -15,13 +15,13 @@
  *
  */
 
-namespace OIO\Services;
+namespace Octopus\Services;
 
-use OIO\Log\Errors;
-use OIO\Log\Logger;
-use OIO\Package\Convertor;
-use OIO\Package\Service;
-use OIO\Types\Mimes;
+use Octopus\Log\Errors;
+use Octopus\Log\Logger;
+use Octopus\Package\Convertor;
+use Octopus\Package\Service;
+use Octopus\Types\Mimes;
 
 if (!defined('ABSPATH')) {
 	exit; // Exit if accessed directly

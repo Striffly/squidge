@@ -29,7 +29,7 @@ putenv('WP_PHPUNIT__TESTS_CONFIG=' . __DIR__ . '/wp-tests-config.php');
 define('WP_TESTS_PHPUNIT_POLYFILLS_PATH', $root . '/vendor/yoast/phpunit-polyfills');
 
 // The messages of OIO (Logger) go to a file, not between the results.
-ini_set('error_log', sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'oio-tests.log');
+ini_set('error_log', sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'octopus-tests.log');
 
 $library = getenv('WP_PHPUNIT__DIR');
 require $library . '/includes/functions.php';

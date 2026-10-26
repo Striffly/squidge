@@ -42,8 +42,8 @@
 	<rule ref="WordPress.NamingConventions.PrefixAllGlobals">
 		<properties>
 			<property name="prefixes" type="array">
-				<element value="oio"/>
-				<element value="OIO"/>
+				<element value="octopus"/>
+				<element value="Octopus"/>
 			</property>
 		</properties>
 	</rule>

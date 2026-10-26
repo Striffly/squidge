@@ -7,14 +7,14 @@
  */
 
 (function ($) {
-	var settings = window.oioMedia || {};
+	var settings = window.octopusMedia || {};
 
 	function getNotice() {
-		var $notice = $('.oio-errors-notice');
+		var $notice = $('.octopus-errors-notice');
 		if ($notice.length) {
 			return $notice;
 		}
-		$notice = $('<div class="notice notice-warning is-dismissible oio-errors-notice"><p><strong>Octopus Image Optimizer</strong> could not fully optimise some images:</p><ul></ul></div>');
+		$notice = $('<div class="notice notice-warning is-dismissible octopus-errors-notice"><p><strong>Octopus Image Optimizer</strong> could not fully optimise some images:</p><ul></ul></div>');
 		var $headerEnd = $('.wp-header-end').first();
 		if ($headerEnd.length) {
 			$notice.insertAfter($headerEnd);
@@ -38,14 +38,14 @@
 		// The upload response is the attachment data, with the errors added by OIO.
 		if (window.wp && wp.Uploader && wp.Uploader.queue) {
 			wp.Uploader.queue.on('change:uploading', function (attachment) {
-				var errors = attachment.get('oioErrors');
+				var errors = attachment.get('octopusErrors');
 				if (!attachment.get('uploading') && errors && errors.length) {
 					showErrors(errors);
 				}
 			});
 		}
 
-		$(document).on('click', '.oio-errors-notice .notice-dismiss', function () {
+		$(document).on('click', '.octopus-errors-notice .notice-dismiss', function () {
 			$.post(window.ajaxurl, {action: settings.action, _ajax_nonce: settings.nonce});
 		});
 	});

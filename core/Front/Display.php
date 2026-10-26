@@ -15,10 +15,10 @@
  *
  */
 
-namespace OIO\Front;
+namespace Octopus\Front;
 
-use OIO\Admin\Fields;
-use OIO\Package\Picture;
+use Octopus\Admin\Fields;
+use Octopus\Package\Picture;
 
 if (!defined('ABSPATH')) {
 	exit; // Exit if accessed directly
@@ -27,7 +27,7 @@ if (!defined('ABSPATH')) {
 class Display
 {
 	/**
-	 * Skips the filters, for oio_image() which
+	 * Skips the filters, for octopus_image() which
 	 * rewrites the image itself.
 	 *
 	 * @var bool
@@ -59,7 +59,7 @@ class Display
 	 */
 	public function filter($html)
 	{
-		if (self::$bypass || (is_admin() && !wp_doing_ajax()) || !Fields::get('oio_display_formats')) {
+		if (self::$bypass || (is_admin() && !wp_doing_ajax()) || !Fields::get('octopus_display_formats')) {
 			return $html;
 		}
 		return Picture::render($html);

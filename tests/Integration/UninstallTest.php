@@ -12,11 +12,11 @@
  *
  */
 
-namespace OIO\Tests\Integration;
+namespace Octopus\Tests\Integration;
 
-use OIO\Admin\Delivery;
-use OIO\Admin\Fields;
-use OIO\Tests\TestCase;
+use Octopus\Admin\Delivery;
+use Octopus\Admin\Fields;
+use Octopus\Tests\TestCase;
 use ReflectionMethod;
 
 class UninstallTest extends TestCase
@@ -25,36 +25,36 @@ class UninstallTest extends TestCase
 	 * The options of other plugins, kept by the
 	 * uninstall.
 	 */
-	const FOREIGN = ['oio_other_plugin', '_oio_other_plugin', 'oio_jobs'];
+	const FOREIGN = ['octopus_other_plugin', '_octopus_other_plugin', 'octopus_jobs'];
 
 	/**
 	 * The rules of another plugin in uploads/.htaccess.
 	 */
 	const OTHER_RULES = "# Another plugin\nOptions -Indexes\n";
 
-	public function test_the_data_of_oio_is_deleted_from_a_site()
+	public function test_the_data_of_octopus_is_deleted_from_a_site()
 	{
 		$this->skipWithMultisite();
 		$attachment = $this->fill_site(true);
-		$this->fill_job('oio_job');
+		$this->fill_job('octopus_job');
 
 		self::uninstall();
 
 		$this->assert_site_clean($attachment);
-		$this->assert_job_clean('oio_job');
+		$this->assert_job_clean('octopus_job');
 		$this->assertSame(self::OTHER_RULES, file_get_contents(Delivery::htaccess()));
 	}
 
-	public function test_the_data_of_oio_is_deleted_from_every_site_of_a_network()
+	public function test_the_data_of_octopus_is_deleted_from_every_site_of_a_network()
 	{
 		$this->skipWithoutMultisite();
 		$main = get_current_blog_id();
 		$sites = [$main => $this->fill_site(true)];
-		$this->fill_job('oio_' . $main . '_job');
+		$this->fill_job('octopus_' . $main . '_job');
 		$other = self::factory()->blog->create();
 		switch_to_blog($other);
 		$sites[$other] = $this->fill_site(false);
-		$this->fill_job('oio_' . $other . '_job');
+		$this->fill_job('octopus_' . $other . '_job');
 		restore_current_blog();
 
 		self::uninstall();
@@ -62,7 +62,7 @@ class UninstallTest extends TestCase
 		foreach ($sites as $site => $attachment) {
 			switch_to_blog($site);
 			$this->assert_site_clean($attachment);
-			$this->assert_job_clean('oio_' . $site . '_job');
+			$this->assert_job_clean('octopus_' . $site . '_job');
 			restore_current_blog();
 		}
 		$this->assertSame(self::OTHER_RULES, file_get_contents($this->uploads . '/.htaccess'));
@@ -86,17 +86,17 @@ class UninstallTest extends TestCase
 				update_option(Fields::OPTION_PREFIX . $name, 'yes');
 			}
 		}
-		foreach (['oio_errors', 'oio_job', 'oio_theme_calls', 'oio_lock_7'] as $option) {
+		foreach (['octopus_errors', 'octopus_job', 'octopus_theme_calls', 'octopus_lock_7'] as $option) {
 			update_option($option, ['data']);
 		}
-		set_transient('oio_versions', ['cwebp' => '1.6.0']);
+		set_transient('octopus_versions', ['cwebp' => '1.6.0']);
 		foreach (self::FOREIGN as $option) {
 			update_option($option, 'kept');
 		}
 		$id = self::factory()->attachment->create_object(['file' => '2026/10/photo.jpg', 'post_mime_type' => 'image/jpeg']);
-		update_post_meta($id, '_oio_files', ['2026/10/photo.jpg.webp']);
-		update_post_meta($id, '_oio_compressed_cwebp', 'quality:80');
-		update_post_meta($id, 'oio_other_plugin', 'kept');
+		update_post_meta($id, '_octopus_files', ['2026/10/photo.jpg.webp']);
+		update_post_meta($id, '_octopus_compressed_cwebp', 'quality:80');
+		update_post_meta($id, 'octopus_other_plugin', 'kept');
 
 		wp_mkdir_p(dirname(Delivery::htaccess()));
 		if ($other_rules) {
@@ -144,11 +144,11 @@ class UninstallTest extends TestCase
 	private function assert_site_clean($attachment)
 	{
 		global $wpdb;
-		$left = $wpdb->get_col("SELECT option_name FROM {$wpdb->options} WHERE option_name LIKE '%oio%' ORDER BY option_name");
+		$left = $wpdb->get_col("SELECT option_name FROM {$wpdb->options} WHERE option_name LIKE '%octopus%' ORDER BY option_name");
 		$foreign = self::FOREIGN;
 		sort($foreign);
 		$this->assertSame($foreign, $left);
-		$this->assertSame(['oio_other_plugin'], array_values(preg_grep('/oio/', array_keys(get_post_meta($attachment)))));
+		$this->assertSame(['octopus_other_plugin'], array_values(preg_grep('/octopus/', array_keys(get_post_meta($attachment)))));
 		$this->assertFalse(Delivery::rules_written());
 	}
 

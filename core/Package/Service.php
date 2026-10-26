@@ -14,13 +14,13 @@
  *
  */
 
-namespace OIO\Package;
+namespace Octopus\Package;
 
 use Exception;
 use Imagick;
-use OIO\Log\Errors;
-use OIO\Log\Logger;
-use OIO\Types\Mimes;
+use Octopus\Log\Errors;
+use Octopus\Log\Logger;
+use Octopus\Types\Mimes;
 use Throwable;
 use WP_Error;
 use WP_Image_Editor_Imagick;
@@ -36,7 +36,7 @@ class Service
 	 * META_KEY is the meta key for lookup for the
 	 * service.
 	 */
-	const META_KEY = "_oio_compressed";
+	const META_KEY = "_octopus_compressed";
 
 	/**
 	 * BACKUP_DIR is the folder, in the uploads folder,
@@ -44,20 +44,20 @@ class Service
 	 * optimised in place, with the same tree as the
 	 * uploads folder (see backup_dir()).
 	 */
-	const BACKUP_DIR = 'oio-originals';
+	const BACKUP_DIR = 'octopus-originals';
 
 	/**
 	 * FILES_KEY is the meta key listing the files made
 	 * by OIO for an attachment (WebP, AVIF and
 	 * backups), relative to the uploads folder.
 	 */
-	const FILES_KEY = '_oio_files';
+	const FILES_KEY = '_octopus_files';
 
 	/**
 	 * VERSIONS_TRANSIENT caches the versions of the
 	 * libraries, shown on the settings page.
 	 */
-	const VERSIONS_TRANSIENT = 'oio_versions';
+	const VERSIONS_TRANSIENT = 'octopus_versions';
 
 	/**
 	 * VERSION_OPTIONS is the option printing the version
@@ -240,7 +240,7 @@ class Service
 	/**
 	 * Returns the absolute path of a program, or null
 	 * if it is not installed, once per request. The
-	 * oio_binary_path filter sets it by hand, e.g. for
+	 * octopus_binary_path filter sets it by hand, e.g. for
 	 * a library out of the folders looked up (see
 	 * find_binary()).
 	 *
@@ -252,7 +252,7 @@ class Service
 	protected static function binary($name)
 	{
 		if (!array_key_exists($name, self::$binaries)) {
-			$path = apply_filters('oio_binary_path', self::find_binary($name), $name);
+			$path = apply_filters('octopus_binary_path', self::find_binary($name), $name);
 			self::$binaries[$name] = is_string($path) && $path !== '' ? $path : null;
 		}
 		return self::$binaries[$name];
@@ -336,7 +336,7 @@ class Service
 	/**
 	 * Returns the nice command lowering the priority
 	 * of the libraries: in background jobs by default,
-	 * the requests of the site go first. The oio_nice
+	 * the requests of the site go first. The octopus_nice
 	 * filter sets the level, from 0 (normal) to 19
 	 * (lowest), by context (see Optimiser::$context).
 	 * Windows has no nice.
@@ -351,7 +351,7 @@ class Service
 			return [];
 		}
 		$default = Optimiser::$context === 'background' ? 19 : 0;
-		$level = (int)apply_filters('oio_nice', $default, Optimiser::$context);
+		$level = (int)apply_filters('octopus_nice', $default, Optimiser::$context);
 		$nice = $level > 0 ? self::binary('nice') : null;
 		return $nice ? [$nice, '-n', (string)min(19, $level)] : [];
 	}
@@ -386,7 +386,7 @@ class Service
 		// A random name: in a temporary folder shared by the users of the server,
 		// a predictable one could be a link to a file of the site, overwritten.
 		require_once ABSPATH . 'wp-admin/includes/file.php';
-		$temp = wp_tempnam('oio.png');
+		$temp = wp_tempnam('octopus.png');
 		$saved = $editor->save($temp, 'image/png');
 		// The editor saves it with the .png extension, next to the empty .tmp.
 		if (file_exists($temp) && (is_wp_error($saved) || $saved['path'] !== $temp)) {
@@ -488,7 +488,7 @@ class Service
 				$saved = $editor->save($output, static::EDITOR_MIME);
 			}
 		} catch (Throwable $e) {
-			$saved = new WP_Error('oio_editor_error', $e->getMessage());
+			$saved = new WP_Error('octopus_editor_error', $e->getMessage());
 		} finally {
 			remove_filter('wp_image_editors', $editors, PHP_INT_MAX);
 			remove_filter('wp_editor_set_quality', $set_quality, PHP_INT_MAX);
@@ -500,7 +500,7 @@ class Service
 			if (file_exists($saved['path']) && !in_array($saved['path'], [$source, $filepath], true) && self::contained($saved['path'])) {
 				unlink($saved['path']);
 			}
-			$saved = new WP_Error('oio_editor_error', sprintf('saved as %s instead of %s', $saved['mime-type'], static::EDITOR_MIME));
+			$saved = new WP_Error('octopus_editor_error', sprintf('saved as %s instead of %s', $saved['mime-type'], static::EDITOR_MIME));
 		}
 		if (is_wp_error($saved)) {
 			Errors::add($id, static::cmd_name(), $filepath, static::editor() . ': ' . $saved->get_error_message());
@@ -686,8 +686,8 @@ class Service
 
 	/**
 	 * Returns the folder of the original images:
-	 * uploads/oio-originals by default. The
-	 * oio_backup_dir filter moves it, e.g. out of the
+	 * uploads/octopus-originals by default. The
+	 * octopus_backup_dir filter moves it, e.g. out of the
 	 * web root: the originals keep their metadata.
 	 *
 	 * @return string
@@ -697,7 +697,7 @@ class Service
 	public static function backup_dir()
 	{
 		$default = self::uploads_dir() . DIRECTORY_SEPARATOR . self::BACKUP_DIR;
-		return untrailingslashit((string)apply_filters('oio_backup_dir', $default));
+		return untrailingslashit((string)apply_filters('octopus_backup_dir', $default));
 	}
 
 	/**

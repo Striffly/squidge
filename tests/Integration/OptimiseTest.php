@@ -13,19 +13,19 @@
  *
  */
 
-namespace OIO\Tests\Integration;
+namespace Octopus\Tests\Integration;
 
-use OIO\Log\Errors;
-use OIO\Package\Cleaner;
-use OIO\Package\Optimiser;
-use OIO\Package\Service;
-use OIO\Package\Stats;
-use OIO\Package\Status;
-use OIO\Services\AVIF;
-use OIO\Services\JPG;
-use OIO\Services\PNG;
-use OIO\Services\WebP;
-use OIO\Tests\TestCase;
+use Octopus\Log\Errors;
+use Octopus\Package\Cleaner;
+use Octopus\Package\Optimiser;
+use Octopus\Package\Service;
+use Octopus\Package\Stats;
+use Octopus\Package\Status;
+use Octopus\Services\AVIF;
+use Octopus\Services\JPG;
+use Octopus\Services\PNG;
+use Octopus\Services\WebP;
+use Octopus\Tests\TestCase;
 
 class OptimiseTest extends TestCase
 {
@@ -38,7 +38,7 @@ class OptimiseTest extends TestCase
 	{
 		parent::set_up();
 		$this->require_libraries('cwebp', 'avifenc', 'jpegoptim', 'optipng');
-		self::set('oio_avif_quality', 30);
+		self::set('octopus_avif_quality', 30);
 	}
 
 	public function test_upload_makes_the_webp_and_avif_files_of_every_size()
@@ -132,7 +132,7 @@ class OptimiseTest extends TestCase
 			$this->assertFileDoesNotExist($file . '.avif');
 			$this->assertFileDoesNotExist(Service::backup_path($file));
 		}
-		$this->assertSame([], preg_grep('/^_oio_/', array_keys(get_post_meta($id))));
+		$this->assertSame([], preg_grep('/^_octopus_/', array_keys(get_post_meta($id))));
 		clearstatcache();
 		$this->assertSame(filesize(self::fixture('photo.jpg')), wp_get_attachment_metadata($id)['filesize']);
 		$this->assertSame(Status::TO_OPTIMISE, Status::of($id));
@@ -178,7 +178,7 @@ class OptimiseTest extends TestCase
 		$this->require_libraries('pngquant');
 		$lossless = filesize(get_attached_file($this->upload('graphic.png')));
 
-		self::set('oio_png_lossy', true);
+		self::set('octopus_png_lossy', true);
 		$id = $this->upload('graphic.png');
 
 		$this->assertSame('level:2,lossy:80', get_post_meta($id, PNG::meta_key(), true));
@@ -204,7 +204,7 @@ class OptimiseTest extends TestCase
 
 	public function test_an_avif_heavier_than_its_webp_is_deleted()
 	{
-		self::set('oio_avif_quality', 100);
+		self::set('octopus_avif_quality', 100);
 		$id = $this->upload('photo.jpg');
 		$file = get_attached_file($id);
 
@@ -229,7 +229,7 @@ class OptimiseTest extends TestCase
 		$originals = self::hashes(array_map([Service::class, 'backup_path'], self::files($id)));
 		$webp = filesize(get_attached_file($id) . '.webp');
 
-		self::set('oio_webp_quality', 40);
+		self::set('octopus_webp_quality', 40);
 		$this->assertSame(Status::OUTDATED, Status::of($id));
 		$this->assertTrue(Optimiser::update($id));
 
@@ -244,19 +244,19 @@ class OptimiseTest extends TestCase
 	{
 		$id = $this->upload('photo.jpg');
 
-		add_image_size('oio-test', 200, 100, true);
+		add_image_size('octopus-test', 200, 100, true);
 		$this->assertSame(Status::OUTDATED, Status::of($id));
 		$this->assertTrue(Optimiser::update($id));
 
 		$metadata = wp_get_attachment_metadata($id);
-		$this->assertArrayHasKey('oio-test', $metadata['sizes']);
-		$this->assertFileExists(dirname(get_attached_file($id)) . '/' . $metadata['sizes']['oio-test']['file'] . '.webp');
+		$this->assertArrayHasKey('octopus-test', $metadata['sizes']);
+		$this->assertFileExists(dirname(get_attached_file($id)) . '/' . $metadata['sizes']['octopus-test']['file'] . '.webp');
 		$this->assertSame(Status::OPTIMISED, Status::of($id));
 	}
 
 	public function test_the_maximum_size_scales_the_image_and_back()
 	{
-		self::set('oio_max_size', 400);
+		self::set('octopus_max_size', 400);
 		$id = $this->upload('photo.jpg');
 		$scaled = get_attached_file($id);
 		$this->assertStringEndsWith('photo-scaled.jpg', $scaled);
@@ -264,7 +264,7 @@ class OptimiseTest extends TestCase
 		$this->assertFileExists($scaled . '.webp');
 
 		// No maximum any more: the image uploaded is the main file again.
-		self::set('oio_max_size', 0);
+		self::set('octopus_max_size', 0);
 		$this->assertSame(Status::OUTDATED, Status::of($id));
 		$this->assertTrue(Optimiser::update($id));
 
@@ -291,7 +291,7 @@ class OptimiseTest extends TestCase
 			$left[] = substr($file->getPathname(), strlen($this->uploads) + 1);
 		}
 		sort($left);
-		$this->assertSame(['oio-originals/.htaccess', 'oio-originals/index.php'], $left);
+		$this->assertSame(['octopus-originals/.htaccess', 'octopus-originals/index.php'], $left);
 	}
 
 	/**

@@ -33,12 +33,12 @@ OIO optimises the images of your media library with the libraries of your own se
 
 * Serves AVIF and WebP, with the JPG or PNG as fallback (optional): in a `<picture>` element, or from the server with rewrite rules (written for Apache, given for nginx), which leaves the HTML as it is.
 * Tests the delivery: types sent by the server, rewrite, originals kept private.
-* `oio_image( $image_id, $class, $lazy )` returns a `<picture>` in your own templates.
+* `octopus_image( $image_id, $class, $lazy )` returns a `<picture>` in your own templates.
 
 = For developers =
 
-* WP-CLI: `wp oio run`, `clean`, `restore`, `stats` and `health`. `wp oio run --regenerate` makes the thumbnails again from the originals first.
-* Filters: `oio_backup_dir` (folder of the originals), `oio_nice`, `oio_avif_jobs`, `oio_webp_mt` and `oio_oxipng_threads` (priority and threads of the libraries), `oio_job_seconds_between_batches` and `oio_job_default_time_limit` (pace of the background jobs), `oio_binary_path` (path of a library installed out of the usual folders).
+* WP-CLI: `wp octopus run`, `clean`, `restore`, `stats` and `health`. `wp octopus run --regenerate` makes the thumbnails again from the originals first.
+* Filters: `octopus_backup_dir` (folder of the originals), `octopus_nice`, `octopus_avif_jobs`, `octopus_webp_mt` and `octopus_oxipng_threads` (priority and threads of the libraries), `octopus_job_seconds_between_batches` and `octopus_job_default_time_limit` (pace of the background jobs), `octopus_binary_path` (path of a library installed out of the usual folders).
 
 See the [README on GitHub](https://github.com/Striffly/octopus-image-optimizer) for the details.
 
@@ -54,7 +54,7 @@ The JPG and PNG compression needs a server where PHP can run programs (`proc_ope
 
 = Does OIO replace my images? =
 
-Yes, the JPG and PNG files are replaced by their compressed version, and their originals are kept in `uploads/oio-originals/`. `Restore original images` on the settings page, or `Restore original` on an image of the media library, puts them back.
+Yes, the JPG and PNG files are replaced by their compressed version, and their originals are kept in `uploads/octopus-originals/`. `Restore original images` on the settings page, or `Restore original` on an image of the media library, puts them back.
 
 = Does it serve WebP and AVIF automatically? =
 
@@ -74,7 +74,7 @@ Yes for the WebP and AVIF formats: without their libraries, or where PHP cannot 
 
 = Are the original images public? =
 
-OIO writes a `.htaccess` denying the web access to `uploads/oio-originals/`, which works with Apache and LiteSpeed. With nginx, add a `location ^~ /wp-content/uploads/oio-originals/ { deny all; }` rule, or move the folder out of the web root with the `oio_backup_dir` filter.
+OIO writes a `.htaccess` denying the web access to `uploads/octopus-originals/`, which works with Apache and LiteSpeed. With nginx, add a `location ^~ /wp-content/uploads/octopus-originals/ { deny all; }` rule, or move the folder out of the web root with the `octopus_backup_dir` filter.
 
 = What happens when I deactivate or delete OIO? =
 
@@ -90,7 +90,7 @@ OIO sends nothing out of your server: no API, no tracking, no external request. 
 
 = 1.0.0 =
 * Renamed to OIO – Octopus Image Optimizer, starting again from Squidge 0.1.4: no migration of its data.
-* The original images are kept in `uploads/oio-originals/`, and every optimisation starts again from them.
+* The original images are kept in `uploads/octopus-originals/`, and every optimisation starts again from them.
 * WebP and AVIF files keep the extension of their source (`image.jpg.webp`), and can be served on the site with `<picture>`.
 * Background optimisation of the media library, with pause and cancel, and re-optimisation when the settings or the thumbnail sizes change.
 * Clean up: remove the WebP and AVIF files, or restore the original images.

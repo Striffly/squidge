@@ -12,14 +12,14 @@
  *
  */
 
-namespace OIO\Tests\Integration;
+namespace Octopus\Tests\Integration;
 
-use OIO\Admin\Delivery;
-use OIO\Admin\Tools;
-use OIO\Package\Service;
-use OIO\Services\AVIF;
-use OIO\Services\WebP;
-use OIO\Tests\TestCase;
+use Octopus\Admin\Delivery;
+use Octopus\Admin\Tools;
+use Octopus\Package\Service;
+use Octopus\Services\AVIF;
+use Octopus\Services\WebP;
+use Octopus\Tests\TestCase;
 use WPAjaxDieContinueException;
 
 class DeliveryTest extends TestCase
@@ -70,7 +70,7 @@ class DeliveryTest extends TestCase
 		self::set(Delivery::OPTION, true);
 
 		$htaccess = file_get_contents(Delivery::htaccess());
-		$this->assertStringContainsString("# BEGIN OIO\n", $htaccess);
+		$this->assertStringContainsString("# BEGIN Octopus Image Optimizer\n", $htaccess);
 		foreach (Delivery::apache_rules() as $rule) {
 			$this->assertStringContainsString($rule . "\n", $htaccess);
 		}

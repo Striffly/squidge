@@ -15,7 +15,7 @@
  *
  */
 
-namespace OIO\Log;
+namespace Octopus\Log;
 
 if (!defined('ABSPATH')) {
 	exit; // Exit if accessed directly
@@ -29,14 +29,14 @@ class Errors
 	 *
 	 * @var string
 	 */
-	const META_KEY = '_oio_errors';
+	const META_KEY = '_octopus_errors';
 
 	/**
 	 * Option key of the recent errors.
 	 *
 	 * @var string
 	 */
-	const OPTION = 'oio_errors';
+	const OPTION = 'octopus_errors';
 
 	/**
 	 * Number of recent errors kept.

@@ -14,10 +14,10 @@
  *
  */
 
-namespace OIO\Package;
+namespace Octopus\Package;
 
-use OIO\Admin\Fields;
-use OIO\Log\Errors;
+use Octopus\Admin\Fields;
+use Octopus\Log\Errors;
 use WP_Query;
 
 if (!defined('ABSPATH')) {
@@ -65,7 +65,7 @@ class Status
 	 * Meta key saving the thumbnail sizes an image was
 	 * optimised with, when its thumbnails match them.
 	 */
-	const SIZES_KEY = '_oio_sizes';
+	const SIZES_KEY = '_octopus_sizes';
 
 	/**
 	 * Returns a signature of the thumbnail sizes
@@ -78,7 +78,7 @@ class Status
 	 */
 	public static function sizes_signature()
 	{
-		return md5(wp_json_encode([wp_get_registered_image_subsizes(), (int)Fields::get('oio_max_size')]));
+		return md5(wp_json_encode([wp_get_registered_image_subsizes(), (int)Fields::get('octopus_max_size')]));
 	}
 
 	/**

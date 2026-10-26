@@ -38,7 +38,7 @@ unlimited, no API key, no quota: your images never leave your server.
 - Serves AVIF and WebP, with the JPG or PNG as fallback (optional): in a `<picture>` element, or from the server
   with rewrite rules (written for Apache, given for nginx), which leaves the HTML as it is.
 - Tests the delivery: types sent by the server, rewrite, originals kept private.
-- `oio_image()` returns a `<picture>` in your own templates.
+- `octopus_image()` returns a `<picture>` in your own templates.
 
 ## Requirements
 
@@ -58,7 +58,7 @@ sudo apt install jpegoptim optipng webp libavif-bin
 
 On Windows, put the official builds of [`cwebp`](https://developers.google.com/speed/webp/download) and
 [`avifenc`](https://github.com/AOMediaCodec/libavif/releases) on the `PATH`, or give their path with the
-`oio_binary_path` filter: the WebP and AVIF formats are tested on Windows by a GitHub Action, the JPG and PNG are not
+`octopus_binary_path` filter: the WebP and AVIF formats are tested on Windows by a GitHub Action, the JPG and PNG are not
 compressed there.
 
 Each format works on its own: a missing library only turns its format off, or hands the WebP or AVIF to GD or
@@ -83,7 +83,7 @@ or later and `zip` needed): it makes `octopus-image-optimizer.zip`.
 ### Does OIO replace my images?
 
 Yes, the JPG and PNG files are replaced by their compressed version, so the whole site uses them right away, and
-their originals are kept in `uploads/oio-originals/`. `Restore original images` on the settings page, or
+their originals are kept in `uploads/octopus-originals/`. `Restore original images` on the settings page, or
 `Restore original` on an image of the media library, puts them back.
 
 ### Does it serve WebP and AVIF automatically?
@@ -92,14 +92,14 @@ Once turned on, on the Delivery tab, in one of two ways:
 
 - **In the HTML**: the images of the content and the ones output by `wp_get_attachment_image()` (featured images,
   galleries, most themes) are wrapped in a `<picture>` element, with the JPG or PNG as fallback. Works everywhere,
-  but may break a layout styling `img` directly. In a custom theme, use [`oio_image()`](#theme-development).
+  but may break a layout styling `img` directly. In a custom theme, use [`octopus_image()`](#theme-development).
 - **From the server**: the server answers `photo.jpg` with `photo.jpg.avif` or `photo.jpg.webp` when the browser
   reads them. The HTML does not change and every image is served, CSS backgrounds included. OIO writes the rules in
   `uploads/.htaccess` on Apache and LiteSpeed; on nginx, add these ones to the configuration of the site:
 
 ```nginx
 # In the http block:
-map $http_accept $oio_suffix {
+map $http_accept $octopus_suffix {
 	default "";
 	"~image/avif" ".avif";
 	"~image/webp" ".webp";
@@ -108,7 +108,7 @@ map $http_accept $oio_suffix {
 # In the server block:
 location ~* ^/wp-content/uploads/.+\.(jpe?g|png)$ {
 	add_header Vary Accept;
-	try_files $uri$oio_suffix $uri =404;
+	try_files $uri$octopus_suffix $uri =404;
 }
 ```
 
@@ -146,9 +146,9 @@ Every optimisation starts from the original image:
 
 ```bash
 jpegoptim --strip-all --all-progressive --overwrite --max={quality} photo.jpg
-optipng -clobber -strip all -o {level} -out photo.png oio-originals/photo.png
-oxipng -o {level} --strip safe --force --out photo.png oio-originals/photo.png
-pngquant --quality={quality - 15}-{quality} --strip --skip-if-larger --force --output tmp.png -- oio-originals/photo.png
+optipng -clobber -strip all -o {level} -out photo.png octopus-originals/photo.png
+oxipng -o {level} --strip safe --force --out photo.png octopus-originals/photo.png
+pngquant --quality={quality - 15}-{quality} --strip --skip-if-larger --force --output tmp.png -- octopus-originals/photo.png
 cwebp -q {quality} -mt photo.jpg -o photo.jpg.webp
 avifenc -q {quality} --speed 6 --ignore-exif --ignore-xmp photo.jpg photo.jpg.avif
 ```
@@ -168,22 +168,22 @@ OIO sends nothing out of your server: no API, no tracking, no external request. 
 site itself.
 
 The optimised images lose their metadata, but the originals keep them, GPS position included. OIO writes a
-`.htaccess` denying the web access to `uploads/oio-originals/`, which works with Apache and LiteSpeed. With nginx, add
+`.htaccess` denying the web access to `uploads/octopus-originals/`, which works with Apache and LiteSpeed. With nginx, add
 this rule to the `server` block of the site:
 
 ```nginx
-location ^~ /wp-content/uploads/oio-originals/ {
+location ^~ /wp-content/uploads/octopus-originals/ {
 	deny all;
 }
 ```
 
-Or keep the originals out of the web root with the `oio_backup_dir` filter, before optimising any image. OIO does not
+Or keep the originals out of the web root with the `octopus_backup_dir` filter, before optimising any image. OIO does not
 move the originals already kept: move the folder yourself when you change it.
 
 ```php
 // e.g. next to the web root of a Bedrock site.
-add_filter('oio_backup_dir', function () {
-	return dirname(ABSPATH, 2) . '/oio-originals';
+add_filter('octopus_backup_dir', function () {
+	return dirname(ABSPATH, 2) . '/octopus-originals';
 });
 ```
 
@@ -193,21 +193,21 @@ add_filter('oio_backup_dir', function () {
 
 The `<picture>` option of the Delivery tab serves the WebP and AVIF versions for the images of the content and the
 ones output by `wp_get_attachment_image()`. The images a theme outputs with its own markup, e.g. from an ACF field,
-are left as they are: serve them from the server, or use `oio_image()`, which returns their `<picture>` element
+are left as they are: serve them from the server, or use `octopus_image()`, which returns their `<picture>` element
 whatever the options.
 
 ```php
-if (function_exists('oio_image')) {
-	echo oio_image($image_id, 'hero');       // Class of the <picture> element.
-	echo oio_image($image_id, 'hero', true); // data-src and data-srcset, for a JavaScript lazy loader.
+if (function_exists('octopus_image')) {
+	echo octopus_image($image_id, 'hero');       // Class of the <picture> element.
+	echo octopus_image($image_id, 'hero', true); // data-src and data-srcset, for a JavaScript lazy loader.
 }
 ```
 
 ```html
-<picture class="oio-picture hero">
+<picture class="octopus-picture hero">
 	<source type="image/avif" srcset="photo.jpg.avif 2500w, photo-300x200.jpg.avif 300w" sizes="(max-width: 2500px) 100vw, 2500px">
 	<source type="image/webp" srcset="photo.jpg.webp 2500w, photo-300x200.jpg.webp 300w" sizes="(max-width: 2500px) 100vw, 2500px">
-	<img data-oio src="photo.jpg" srcset="photo.jpg 2500w, photo-300x200.jpg 300w" sizes="(max-width: 2500px) 100vw, 2500px" width="2500" height="1667" alt="">
+	<img data-octopus src="photo.jpg" srcset="photo.jpg 2500w, photo-300x200.jpg 300w" sizes="(max-width: 2500px) 100vw, 2500px" width="2500" height="1667" alt="">
 </picture>
 ```
 
@@ -215,16 +215,16 @@ Keep the `function_exists()` check: without it, the pages break while OIO is dea
 
 ### WP-CLI
 
-| Command          | What it does                                                                         |
-|------------------|--------------------------------------------------------------------------------------|
-| `wp oio health`  | Checks that the libraries are installed.                                             |
-| `wp oio run`     | Optimises the whole media library, with the settings of the settings page.           |
-| `wp oio clean`   | Removes the WebP and AVIF files. The JPG and PNG files stay compressed.              |
-| `wp oio restore` | Restores the original images and removes every file made by OIO.                     |
-| `wp oio stats`   | Prints the bytes saved on the media library. `--rebuild` measures every image again. |
-| `wp oio version` | Shows the version of OIO.                                                            |
+| Command              | What it does                                                                         |
+|----------------------|--------------------------------------------------------------------------------------|
+| `wp octopus health`  | Checks that the libraries are installed.                                             |
+| `wp octopus run`     | Optimises the whole media library, with the settings of the settings page.           |
+| `wp octopus clean`   | Removes the WebP and AVIF files. The JPG and PNG files stay compressed.              |
+| `wp octopus restore` | Restores the original images and removes every file made by OIO.                     |
+| `wp octopus stats`   | Prints the bytes saved on the media library. `--rebuild` measures every image again. |
+| `wp octopus version` | Shows the version of OIO.                                                            |
 
-`wp oio run` takes these options, listed by `wp help oio run`:
+`wp octopus run` takes these options, listed by `wp help octopus run`:
 
 - `--force` optimises the images again, `--regenerate` first makes their thumbnails again from the originals,
   `--thumbnails-only` leaves the full size images out.
@@ -232,41 +232,41 @@ Keep the `function_exists()` check: without it, the pages break while OIO is dea
 - `--quality=<0-100>` (JPG and WebP), `--avif-quality=<0-100>`, `--avif-speed=<0-10>` and `--optimization=o<0-7>`
   (PNG) override the settings.
 
-`wp oio run` exits with an error when images fail, e.g. in a deployment script.
+`wp octopus run` exits with an error when images fail, e.g. in a deployment script.
 
-`wp oio stats` first measures the images optimised before OIO counted the bytes saved, from the sizes of their files:
+`wp octopus stats` first measures the images optimised before OIO counted the bytes saved, from the sizes of their files:
 nothing is encoded again.
 
 ### Filters
 
-| Filter                            | Default                                       | Sets                                                     |
-|-----------------------------------|-----------------------------------------------|----------------------------------------------------------|
-| `oio_backup_dir`                  | `uploads/oio-originals`                       | The folder of the original images.                       |
-| `oio_nice`                        | `19` in background jobs, `0` otherwise        | The priority of the libraries, `0` (normal) to `19`.     |
-| `oio_avif_jobs`                   | `4` on upload, `2` in background, `all` in CLI | The threads of `avifenc`.                                |
-| `oio_webp_mt`                     | `false` in background jobs, `true` otherwise  | A second thread for `cwebp` (`-mt`).                     |
-| `oio_oxipng_threads`              | `4` on upload, `2` in background, `all` in CLI | The threads of `oxipng`.                                 |
-| `oio_job_seconds_between_batches` | `0`                                           | A pause after each image of a background job, seconds.   |
-| `oio_job_default_time_limit`      | `20`                                          | The duration of a batch of a background job, seconds.    |
-| `oio_binary_path`                 | Found in the `PATH`, then `/usr/bin`...       | The path of a library, or `false` to turn it off.        |
+| Filter                                | Default                                        | Sets                                                   |
+|---------------------------------------|------------------------------------------------|--------------------------------------------------------|
+| `octopus_backup_dir`                  | `uploads/octopus-originals`                    | The folder of the original images.                     |
+| `octopus_nice`                        | `19` in background jobs, `0` otherwise         | The priority of the libraries, `0` (normal) to `19`.   |
+| `octopus_avif_jobs`                   | `4` on upload, `2` in background, `all` in CLI | The threads of `avifenc`.                              |
+| `octopus_webp_mt`                     | `false` in background jobs, `true` otherwise   | A second thread for `cwebp` (`-mt`).                   |
+| `octopus_oxipng_threads`              | `4` on upload, `2` in background, `all` in CLI | The threads of `oxipng`.                               |
+| `octopus_job_seconds_between_batches` | `0`                                            | A pause after each image of a background job, seconds. |
+| `octopus_job_default_time_limit`      | `20`                                           | The duration of a batch of a background job, seconds.  |
+| `octopus_binary_path`                 | Found in the `PATH`, then `/usr/bin`...        | The path of a library, or `false` to turn it off.      |
 
-`oio_nice`, `oio_avif_jobs`, `oio_webp_mt` and `oio_oxipng_threads` receive the context as second argument: `upload`,
-`background` or `cli`. On multisite, the two job filters carry the ID of the site: `oio_2_job_default_time_limit` on
+`octopus_nice`, `octopus_avif_jobs`, `octopus_webp_mt` and `octopus_oxipng_threads` receive the context as second argument: `upload`,
+`background` or `cli`. On multisite, the two job filters carry the ID of the site: `octopus_2_job_default_time_limit` on
 the site 2.
 
-`oio_binary_path` receives the name of the library as second argument (`jpegoptim`, `optipng`, `cwebp`, `avifenc`,
+`octopus_binary_path` receives the name of the library as second argument (`jpegoptim`, `optipng`, `cwebp`, `avifenc`,
 or `nice`); without `cwebp` or `avifenc`, GD or Imagick make the format. OIO looks the libraries up in the folders of
 the `PATH`, then in `/usr/bin`, `/usr/local/bin`, `/bin`, `/opt/homebrew/bin` and `/opt/local/bin`: PHP-FPM often
 passes an empty `PATH`.
 
 ```php
 // In a mu-plugin: lighter background jobs on a small server.
-add_filter('oio_avif_jobs', function ($jobs, $context) {
+add_filter('octopus_avif_jobs', function ($jobs, $context) {
 	return $context === 'background' ? 1 : $jobs;
 }, 10, 2);
 
 // A library installed out of the usual folders.
-add_filter('oio_binary_path', function ($path, $name) {
+add_filter('octopus_binary_path', function ($path, $name) {
 	return $name === 'avifenc' ? '/home/me/bin/avifenc' : $path;
 }, 10, 2);
 ```

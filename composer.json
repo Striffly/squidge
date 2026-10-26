@@ -16,8 +16,8 @@
     "extra": {
         "strauss": {
             "target_directory": "vendor-prefixed",
-            "namespace_prefix": "OIO\\Vendor\\",
-            "classmap_prefix": "OIO_Vendor_",
+            "namespace_prefix": "Octopus\\Vendor\\",
+            "classmap_prefix": "Octopus_Vendor_",
             "packages": [
                 "deliciousbrains/wp-background-processing"
             ],
