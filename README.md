@@ -316,6 +316,8 @@ It started as a fork of [Squidge](https://github.com/ainsleyclark/squidge), crea
 was largely rewritten in 2026. Many thanks to them for the foundations: the idea of relying on the native libraries
 of the server comes from Squidge.
 
+Thanks also to [Media Optimizer](https://wordpress.org/plugins/yoohw-media-optimizer/) by YooHW for some ideas: the menu, the delivery page, the display of the bytes saved, and more.
+
 ## License
 
 OIO is free software, released under the [GNU General Public License v3](LICENSE) or later.

@@ -119,3 +119,5 @@ OIO sends nothing out of your server: no API, no tracking, no external request. 
 OIO is developed by [Clément Gayot](https://github.com/Striffly).
 
 It started as a fork of [Squidge](https://github.com/ainsleyclark/squidge), created by [Ainsley Clark](https://github.com/ainsleyclark) in 2021 with contributions from Roman K, Rohinish and karbivskij, and was largely rewritten in 2026. Many thanks to them for the foundations: the idea of relying on the native libraries of the server comes from Squidge.
+
+Thanks also to [Media Optimizer](https://wordpress.org/plugins/yoohw-media-optimizer/) by YooHW for some ideas: the menu, the delivery page, the display of the bytes saved, and more.
