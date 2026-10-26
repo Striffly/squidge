@@ -421,6 +421,12 @@ class Fields
 				</div>
 			</header>
 			<?php if ($jobs) : ?>
+				<?php $done = $counts['total'] > 0 && $counts[Status::OPTIMISED] === $counts['total']; ?>
+				<div class="octopus-done" data-done role="status"<?php echo $done ? '' : ' hidden'; ?>>
+					<span class="octopus-done__confetti" aria-hidden="true"></span>
+					<span class="octopus-done__icon dashicons dashicons-yes-alt" aria-hidden="true"></span>
+					<p class="octopus-done__text"><strong>All your images are optimised.</strong> Nothing left to do: the new ones are optimised on upload.</p>
+				</div>
 				<div class="octopus-actions">
 					<div class="octopus-action octopus-action--primary">
 						<span class="octopus-action__icon dashicons dashicons-format-image" aria-hidden="true"></span>

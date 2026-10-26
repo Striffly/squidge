@@ -191,7 +191,79 @@
 			}
 		});
 		updateButtons();
+		showDone(counts.total > 0 && counts.optimised === counts.total);
 	}
+
+	// All the images optimised: the message, with confetti the first time it
+	// is seen on this page, and each time a job brings it.
+	var done = page.querySelector('[data-done]');
+	var celebrated = false;
+	var COLOURS = ['#ff3cac', '#7b2ff7', '#00e5ff', '#ffc53d', '#b78cff'];
+
+	function showDone(isDone) {
+		if (!done) {
+			return;
+		}
+		var appears = isDone && done.hidden;
+		done.hidden = !isDone;
+		if (appears) {
+			celebrated = false;
+		}
+		celebrate();
+	}
+
+	function celebrate() {
+		// Only once visible: the Optimise tab may be hidden.
+		if (!done || done.hidden || celebrated || !done.offsetParent) {
+			return;
+		}
+		celebrated = true;
+		var confetti = done.querySelector('.octopus-done__confetti');
+		confetti.textContent = '';
+		if (!confetti.animate || window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+			return;
+		}
+		for (var i = 0; i < 40; i++) {
+			var piece = document.createElement('span');
+			piece.className = 'octopus-done__piece';
+			piece.style.setProperty('--x', (10 + Math.random() * 80) + '%');
+			piece.style.setProperty('--color', COLOURS[i % COLOURS.length]);
+			confetti.appendChild(piece);
+			piece.animate(flight(), {duration: 1300 + Math.random() * 300, delay: Math.random() * 150, easing: 'linear', fill: 'forwards'});
+		}
+		setTimeout(function () {
+			confetti.textContent = '';
+		}, 2000);
+	}
+
+	// The keyframes of a piece of confetti: thrown up, it slows down, then
+	// falls back with gravity, swaying and flipping over, and fades out.
+	function flight() {
+		var up = 280 + Math.random() * 180;
+		var side = Math.random() * 160 - 80;
+		var gravity = 520;
+		var spin = Math.random() * 720 - 360;
+		var sway = 6 + Math.random() * 10;
+		var phase = Math.random() * Math.PI * 2;
+		var frames = [];
+		for (var step = 0; step <= 30; step++) {
+			var t = step / 30 * 2.2;
+			// Air slows the piece down sideways.
+			var x = side * (1 - Math.exp(-1.5 * t)) / 1.5 + sway * Math.sin(t * 6 + phase);
+			var y = -up * t + gravity * t * t / 2;
+			frames.push({
+				transform: 'translate(' + x.toFixed(1) + 'px, ' + y.toFixed(1) + 'px) rotate(' + (spin * t).toFixed(0) + 'deg) scaleY(' + Math.cos(t * 9 + phase).toFixed(2) + ')',
+				opacity: step < 12 ? 1 : (30 - step) / 18
+			});
+		}
+		return frames;
+	}
+
+	page.addEventListener('click', function (event) {
+		if (event.target.closest('a[data-tab="optimise"]')) {
+			setTimeout(celebrate);
+		}
+	});
 
 	// The bytes saved, formatted by the server.
 	function showSavings(savings) {
