@@ -141,7 +141,7 @@ jobs:
         run: |
           $PSNativeCommandUseErrorActionPreference = $true
           Copy-Item -Recurse ..\oio wp-content\plugins\octopus-image-optimizer
-          wp media import ..\oio\images\test.jpg ..\oio\images\test.png --porcelain
+          wp media import ..\oio\tests\Fixtures\photo.jpg ..\oio\tests\Fixtures\graphic.png --porcelain
           wp plugin activate octopus-image-optimizer
           wp plugin list
 
