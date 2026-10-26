@@ -9,7 +9,8 @@
  * saving, which loses the hash.
  *
  * Shows a tab when a .js-octopus-tab-link is clicked,
- * or on tab:show, then emits tab:shown.
+ * the hash changes, or on tab:show, then emits
+ * tab:shown.
  */
 
 (() => {
@@ -34,6 +35,7 @@
 			super.events();
 			this.addEvent({target: this.view.el, name: 'click', callback: this.onLinkClick});
 			this.addEvent({target: this.view, name: 'tab:show', callback: ({detail}) => this.show(detail)});
+			this.addEvent({target: window, name: 'hashchange', callback: this.onHashChange});
 		}
 
 		init() {
@@ -89,6 +91,19 @@
 					fold.open = true;
 				});
 				target.scrollIntoView({behavior: 'smooth', block: 'start'});
+			}
+		}
+
+		/**
+		 * Follows a link to a tab from outside the tabs, on
+		 * the page already, e.g. the one under Media: only
+		 * the hash changes. Other hashes, e.g. #support,
+		 * keep the tab.
+		 */
+		onHashChange() {
+			const name = location.hash.slice(1);
+			if ([...this.panels].some((panel) => panel.dataset.panel === name)) {
+				this.show(name);
 			}
 		}
 

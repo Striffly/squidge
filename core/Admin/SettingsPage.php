@@ -155,13 +155,17 @@ class SettingsPage
 	}
 
 	/**
-	 * Adds the options page under Settings.
+	 * Adds the options page under Settings, and a link
+	 * to its optimise tab under Media, where the other
+	 * optimizers put their bulk optimisation. Without a
+	 * callback, WordPress links the slug as it is.
 	 *
 	 * @since 1.0.0
 	 */
 	public function add_page()
 	{
-		add_options_page('OIO – Octopus Image Optimizer', __('Image Optimizer', 'octopus-image-optimizer'), 'manage_options', self::PAGE, [$this, 'render_page']);
+		add_options_page('OIO – Octopus Image Optimizer', 'Octopus Image Optimizer', 'manage_options', self::PAGE, [$this, 'render_page']);
+		add_media_page('OIO – Octopus Image Optimizer', __('Optimise images', 'octopus-image-optimizer'), 'manage_options', 'options-general.php?page=' . self::PAGE . '#optimise');
 	}
 
 	/**
