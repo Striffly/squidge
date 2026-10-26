@@ -212,12 +212,13 @@ class Libraries
 	 * Determines if PHP can run programs: proc_open()
 	 * or exec(), see execute(). Shared hosts often
 	 * disable both, with disable_functions: the
-	 * libraries are then of no use, even installed.
+	 * libraries are then of no use, even installed,
+	 * and the overview says so.
 	 *
 	 * @return bool
 	 * @since 1.0.0
 	 */
-	private static function can_execute()
+	public static function can_execute()
 	{
 		return function_exists('proc_open') || function_exists('exec');
 	}

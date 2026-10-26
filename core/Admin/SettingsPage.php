@@ -230,6 +230,22 @@ class SettingsPage
 	{
 		$savings = self::savings();
 		?>
+		<?php if (!Libraries::can_execute()) : ?>
+			<div class="notice notice-error inline octopus-alert">
+				<p>
+					<strong><?php esc_html_e('PHP cannot run programs on this server.', 'octopus-image-optimizer'); ?></strong>
+					<?php
+					$this->printf_html(
+						/* translators: 1: proc_open(), 2: exec(), 3: disable_functions */
+						__('%1$s and %2$s are disabled (%3$s): the libraries cannot run, even installed, so the JPG and PNG images are not compressed. Ask your host to enable %1$s. Meanwhile, GD or Imagick make the WebP and AVIF when they can.', 'octopus-image-optimizer'),
+						'<code>proc_open()</code>',
+						'<code>exec()</code>',
+						'<code>disable_functions</code>'
+					);
+					?>
+				</p>
+			</div>
+		<?php endif; ?>
 		<div class="octopus-card octopus-card--hero">
 			<div class="octopus-savings">
 				<div class="octopus-savings__main"<?php echo $savings['images'] ? '' : ' hidden'; ?>>
@@ -312,16 +328,20 @@ class SettingsPage
 	 */
 	private function render_engine($format)
 	{
+		$runs = Libraries::can_execute();
 		if ($format['installed']) {
 			$name = $format['library'];
 			$state = __('installed', 'octopus-image-optimizer');
 		} elseif ($format['engine']) {
 			$name = $format['engine'];
-			/* translators: %s: a library, e.g. cwebp. */
-			$state = sprintf(__('%s not installed', 'octopus-image-optimizer'), $format['library']);
+			$state = $runs
+				/* translators: %s: a library, e.g. cwebp. */
+				? sprintf(__('%s not installed', 'octopus-image-optimizer'), $format['library'])
+				/* translators: %s: a library, e.g. cwebp. */
+				: sprintf(__('%s cannot run', 'octopus-image-optimizer'), $format['library']);
 		} else {
 			$name = $format['library'];
-			$state = __('not installed', 'octopus-image-optimizer');
+			$state = $runs ? __('not installed', 'octopus-image-optimizer') : __('cannot run', 'octopus-image-optimizer');
 		}
 		?>
 		<span class="octopus-engine octopus-engine--<?php echo $format['engine'] ? 'on' : 'off'; ?>">
@@ -334,7 +354,7 @@ class SettingsPage
 		<?php foreach ($format['extras'] as $extra => $installed) : ?>
 			<span class="octopus-engine octopus-engine--<?php echo $installed ? 'on' : 'off'; ?>">
 				<span class="octopus-engine__name"><?php echo esc_html($extra); ?></span>
-				<span class="octopus-engine__state"><?php echo esc_html($installed ? __('installed', 'octopus-image-optimizer') : __('not installed', 'octopus-image-optimizer')); ?></span>
+				<span class="octopus-engine__state"><?php echo esc_html($installed ? __('installed', 'octopus-image-optimizer') : ($runs ? __('not installed', 'octopus-image-optimizer') : __('cannot run', 'octopus-image-optimizer'))); ?></span>
 			</span>
 		<?php endforeach; ?>
 		<?php
@@ -634,7 +654,9 @@ class SettingsPage
 						</div>
 					</header>
 					<p class="octopus-format__description"><?php echo wp_kses($format['fields'][$switch]['help'], ['strong' => [], 'code' => []]); ?></p>
-					<?php if (!$format['installed'] && $format['engine']) : ?>
+					<?php if (!Libraries::can_execute()) : ?>
+						<?php // Installing would not help: the overview says why. ?>
+					<?php elseif (!$format['installed'] && $format['engine']) : ?>
 						<details class="octopus-install octopus-install--advice">
 							<summary class="octopus-install__summary">
 								<?php
@@ -917,7 +939,7 @@ class SettingsPage
 	{
 		$labels = [
 			'on' => __('Active', 'octopus-image-optimizer'),
-			'off' => __('Library missing', 'octopus-image-optimizer'),
+			'off' => __('Library unavailable', 'octopus-image-optimizer'),
 			'muted' => __('Disabled', 'octopus-image-optimizer'),
 		];
 		return $labels[$state];

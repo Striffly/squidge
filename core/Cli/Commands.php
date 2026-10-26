@@ -19,6 +19,7 @@ use Octopus\Encoders\AVIF;
 use Octopus\Encoders\JPG;
 use Octopus\Encoders\PNG;
 use Octopus\Encoders\WebP;
+use Octopus\Engines\Libraries;
 use Octopus\Media\Cleaner;
 use Octopus\Media\Files;
 use Octopus\Media\Lock;
@@ -65,6 +66,9 @@ class Commands extends WP_CLI_Command
 	public function health()
 	{
 		$this->print_welcome();
+		if (!Libraries::can_execute()) {
+			WP_CLI::warning(__('PHP cannot run programs: proc_open() and exec() are disabled, the libraries cannot run.', 'octopus-image-optimizer'));
+		}
 		$this->print_health("jpegoptim", JPG::installed());
 		$this->print_health(PNG::library(), PNG::installed());
 		/* translators: %s: pngquant */
