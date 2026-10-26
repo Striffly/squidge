@@ -763,6 +763,45 @@
 	box-shadow: 0 0 0 3px var(--octopus-off-bg);
 }
 
+/* The dot of the Settings tab, a format without library: it pulses. */
+.octopus-tabs__tab .octopus-dot--off {
+	animation: octopus-pulse 1.8s ease-out infinite;
+}
+
+/* White on the gradient of the active tab, where red would not show. */
+.octopus-tabs__tab--active .octopus-dot--off {
+	animation-name: octopus-pulse-light;
+}
+
+/* A wave spreading from the dot, fading. */
+@keyframes octopus-pulse {
+	0% {
+		box-shadow: 0 0 0 0 rgba(214, 54, 56, .7);
+	}
+
+	70%,
+	100% {
+		box-shadow: 0 0 0 6px rgba(214, 54, 56, 0);
+	}
+}
+
+@keyframes octopus-pulse-light {
+	0% {
+		box-shadow: 0 0 0 0 rgba(255, 255, 255, .9);
+	}
+
+	70%,
+	100% {
+		box-shadow: 0 0 0 6px rgba(255, 255, 255, 0);
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.octopus-tabs__tab .octopus-dot--off {
+		animation: none;
+	}
+}
+
 /* A format and its state, linking to its settings. */
 .octopus-page .octopus-chip {
 	display: inline-flex;
@@ -1313,9 +1352,32 @@
 	color: var(--octopus-muted);
 }
 
-/* Fields in a settings card: closer, without rules between them. */
+/* Fields in a settings card: closer, without rules between them. The help
+   stays under its label, the control on their right, centred on both. */
 .octopus-fields .octopus-field {
 	padding: var(--octopus-space-3) 0;
+}
+
+.octopus-fields .octopus-field__help {
+	grid-column: 1;
+}
+
+.octopus-fields .octopus-field__control,
+.octopus-fields .octopus-field > .octopus-toggle {
+	grid-column: 2;
+	grid-row: 1 / span 3;
+}
+
+/* Small screens: the help back under both, as wide as the field. */
+@media (max-width: 782px) {
+	.octopus-fields .octopus-field__help {
+		grid-column: 1 / -1;
+	}
+
+	.octopus-fields .octopus-field__control,
+	.octopus-fields .octopus-field > .octopus-toggle {
+		grid-row: auto;
+	}
 }
 
 .octopus-fields .octopus-field + .octopus-field {
@@ -1559,8 +1621,13 @@
 	margin: 0 var(--octopus-space-5) var(--octopus-space-4);
 }
 
+/* The settings of a format: a soft band at the bottom of its card, its
+   title and its fields together. At the bottom of the cards of a row. */
 .octopus-format__settings {
+	margin-top: auto;
 	border-top: 1px solid var(--octopus-border);
+	border-radius: 0 0 calc(var(--octopus-radius) - 1px) calc(var(--octopus-radius) - 1px);
+	background: var(--octopus-surface-soft);
 }
 
 .octopus-format__summary {
@@ -1568,34 +1635,55 @@
 	align-items: center;
 	gap: var(--octopus-space-2);
 	padding: var(--octopus-space-3) var(--octopus-space-5);
-	color: var(--octopus-violet-dark);
-	font-weight: 600;
+	color: var(--octopus-text-soft);
+	font-size: var(--octopus-size-small);
+	font-weight: 700;
+	letter-spacing: .06em;
+	text-transform: uppercase;
 	list-style: none;
 	cursor: pointer;
+	transition: color var(--octopus-transition);
 }
 
 .octopus-format__summary::-webkit-details-marker {
 	display: none;
 }
 
-.octopus-format__summary::before {
-	content: "\f345"; /* Dashicon arrow-right-alt2. */
+/* A gear before, a chevron at the end, turned once open. */
+.octopus-format__summary::before,
+.octopus-format__summary::after {
 	font-family: dashicons;
 	font-size: 16px;
+	font-weight: 400;
 	line-height: 1;
-	transition: transform var(--octopus-transition);
+	letter-spacing: 0;
 }
 
-.octopus-format__settings[open] > .octopus-format__summary::before {
-	transform: rotate(90deg);
-}
-
-.octopus-format__summary:hover {
+.octopus-format__summary::before {
+	content: "\f111"; /* Dashicon admin-generic. */
 	color: var(--octopus-violet);
 }
 
+.octopus-format__summary::after {
+	content: "\f347"; /* Dashicon arrow-down-alt2. */
+	margin-left: auto;
+	transition: transform var(--octopus-transition);
+}
+
+.octopus-format__settings[open] > .octopus-format__summary {
+	padding-bottom: var(--octopus-space-1);
+}
+
+.octopus-format__settings[open] > .octopus-format__summary::after {
+	transform: rotate(180deg);
+}
+
+.octopus-format__summary:hover {
+	color: var(--octopus-violet-dark);
+}
+
 .octopus-format__fields {
-	padding: 0 var(--octopus-space-5) var(--octopus-space-4);
+	padding: 0 var(--octopus-space-5) var(--octopus-space-3);
 }
 
 .octopus-format__fields .octopus-install {
