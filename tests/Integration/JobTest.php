@@ -99,6 +99,27 @@ class JobTest extends TestCase
 		$this->assertFileEquals(self::fixture('photo.jpg'), get_attached_file($kept));
 	}
 
+	public function test_a_pause_sent_once_the_job_ended_does_nothing()
+	{
+		$this->job->start(Job::OPTIMISE, [$this->upload_unoptimised('photo.jpg')]);
+		$this->run_job();
+
+		$this->job->pause();
+		$this->job->cancel();
+
+		$this->assertFalse($this->job->is_active());
+		$this->assertSame('finished', $this->job->progress()['state']);
+	}
+
+	public function test_a_pause_left_with_an_empty_queue_does_not_block_the_next_job()
+	{
+		update_site_option(self::identifier($this->job) . '_status', Job::STATUS_PAUSED);
+
+		$this->assertTrue($this->job->start(Job::REMOVE_FORMATS, [1, 2]), 'Nothing to resume: the job starts.');
+		$this->assertFalse($this->job->is_paused());
+		$this->job->delete_all();
+	}
+
 	public function test_the_queue_is_kept_under_the_identifier_of_the_site()
 	{
 		$identifier = is_multisite() ? 'octopus_' . get_current_blog_id() . '_job' : 'octopus_job';

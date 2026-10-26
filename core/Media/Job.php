@@ -108,6 +108,10 @@ class Job extends Octopus_Vendor_WP_Background_Process
 	 */
 	public function start($action, $ids, $mode = Optimiser::MODE_NEW)
 	{
+		// A pause or a cancel left once the queue emptied would keep the job active, with nothing to resume.
+		if (!$this->is_queued() && !$this->is_processing()) {
+			delete_site_option($this->get_status_key());
+		}
 		if ($this->is_active() || empty($ids)) {
 			return false;
 		}
@@ -131,6 +135,33 @@ class Job extends Octopus_Vendor_WP_Background_Process
 		}
 		$this->dispatch();
 		return true;
+	}
+
+	/**
+	 * Pauses the job, while images are left to process:
+	 * a pause sent as it ends, e.g. clicked on its last
+	 * image, does nothing.
+	 *
+	 * @since 1.0.0
+	 */
+	public function pause()
+	{
+		if ($this->is_queued()) {
+			parent::pause();
+		}
+	}
+
+	/**
+	 * Cancels the job, while images are left to process,
+	 * as pause() does.
+	 *
+	 * @since 1.0.0
+	 */
+	public function cancel()
+	{
+		if ($this->is_queued()) {
+			parent::cancel();
+		}
 	}
 
 	/**
