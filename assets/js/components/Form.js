@@ -4,13 +4,15 @@
  * The form of the settings (.js-octopus-form). Each
  * setting is saved as it changes (SettingsAjax): a box,
  * a choice or a list at once, a number once left or
- * entered, if the browser takes it. A mark by it tells
- * it saved, or not, its value then put back. Saved, but
- * what follows it failed (e.g. the rules of
- * uploads/.htaccess not written), the error shows under
- * it until it is saved again. What the
- * page shows of the settings follows, and of the
- * images once a job ended: its parts marked
+ * entered, if the browser takes it. One at a time, in
+ * the order of the changes: the server writes all the
+ * settings at once, two saves at the same time would
+ * undo each other. A mark by it tells it saved, or not,
+ * its value then put back. Saved, but what follows it
+ * failed (e.g. the rules of uploads/.htaccess not
+ * written), the error shows under it until it is saved
+ * again. What the page shows of the settings follows,
+ * and of the images once a job ended: its parts marked
  * .js-octopus-live are taken again from the page, as
  * the server renders it, by their id, or only their
  * class with data-live="class". Without JS, the form is
@@ -39,13 +41,15 @@
 			this.current = null;
 			this.markTimer = null;
 			this.busy = false;
+			// The saves waiting for the one sent.
+			this.saving = Promise.resolve();
 		}
 
 		events() {
 			super.events();
 			// Invalid does not bubble: caught on its way down.
 			this.addEvent({target: this.el, name: 'invalid', callback: this.onInvalid, capture: true});
-			this.addEvent({target: this.el, name: 'change', callback: ({target}) => this.save(target)});
+			this.addEvent({target: this.el, name: 'change', callback: ({target}) => this.queue(target)});
 			this.addEvent({target: this.el, name: 'submit', callback: this.onSubmit});
 			this.addEvent({target: this.view, name: 'job:status', callback: this.onStatus});
 		}
@@ -72,8 +76,22 @@
 		onSubmit(event) {
 			event.preventDefault();
 			if (document.activeElement?.name?.startsWith(Form.PREFIX)) {
-				this.save(document.activeElement);
+				this.queue(document.activeElement);
 			}
+		}
+
+		/**
+		 * Saves a setting once the saves before are done:
+		 * with its value then, nothing if it is the one
+		 * saved (e.g. ticked then unticked meanwhile).
+		 *
+		 * @param {HTMLInputElement|HTMLSelectElement} input
+		 */
+		queue(input) {
+			if (this.reverting) {
+				return;
+			}
+			this.saving = this.saving.then(() => this.save(input));
 		}
 
 		/**
@@ -81,26 +99,30 @@
 		 */
 		async save(input) {
 			const name = input.name?.startsWith(Form.PREFIX) && input.name.slice(Form.PREFIX.length, -1);
-			if (!name || this.reverting || input.type === 'hidden' || this.unchanged(input)) {
+			if (!name || input.type === 'hidden' || this.unchanged(input)) {
 				return;
 			}
 			if (!input.checkValidity()) {
 				input.reportValidity();
 				return;
 			}
-			const value = input.type === 'checkbox' ? (input.checked ? '1' : '0') : input.value;
+			const value = Form.value(input);
 			let response;
 			try {
 				response = await this.view.api.post('octopus_settings_save', {name, value});
 			} catch {
 				response = {success: false};
 			}
+			// Changed again meanwhile: its next save is waiting, the field keeps what it shows.
+			const shown = Form.value(input) === value;
 			if (!response.success) {
-				this.revert(input);
+				if (shown) {
+					this.revert(input);
+				}
 				this.mark(input, false);
 				return;
 			}
-			this.apply(input, response.data.value);
+			this.apply(input, response.data.value, shown);
 			this.mark(input, !response.data.error, response.data.error ? __('Not applied', 'octopus-image-optimizer') : '');
 			this.showError(input, response.data.error);
 			this.view.emit('settings:saved', {name, value: response.data.value});
@@ -119,7 +141,8 @@
 				return input.checked === input.defaultChecked;
 			}
 			if (input.type === 'radio') {
-				return input.defaultChecked;
+				// Another one of its group was picked since: its own save follows.
+				return !input.checked || input.defaultChecked;
 			}
 			if (input.tagName === 'SELECT') {
 				return input.selectedOptions[0]?.defaultSelected ?? false;
@@ -128,28 +151,50 @@
 		}
 
 		/**
-		 * Shows the value saved, e.g. a number brought
-		 * within its bounds, and keeps it as the one to
-		 * put back.
+		 * The value of a field, as sent to the server.
+		 *
+		 * @param {HTMLInputElement|HTMLSelectElement} input
+		 * @returns {string}
+		 */
+		static value(input) {
+			if (input.type === 'checkbox') {
+				return input.checked ? '1' : '0';
+			}
+			if (input.type === 'radio') {
+				return input.checked ? input.value : '';
+			}
+			return input.value;
+		}
+
+		/**
+		 * Keeps the value saved as the one to put back,
+		 * and shows it, e.g. a number brought within its
+		 * bounds, unless the field changed again since.
 		 *
 		 * @param {HTMLInputElement|HTMLSelectElement} input
 		 * @param {boolean|number|string} value
+		 * @param {boolean} show
 		 */
-		apply(input, value) {
+		apply(input, value, show) {
+			value = input.type === 'checkbox' ? Boolean(value) : String(value);
 			if (input.type === 'checkbox') {
-				input.checked = Boolean(value);
-				input.defaultChecked = input.checked;
+				// Taken before: the default moves an untouched box with it.
+				const shown = input.checked;
+				input.defaultChecked = value;
+				input.checked = show ? value : shown;
 			} else if (input.type === 'radio') {
-				this.group(input).forEach((radio) => {
-					radio.checked = radio.value === String(value);
-					radio.defaultChecked = radio.checked;
-				});
+				// Taken before: a radio checked unchecks the others, the default moves them.
+				const shown = this.group(input).find((radio) => radio.checked);
+				this.group(input).forEach((radio) => (radio.defaultChecked = radio.value === value));
+				this.group(input).forEach((radio) => (radio.checked = show ? radio.value === value : radio === shown));
 			} else if (input.tagName === 'SELECT') {
-				input.value = String(value);
-				[...input.options].forEach((option) => (option.defaultSelected = option.selected));
+				const shown = input.value;
+				[...input.options].forEach((option) => (option.defaultSelected = option.value === value));
+				input.value = show ? value : shown;
 			} else {
-				input.value = String(value);
-				input.defaultValue = input.value;
+				const shown = input.value;
+				input.defaultValue = value;
+				input.value = show ? value : shown;
 			}
 		}
 
