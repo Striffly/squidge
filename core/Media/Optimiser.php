@@ -165,13 +165,13 @@ class Optimiser
 			if (!self::readable($id, $metadata)) {
 				return true;
 			}
-			$attachment = $metadata ?: (int)$id;
+			$metadata = $metadata ?: wp_get_attachment_metadata($id);
 			foreach (self::SERVICES as $format => $service) {
 				if (!isset($settings[$format])) {
 					continue;
 				}
 				try {
-					$service::process($attachment, array_merge($settings[$format], [
+					$service::process($metadata, array_merge($settings[$format], [
 						'id' => (int)$id,
 						'force' => $force,
 						'thumbnailsOnly' => $thumbnails_only,
@@ -180,7 +180,11 @@ class Optimiser
 					Logger::error($e->getMessage());
 				}
 			}
-			$metadata = $metadata ?: wp_get_attachment_metadata($id);
+			// Deleted meanwhile: what was made since goes with it, nothing is saved.
+			if (Cleaner::deleted($id)) {
+				Cleaner::forget($id, $metadata);
+				return true;
+			}
 			self::drop_heavier($id, $metadata);
 			Status::stamp_sizes($id, $metadata);
 			// On upload, the metadata is saved once the filter returns it, see
@@ -427,6 +431,14 @@ class Optimiser
 			$metadata = wp_generate_attachment_metadata($id, $source);
 			self::$regenerating = false;
 			if (empty($metadata) || is_wp_error($metadata)) {
+				return null;
+			}
+			// Deleted meanwhile: the thumbnails made again go with it.
+			if (Cleaner::deleted($id)) {
+				foreach (Files::of($id, $metadata) as $path) {
+					Files::delete($path);
+				}
+				Cleaner::forget($id, $metadata);
 				return null;
 			}
 			$main = Files::of($id, $metadata)[0];

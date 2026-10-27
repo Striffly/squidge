@@ -116,8 +116,59 @@ class Cleaner
 		if (!in_array(get_post_mime_type($id), Files::MIMES, true)) {
 			return;
 		}
+		self::delete_made($id, null);
+	}
+
+	/**
+	 * Determines if an image was deleted, e.g. from the
+	 * media library while a job processed it: read
+	 * again, not from the cache of the request.
+	 *
+	 * @param int $id
+	 * @return bool
+	 * @since 1.0.0
+	 */
+	public static function deleted($id)
+	{
+		wp_cache_delete($id, 'posts');
+		return get_post($id) === null;
+	}
+
+	/**
+	 * Deletes what OIO made for an image deleted while
+	 * it processed it: the files made after the media
+	 * library deleted them (WebP, AVIF, originals kept
+	 * with their GPS position), from the metadata known
+	 * then, and the metas written since, left without
+	 * their image.
+	 *
+	 * @param int $id
+	 * @param array $metadata
+	 * @since 1.0.0
+	 */
+	public static function forget($id, $metadata)
+	{
+		self::delete_made($id, $metadata);
+		foreach (array_keys(get_post_meta($id)) as $key) {
+			if (strpos($key, '_octopus_') === 0) {
+				delete_post_meta($id, $key);
+			}
+		}
+	}
+
+	/**
+	 * Deletes the files OIO made for an image: the ones
+	 * listed, and the versions and backups of its
+	 * files.
+	 *
+	 * @param int $id
+	 * @param array|null $metadata The metadata, when it is not saved any more.
+	 * @since 1.0.0
+	 */
+	private static function delete_made($id, $metadata)
+	{
 		$paths = Files::listed($id);
-		foreach (Files::of($id) as $file) {
+		foreach (Files::of($id, $metadata) as $file) {
 			array_push($paths, Files::variant($file, WebP::extension()), Files::variant($file, AVIF::extension()), Files::backup_path($file));
 		}
 		foreach (array_unique($paths) as $path) {

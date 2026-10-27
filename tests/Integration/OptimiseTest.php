@@ -333,6 +333,33 @@ class OptimiseTest extends TestCase
 		$this->assertSame(['octopus/index.php', $originals . '/.htaccess', $originals . '/index.php'], $left);
 	}
 
+	public function test_an_image_deleted_while_it_is_processed_leaves_nothing()
+	{
+		$id = $this->upload_unoptimised('photo.jpg');
+		// Deleted from the media library by another request, once the first library ran.
+		add_filter('octopus_nice', function ($level) use ($id) {
+			static $deleted = false;
+			if (!$deleted) {
+				$deleted = true;
+				$cached = get_post($id);
+				wp_delete_attachment($id, true);
+				// Another request: this one still holds the image in its cache.
+				wp_cache_set($id, $cached, 'posts');
+			}
+			return $level;
+		});
+
+		Optimiser::optimise($id);
+
+		$left = [];
+		$files = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($this->uploads, \FilesystemIterator::SKIP_DOTS));
+		foreach ($files as $file) {
+			$left[] = substr($file->getPathname(), strlen($this->uploads) + 1);
+		}
+		$this->assertSame([], preg_grep('#\.(jpe?g|webp|avif)$#', $left), 'No version, no original.');
+		$this->assertSame([], preg_grep('/^_octopus_/', array_keys(get_post_meta($id))), 'No meta without its image.');
+	}
+
 	public function test_deleting_the_image_leaves_a_file_of_the_same_name()
 	{
 		$id = $this->upload('photo.jpg');
