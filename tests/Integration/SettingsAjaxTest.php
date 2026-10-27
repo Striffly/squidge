@@ -17,6 +17,7 @@ namespace Octopus\Tests\Integration;
 
 use Octopus\Admin\JobsAjax;
 use Octopus\Admin\SettingsAjax;
+use Octopus\Delivery\Htaccess;
 use Octopus\Settings;
 use Octopus\Tests\TestCase;
 use WPAjaxDieContinueException;
@@ -37,6 +38,24 @@ class SettingsAjaxTest extends TestCase
 		$this->assertTrue($response['success']);
 		$this->assertSame(100, $response['data']['value']);
 		$this->assertSame(100, Settings::get('jpg_quality'));
+		$this->assertSame('', $response['data']['error']);
+	}
+
+	public function test_the_rules_not_written_are_told()
+	{
+		$_SERVER['SERVER_SOFTWARE'] = 'Apache/2.4.66 (Debian)';
+		wp_mkdir_p(dirname(Htaccess::htaccess()));
+		touch(Htaccess::htaccess());
+		chmod(Htaccess::htaccess(), 0444);
+
+		$response = $this->save('serve_rewrite', '1');
+		chmod(Htaccess::htaccess(), 0644);
+		unset($_SERVER['SERVER_SOFTWARE']);
+
+		// Saved, as the form saves it: the rules can be copied by hand.
+		$this->assertTrue($response['success']);
+		$this->assertTrue($response['data']['value']);
+		$this->assertStringContainsString('could not write the rules', $response['data']['error']);
 	}
 
 	public function test_the_nonce_of_the_background_library_is_refused()

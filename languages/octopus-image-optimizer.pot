@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-10-27T00:16:57+00:00\n"
+"POT-Creation-Date: 2026-10-27T22:37:11+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: octopus-image-optimizer\n"
@@ -39,7 +39,7 @@ msgstr ""
 msgid "https://github.com/Striffly"
 msgstr ""
 
-#: core/Admin/JobsAjax.php:96
+#: core/Admin/JobsAjax.php:101
 msgid "A job is already running, or there is no image to process."
 msgstr ""
 
@@ -992,7 +992,11 @@ msgstr ""
 msgid "%1$s active for %2$s: %3$s not installed, recommended."
 msgstr ""
 
-#: core/Delivery/Htaccess.php:156
+#: core/Delivery/Htaccess.php:185
+msgid "OIO could not remove its rules from uploads/.htaccess: remove them by hand, between the lines with Octopus Image Optimizer."
+msgstr ""
+
+#: core/Delivery/Htaccess.php:191
 msgid "OIO could not write the rules in uploads/.htaccess: copy them by hand from the Delivery tab."
 msgstr ""
 
@@ -1064,7 +1068,7 @@ msgid "Anyone can download them, with their metadata (GPS position of the photos
 msgstr ""
 
 #. translators: %s: the error.
-#: core/Delivery/Test.php:240
+#: core/Delivery/Test.php:242
 #, php-format
 msgid "The site could not be reached: %s"
 msgstr ""
@@ -1164,11 +1168,15 @@ msgstr[1] ""
 msgid "Tested on %s."
 msgstr ""
 
-#: assets/js/components/Form.js:197
+#: assets/js/components/Form.js:104
+msgid "Not applied"
+msgstr ""
+
+#: assets/js/components/Form.js:202
 msgid "Saved"
 msgstr ""
 
-#: assets/js/components/Form.js:197
+#: assets/js/components/Form.js:202
 msgid "Not saved"
 msgstr ""
 

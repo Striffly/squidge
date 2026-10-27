@@ -38,7 +38,7 @@ msgstr "Clément Gayot"
 msgid "https://github.com/Striffly"
 msgstr "https://github.com/Striffly"
 
-#: core/Admin/JobsAjax.php:96
+#: core/Admin/JobsAjax.php:101
 msgid "A job is already running, or there is no image to process."
 msgstr "Une tâche est déjà en cours, ou il n’y a aucune image à traiter."
 
@@ -946,7 +946,7 @@ msgstr "%s non installé, voir la page de réglages d’OIO."
 msgid "%1$s active for %2$s: %3$s not installed, recommended."
 msgstr "%1$s actif pour %2$s : %3$s non installé, recommandé."
 
-#: core/Delivery/Htaccess.php:156
+#: core/Delivery/Htaccess.php:191
 msgid "OIO could not write the rules in uploads/.htaccess: copy them by hand from the Delivery tab."
 msgstr "OIO n’a pas pu écrire les règles dans uploads/.htaccess : copiez-les à la main depuis l’onglet Diffusion."
 
@@ -1018,7 +1018,7 @@ msgid "Anyone can download them, with their metadata (GPS position of the photos
 msgstr "N’importe qui peut les télécharger, avec leurs métadonnées (position GPS des photos). nginx : ajoutez %1$s au bloc server, ou déplacez-les avec le filtre %2$s."
 
 #. translators: %s: the error.
-#: core/Delivery/Test.php:240
+#: core/Delivery/Test.php:242
 #, php-format
 msgid "The site could not be reached: %s"
 msgstr "Le site n’a pas pu être joint : %s"
@@ -1299,11 +1299,11 @@ msgstr "Chaque image ajoutée à la médiathèque est optimisée aussitôt. Déc
 msgid "WordPress scales the bigger images down on upload, and keeps them as their original. Longest side, 2560 by default. <strong>0 means no limit: huge images can exhaust the server.</strong>"
 msgstr "WordPress réduit les grandes images au téléversement, et les garde comme original. Plus grand côté, 2560 par défaut. <strong>0 signifie sans limite : des images énormes peuvent épuiser le serveur.</strong>"
 
-#: assets/js/components/Form.js:197
+#: assets/js/components/Form.js:202
 msgid "Saved"
 msgstr "Enregistré"
 
-#: assets/js/components/Form.js:197
+#: assets/js/components/Form.js:202
 msgid "Not saved"
 msgstr "Non enregistré"
 
@@ -1314,3 +1314,11 @@ msgstr "Les nouveaux téléversements attendront ici, à optimiser quand vous vo
 #: core/Admin/SettingsPage.php:692
 msgid "Requests an optimised image as a browser would."
 msgstr "Demande une image optimisée comme le ferait un navigateur."
+
+#: core/Delivery/Htaccess.php:185
+msgid "OIO could not remove its rules from uploads/.htaccess: remove them by hand, between the lines with Octopus Image Optimizer."
+msgstr "OIO n’a pas pu retirer ses règles de uploads/.htaccess : retirez-les à la main, entre les lignes avec Octopus Image Optimizer."
+
+#: assets/js/components/Form.js:104
+msgid "Not applied"
+msgstr "Non appliqué"

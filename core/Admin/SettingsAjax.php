@@ -38,8 +38,10 @@ class SettingsAjax
 	 * Saves one setting, cleaned as the form saves them
 	 * (Settings::sanitize()), and sends its value back:
 	 * the page shows it as saved, e.g. a number brought
-	 * within its bounds. The nonce is the one of the
-	 * requests of the page.
+	 * within its bounds. And the error of what follows
+	 * it, if any, as the form shows it: e.g. the rules
+	 * of uploads/.htaccess not written. The nonce is the
+	 * one of the requests of the page.
 	 *
 	 * @since 1.0.0
 	 */
@@ -55,6 +57,7 @@ class SettingsAjax
 		}
 		$value = isset($_POST['value']) ? sanitize_text_field(wp_unslash($_POST['value'])) : '';
 		Settings::set([$name => $value]);
-		wp_send_json_success(['value' => Settings::get($name)]);
+		$errors = wp_list_pluck(get_settings_errors(Settings::OPTION), 'message');
+		wp_send_json_success(['value' => Settings::get($name), 'error' => $errors ? wp_strip_all_tags(implode(' ', $errors)) : '']);
 	}
 }

@@ -5,7 +5,10 @@
  * setting is saved as it changes (SettingsAjax): a box,
  * a choice or a list at once, a number once left or
  * entered, if the browser takes it. A mark by it tells
- * it saved, or not, its value then put back. What the
+ * it saved, or not, its value then put back. Saved, but
+ * what follows it failed (e.g. the rules of
+ * uploads/.htaccess not written), the error shows under
+ * it until it is saved again. What the
  * page shows of the settings follows, and of the
  * images once a job ended: its parts marked
  * .js-octopus-live are taken again from the page, as
@@ -98,7 +101,8 @@
 				return;
 			}
 			this.apply(input, response.data.value);
-			this.mark(input, true);
+			this.mark(input, !response.data.error, response.data.error ? __('Not applied', 'octopus-image-optimizer') : '');
+			this.showError(input, response.data.error);
 			this.view.emit('settings:saved', {name, value: response.data.value});
 			this.refreshLater();
 		}
@@ -188,13 +192,14 @@
 		 *
 		 * @param {HTMLElement} input
 		 * @param {boolean} saved
+		 * @param {string} [failed] The text of a failure, other than not saved.
 		 */
-		mark(input, saved) {
+		mark(input, saved, failed = '') {
 			const place = input.closest('.octopus-toggle, .octopus-field__control');
 			if (!place) {
 				return;
 			}
-			const text = saved ? __('Saved', 'octopus-image-optimizer') : __('Not saved', 'octopus-image-optimizer');
+			const text = saved ? __('Saved', 'octopus-image-optimizer') : (failed || __('Not saved', 'octopus-image-optimizer'));
 			const mark = document.createElement('span');
 			mark.className = `octopus-autosave${saved ? '' : ' octopus-autosave--error'}`;
 			mark.textContent = text;
@@ -208,6 +213,26 @@
 			this.current = mark;
 			this.markTimer = setTimeout(() => place.append(mark), gap);
 			this.view.announce(text);
+		}
+
+		/**
+		 * Shows the error of what follows a setting under
+		 * it, or removes the one shown.
+		 *
+		 * @param {HTMLElement} input
+		 * @param {string} error
+		 */
+		showError(input, error) {
+			const field = input.closest('.octopus-field');
+			field?.querySelector('.octopus-field__error')?.remove();
+			if (!field || !error) {
+				return;
+			}
+			const notice = document.createElement('p');
+			notice.className = 'octopus-field__error';
+			notice.textContent = error;
+			field.append(notice);
+			this.view.announce(error);
 		}
 
 		/**

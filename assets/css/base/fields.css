@@ -118,6 +118,15 @@
 	color: var(--octopus-muted);
 }
 
+/* Saved, but what follows it failed, e.g. the rules of uploads/.htaccess (Form.js). */
+.octopus-field__error {
+	grid-column: 1 / -1;
+	max-width: 680px;
+	margin: var(--octopus-space-1) 0 0;
+	color: var(--octopus-off);
+	font-weight: 600;
+}
+
 /* A setting nothing can use, e.g. without its library: greyed. */
 .octopus-field--disabled {
 	& :is(.octopus-field__label, .octopus-field__control, .octopus-field__help) {

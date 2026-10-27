@@ -181,6 +181,9 @@ class Htaccess
 		$on = Settings::get('serve_rewrite') && self::server() !== 'nginx';
 		if (!$on) {
 			self::remove_rules(self::htaccess());
+			if (self::rules_written()) {
+				add_settings_error(Settings::OPTION, 'octopus_rewrite_rules', __('OIO could not remove its rules from uploads/.htaccess: remove them by hand, between the lines with Octopus Image Optimizer.', 'octopus-image-optimizer'));
+			}
 			return;
 		}
 		require_once ABSPATH . 'wp-admin/includes/misc.php';
