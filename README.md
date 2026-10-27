@@ -338,19 +338,9 @@ composer translations   # The .pot, then the .po, .mo, .l10n.php and .json of ea
 
 ### Logo and banner
 
-The logo and the banner of WordPress.org are drawn by `tools/brand/build.js`: the octopus and the arms it wraps in
-front of the picture come from the pixel grids of `tools/brand/sprites/`, one letter per colour, and the script draws
-the rest, the animation and the texts of the banner, in Unbounded. It writes the still PNGs and the floating GIFs, at
-128 and 256 px, in `assets/images/` for the plugin and in `.wordpress-org/`, and the banners, at 772x250 and
-1544x500. `.wordpress-org/` holds the assets of the page of OIO on WordPress.org, as the `assets/` folder of its SVN:
-the icons, the banners and the screenshots.
-
-```bash
-bun run brand
-```
-
-The screenshots of WordPress.org are captures of the admin, 1408x880 at 2x, dressed on the night of the logo by
-`tools/brand/screenshots.js`, in the order of `readme.txt`:
+`bun run brand` draws the logo and the banners from the pixel grids of `tools/brand/sprites/`, in `assets/images/`
+and `.wordpress-org/`, the assets of the page of OIO on WordPress.org. The screenshots there are captures of the
+admin, 1408x880 at 2x, dressed by `tools/brand/screenshots.js` in the order of `readme.txt`:
 
 ```bash
 bun tools/brand/screenshots.js overview.png optimise.png delivery.png settings.png media.png
