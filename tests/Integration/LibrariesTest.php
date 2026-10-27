@@ -67,6 +67,22 @@ class LibrariesTest extends TestCase
 		$this->assertFileExists(Files::variant(get_attached_file($id), '.webp'));
 	}
 
+	public function test_the_errors_shown_keep_the_folders_of_the_server_out()
+	{
+		$this->require_libraries('jpegoptim');
+		// Writes the paths it is given, as the libraries do in their errors.
+		self::fake_library('cwebp', 'for arg; do case $arg in /*) echo "cannot open $arg" >&2;; esac; done; exit 1');
+
+		$id = $this->upload('photo.jpg');
+
+		$shown = wp_json_encode(Errors::for_attachment($id)) . wp_json_encode(Errors::recent());
+		$this->assertStringContainsString('cannot open uploads\/2026\/10\/photo.jpg', $shown);
+		$this->assertStringContainsString('cannot open formats\/2026\/10\/photo.jpg.webp', $shown);
+		$this->assertStringNotContainsString(wp_json_encode($this->uploads), $shown);
+		$this->assertStringNotContainsString(basename(Files::backup_dir()), $shown, 'Nor the key of the originals.');
+		$this->assertSame('cannot open originals/2026/10/photo.jpg', Errors::shorten('cannot open ' . Files::backup_path(get_attached_file($id))));
+	}
+
 	public function test_a_failing_library_records_an_error()
 	{
 		$this->require_libraries('jpegoptim');

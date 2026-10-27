@@ -17,6 +17,8 @@
 
 namespace Octopus\Log;
 
+use Octopus\Media\Files;
+
 if (!defined('ABSPATH')) {
 	exit; // Exit if accessed directly
 }
@@ -58,6 +60,7 @@ class Errors
 	{
 		$file = basename($filepath);
 		Logger::error(sprintf('%s failed on %s: %s', $format, $filepath, $message));
+		$message = self::shorten($message);
 		if (defined('WP_CLI') && WP_CLI) {
 			\WP_CLI::warning(sprintf('%s failed on %s: %s', $format, $file, $message));
 		}
@@ -80,6 +83,37 @@ class Errors
 			'message' => $message,
 		]);
 		update_option(self::OPTION, array_slice($recent, 0, self::MAX), false);
+	}
+
+	/**
+	 * Shortens the paths of a message, as shown to the
+	 * users of the media library (Authors included):
+	 * uploads/, formats/ or originals/ then the path in
+	 * it, so that the file is known, without the folders
+	 * of the server nor the key of the folder of the
+	 * originals. The log of PHP keeps them whole.
+	 *
+	 * @param string $message
+	 * @return string
+	 * @since 1.0.0
+	 */
+	public static function shorten($message)
+	{
+		// The deepest first: the originals and the formats are in the uploads folder.
+		$folders = [
+			Files::backup_dir() => 'originals',
+			Files::formats_dir() => 'formats',
+			Files::uploads_dir() => 'uploads',
+			untrailingslashit(ABSPATH) => '',
+			untrailingslashit(get_temp_dir()) => 'temp',
+		];
+		foreach ($folders as $folder => $short) {
+			// Followed by / or \, as written on Windows.
+			foreach (array_unique([$folder, wp_normalize_path($folder)]) as $path) {
+				$message = preg_replace('#' . preg_quote($path, '#') . '[\\\\/]#', $short === '' ? '' : $short . '/', $message);
+			}
+		}
+		return $message;
 	}
 
 	/**

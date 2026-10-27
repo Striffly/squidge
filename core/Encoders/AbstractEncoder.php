@@ -161,7 +161,7 @@ abstract class AbstractEncoder
 			return true;
 		}
 		$lines = preg_split('/\r?\n/', $output);
-		Errors::add(isset($args['id']) ? $args['id'] : 0, static::FORMAT, $filepath, self::error_message($lines, $code, $filepath));
+		Errors::add(isset($args['id']) ? $args['id'] : 0, static::FORMAT, $filepath, self::error_message($lines, $code));
 		return false;
 	}
 
@@ -237,15 +237,15 @@ abstract class AbstractEncoder
 	/**
 	 * Returns a short error message from the output
 	 * of a failed command: its error lines, or its
-	 * last line, without the directory of the file.
+	 * last line, with its paths shortened (see
+	 * Errors::shorten()).
 	 *
 	 * @param string[] $output
 	 * @param int $code
-	 * @param string $filepath
 	 * @return string
 	 * @since 1.0.0
 	 */
-	private static function error_message($output, $code, $filepath)
+	private static function error_message($output, $code)
 	{
 		$lines = array_values(array_filter(array_map('trim', $output), 'strlen'));
 		if (empty($lines)) {
@@ -253,7 +253,7 @@ abstract class AbstractEncoder
 		}
 		$errors = array_values(preg_grep('/error|cannot|could not|unsupported|failed|invalid/i', $lines));
 		$message = $errors ? implode(' / ', array_slice($errors, 0, 2)) : end($lines);
-		return substr(str_replace(dirname($filepath) . DIRECTORY_SEPARATOR, '', $message), 0, 300);
+		return substr(Errors::shorten($message), 0, 300);
 	}
 
 	/**
