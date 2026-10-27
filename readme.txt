@@ -62,7 +62,7 @@ E.g. on Debian or Ubuntu: `sudo apt install jpegoptim optipng webp libavif-bin`.
 
 = Does OIO replace my images? =
 
-Yes, the JPG and PNG files are replaced by their compressed version, and their originals are kept in `uploads/octopus-originals/`. `Restore original images` on the settings page, or `Restore original` on an image of the media library, puts them back.
+By default, yes: the JPG and PNG files are replaced by their compressed version, and their originals are kept in `uploads/octopus-originals/`. `Restore original images` on the settings page, or `Restore original` on an image of the media library, puts them back. To leave the files as they are, untick `Compress JPG images` or `Compress PNG images` on the Settings tab: OIO then only makes their WebP and AVIF versions.
 
 = Does it serve WebP and AVIF automatically? =
 
