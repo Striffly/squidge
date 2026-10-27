@@ -226,7 +226,7 @@ class SettingsPage
 						<?php echo esc_html($title); ?>
 						<?php if ($id === 'settings') : ?>
 							<?php // Follows the settings as they are saved (Form.js). ?>
-							<span class="js-octopus-live" id="octopus-tab-settings-dot">
+							<span class="octopus-tabs__dot js-octopus-live" id="octopus-tab-settings-dot">
 								<?php if ($missing) : ?>
 									<span class="octopus-dot octopus-dot--off" title="<?php esc_attr_e('A format has no library', 'octopus-image-optimizer'); ?>"></span>
 								<?php endif; ?>

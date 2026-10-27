@@ -199,6 +199,11 @@
 		box-shadow: none;
 	}
 
+	/* Without dot, its holder takes no gap. */
+	& .octopus-tabs__dot {
+		display: contents;
+	}
+
 	/* The dot of the Settings tab, a format without library: it pulses. */
 	& .octopus-dot--off {
 		animation: octopus-pulse 1.8s ease-out infinite;
