@@ -120,7 +120,11 @@ class WebP extends AbstractEncoder
 		if ($lossy < filesize($source) / 4) {
 			return;
 		}
-		$temp = $output . '.tmp';
+		// A random name, created by this request only.
+		$temp = Files::temp_file(dirname($output), '.webp');
+		if ($temp === null) {
+			return;
+		}
 		if (self::run(array_merge($options, ['-near_lossless', self::NEAR_LOSSLESS, $source, '-o', $temp]), $filepath, $args) && filesize($temp) < $lossy) {
 			// phpcs:ignore WordPress.WP.AlternativeFunctions.rename_rename -- Replaces the WebP the site may be serving at once, never half written.
 			rename($temp, $output);

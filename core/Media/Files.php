@@ -200,6 +200,32 @@ class Files
 	}
 
 	/**
+	 * Creates an empty file with a random name in a
+	 * folder, for a library or the image editor to
+	 * write: created by this request only, so that no
+	 * link set there before is written through.
+	 *
+	 * @param string $dir
+	 * @param string $suffix E.g. .png.
+	 * @return string|null Its path, null if it could not be created.
+	 * @since 1.0.0
+	 */
+	public static function temp_file($dir, $suffix)
+	{
+		if (!wp_mkdir_p($dir)) {
+			return null;
+		}
+		$path = $dir . DIRECTORY_SEPARATOR . 'octopus-' . strtolower(wp_generate_password(12, false)) . $suffix;
+		// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fopen -- Exclusive creation (x), which WP_Filesystem does not offer.
+		$handle = @fopen($path, 'x');
+		if ($handle === false) {
+			return null;
+		}
+		fclose($handle); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fclose -- See above.
+		return $path;
+	}
+
+	/**
 	 * Returns the folder of the original images:
 	 * uploads/octopus/originals-{key} by default. The
 	 * octopus_backup_dir filter moves it, e.g. out of

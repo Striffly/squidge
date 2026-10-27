@@ -76,16 +76,22 @@ class ImageEditor
 		if (is_wp_error($editor)) {
 			return $filepath;
 		}
-		// A random name: in a temporary folder shared by the users of the server,
-		// a predictable one could be a link to a file of the site, overwritten.
-		require_once ABSPATH . 'wp-admin/includes/file.php';
-		$temp = wp_tempnam('octopus.png');
-		$saved = $editor->save($temp, 'image/png');
-		// The editor saves it with the .png extension, next to the empty .tmp.
-		if (file_exists($temp) && (is_wp_error($saved) || $saved['path'] !== $temp)) {
-			wp_delete_file($temp);
+		// In the folder of the originals: private, unlike the temporary folder
+		// shared by the users of the server, where a link set at its name would
+		// be written through. A copy a stopped request left goes after an hour.
+		Files::protect_backup_dir();
+		foreach (glob(Files::backup_dir() . DIRECTORY_SEPARATOR . 'octopus-*.png') ?: [] as $left) {
+			if (filemtime($left) < time() - HOUR_IN_SECONDS) {
+				wp_delete_file($left);
+			}
 		}
-		if (is_wp_error($saved)) {
+		$temp = Files::temp_file(Files::backup_dir(), '.png');
+		if ($temp === null) {
+			return $filepath;
+		}
+		$saved = $editor->save($temp, 'image/png');
+		if (is_wp_error($saved) || $saved['path'] !== $temp) {
+			wp_delete_file($temp);
 			return $filepath;
 		}
 		Logger::info("Converted CMYK image to RGB before conversion: " . $filepath);
