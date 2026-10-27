@@ -441,8 +441,8 @@ class SettingsPage
 					<p class="octopus-savings__value"><?php esc_html_e('Ready to squeeze', 'octopus-image-optimizer'); ?></p>
 					<p class="octopus-savings__detail"><?php esc_html_e('OIO optimises your images on your own server: free, unlimited, and they never leave it.', 'octopus-image-optimizer'); ?></p>
 				</div>
-				<?php // Filled while images wait for an optimisation. ?>
-				<a class="octopus-cta js-octopus-cta js-octopus-tab-link<?php echo $counts[Status::TO_OPTIMISE] + $counts[Status::ERROR] + $counts[Status::OUTDATED] ? ' octopus-cta--filled' : ''; ?>" href="#optimise" data-tab="optimise">
+				<?php // Filled while new images wait for their optimisation, not those optimised with older settings. ?>
+				<a class="octopus-cta js-octopus-cta js-octopus-tab-link<?php echo $counts[Status::TO_OPTIMISE] ? ' octopus-cta--filled' : ''; ?>" href="#optimise" data-tab="optimise">
 					<?php esc_html_e('Optimise the media library', 'octopus-image-optimizer'); ?>
 					<span class="octopus-cta__arrow dashicons dashicons-arrow-right-alt" aria-hidden="true"></span>
 				</a>

@@ -3,7 +3,9 @@
  *
  * The button to optimise, on the overview
  * (.js-octopus-cta): filled with the gradient, and
- * pulsing, while images wait for an optimisation.
+ * pulsing, while new images wait for their
+ * optimisation. Not for the ones optimised with older
+ * settings: they are already light.
  */
 
 (() => {
@@ -19,7 +21,7 @@
 		 * @param {Object<string, number>} counts
 		 */
 		update(counts) {
-			this.el.classList.toggle('octopus-cta--filled', counts.new + counts.outdated > 0);
+			this.el.classList.toggle('octopus-cta--filled', counts['to-optimise'] > 0);
 		}
 	}
 
