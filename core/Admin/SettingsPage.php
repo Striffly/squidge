@@ -224,8 +224,13 @@ class SettingsPage
 				<?php foreach ($tabs as $id => $title) : ?>
 					<a href="#<?php echo esc_attr($id); ?>" class="octopus-tabs__tab js-octopus-tab js-octopus-tab-link" role="tab" data-tab="<?php echo esc_attr($id); ?>">
 						<?php echo esc_html($title); ?>
-						<?php if ($id === 'settings' && $missing) : ?>
-							<span class="octopus-dot octopus-dot--off" title="<?php esc_attr_e('A format has no library', 'octopus-image-optimizer'); ?>"></span>
+						<?php if ($id === 'settings') : ?>
+							<?php // Follows the settings as they are saved (Form.js). ?>
+							<span class="js-octopus-live" id="octopus-tab-settings-dot">
+								<?php if ($missing) : ?>
+									<span class="octopus-dot octopus-dot--off" title="<?php esc_attr_e('A format has no library', 'octopus-image-optimizer'); ?>"></span>
+								<?php endif; ?>
+							</span>
 						<?php endif; ?>
 					</a>
 				<?php endforeach; ?>
@@ -458,7 +463,7 @@ class SettingsPage
 		</div>
 
 		<h2 class="octopus-heading"><?php esc_html_e('Formats', 'octopus-image-optimizer'); ?></h2>
-		<div class="octopus-libraries">
+		<div class="octopus-libraries js-octopus-live" id="octopus-overview-formats">
 			<?php foreach ($formats as $id => $format) : ?>
 				<?php $state = self::state($format); ?>
 				<a class="octopus-library octopus-library--<?php echo esc_attr($state); ?> js-octopus-tab-link" href="#settings-<?php echo esc_attr($id); ?>" data-tab="settings" data-target="octopus-settings-<?php echo esc_attr($id); ?>">
@@ -539,7 +544,14 @@ class SettingsPage
 				<div class="octopus-done js-octopus-all-optimised" role="status"<?php echo $done ? '' : ' hidden'; ?>>
 					<span class="octopus-confetti js-octopus-confetti" aria-hidden="true"></span>
 					<span class="octopus-done__icon dashicons dashicons-yes-alt" aria-hidden="true"></span>
-					<p class="octopus-done__text"><strong><?php esc_html_e('All your images are optimised.', 'octopus-image-optimizer'); ?></strong> <?php esc_html_e('Nothing left to do: the new ones are optimised on upload.', 'octopus-image-optimizer'); ?></p>
+					<p class="octopus-done__text js-octopus-live" id="octopus-optimise-done">
+						<strong><?php esc_html_e('All your images are optimised.', 'octopus-image-optimizer'); ?></strong>
+						<?php if (Settings::get('optimise_uploads')) : ?>
+							<?php esc_html_e('Nothing left to do: the new ones are optimised on upload.', 'octopus-image-optimizer'); ?>
+						<?php else : ?>
+							<?php esc_html_e('The new uploads will wait here, to optimise when you like.', 'octopus-image-optimizer'); ?>
+						<?php endif; ?>
+					</p>
 				</div>
 				<div class="octopus-actions">
 					<div class="octopus-action octopus-action--primary">
@@ -567,7 +579,7 @@ class SettingsPage
 			<?php else : ?>
 				<?php $this->render_no_jobs(); ?>
 			<?php endif; ?>
-			<p class="octopus-card__footer">
+			<p class="octopus-card__footer js-octopus-live" id="octopus-optimise-footer">
 				<?php if (Settings::get('optimise_uploads')) : ?>
 					<span class="octopus-uploads octopus-uploads--on"><?php esc_html_e('New uploads are optimised right away.', 'octopus-image-optimizer'); ?></span>
 				<?php else : ?>
@@ -624,7 +636,7 @@ class SettingsPage
 						<p class="octopus-step__description"><?php esc_html_e('The WebP and AVIF versions are made while the images are optimised.', 'octopus-image-optimizer'); ?></p>
 					</div>
 				</header>
-				<div class="octopus-step__body octopus-generate">
+				<div class="octopus-step__body octopus-generate js-octopus-live" id="octopus-delivery-generate">
 					<p class="octopus-generate__value">
 						<strong><?php echo esc_html(number_format_i18n($made)); ?></strong>
 						<?php
@@ -667,7 +679,7 @@ class SettingsPage
 						<?php $this->render_field('serve_rewrite', $rewrite); ?>
 					</div>
 				</div>
-				<footer class="octopus-step__actions">
+				<footer class="octopus-step__actions octopus-save">
 					<?php submit_button(__('Save changes', 'octopus-image-optimizer'), 'primary', 'submit', false, ['id' => 'octopus-save-delivery']); ?>
 				</footer>
 			</li>
@@ -677,7 +689,7 @@ class SettingsPage
 					<span class="octopus-step__number" aria-hidden="true">3</span>
 					<div class="octopus-step__heading">
 						<h2 class="octopus-step__title"><?php esc_html_e('Test', 'octopus-image-optimizer'); ?></h2>
-						<p class="octopus-step__description"><?php esc_html_e('Requests an optimised image as a browser, after saving.', 'octopus-image-optimizer'); ?></p>
+						<p class="octopus-step__description"><?php esc_html_e('Requests an optimised image as a browser would.', 'octopus-image-optimizer'); ?></p>
 					</div>
 				</header>
 				<div class="octopus-step__body">
@@ -719,7 +731,7 @@ class SettingsPage
 			<details class="octopus-fold">
 				<summary class="octopus-fold__summary">
 					<span class="octopus-fold__title"><?php esc_html_e('Rewrite rules for Apache and LiteSpeed', 'octopus-image-optimizer'); ?></span>
-					<?php $this->render_badge($written ? 'on' : 'muted', $written ? __('Written in uploads/.htaccess', 'octopus-image-optimizer') : __('Not written', 'octopus-image-optimizer')); ?>
+					<?php $this->render_badge($written ? 'on' : 'muted', $written ? __('Written in uploads/.htaccess', 'octopus-image-optimizer') : __('Not written', 'octopus-image-optimizer'), 'octopus-delivery-rules-state'); ?>
 				</summary>
 				<div class="octopus-fold__content">
 					<p class="octopus-fold__text">
@@ -816,11 +828,12 @@ class SettingsPage
 				$fields = $format['fields'];
 				unset($fields[$switch]);
 				?>
-				<section class="octopus-format octopus-format--<?php echo esc_attr($state); ?>" id="octopus-settings-<?php echo esc_attr($id); ?>">
+				<?php // Its state follows the settings as they are saved (Form.js): its class only, its fields kept. ?>
+				<section class="octopus-format octopus-format--<?php echo esc_attr($state); ?> js-octopus-live" id="octopus-settings-<?php echo esc_attr($id); ?>" data-live="class">
 					<header class="octopus-format__header">
 						<div class="octopus-format__top">
 							<h2 class="octopus-format__title"><?php echo esc_html($format['title']); ?></h2>
-							<?php $this->render_badge($state, self::state_label($state)); ?>
+							<?php $this->render_badge($state, self::state_label($state), 'octopus-settings-' . $id . '-state'); ?>
 							<?php $this->render_switch($switch, $format['fields'][$switch]); ?>
 						</div>
 						<div class="octopus-format__engines">
@@ -877,7 +890,7 @@ class SettingsPage
 			<?php endforeach; ?>
 		</div>
 
-		<div class="octopus-page__save">
+		<div class="octopus-page__save octopus-save">
 			<?php submit_button(__('Save changes', 'octopus-image-optimizer'), 'primary', 'submit', false, ['id' => 'octopus-save-settings']); ?>
 		</div>
 		<?php
@@ -1183,10 +1196,16 @@ class SettingsPage
 	 *
 	 * @param string $variant on, off or muted.
 	 * @param string $label
+	 * @param string $id To follow the settings and the jobs.
 	 * @since 1.0.0
 	 */
-	private function render_badge($variant, $label)
+	private function render_badge($variant, $label, $id = '')
 	{
+		if ($id) {
+			// It follows the settings and the jobs (Form.js).
+			printf('<span class="octopus-badge octopus-badge--%s js-octopus-live" id="%s">%s</span>', esc_attr($variant), esc_attr($id), esc_html($label));
+			return;
+		}
 		printf('<span class="octopus-badge octopus-badge--%s">%s</span>', esc_attr($variant), esc_html($label));
 	}
 

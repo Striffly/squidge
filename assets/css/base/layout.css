@@ -42,6 +42,11 @@
 	margin-top: var(--octopus-space-4);
 }
 
+/* With JS, each setting is saved as it changes (Form.js): the buttons are for the form without it. */
+.octopus-page--js .octopus-save {
+	display: none;
+}
+
 /* The steps of the Delivery tab lay out on the width of the panel. */
 .octopus-panel {
 	margin-top: var(--octopus-space-5);

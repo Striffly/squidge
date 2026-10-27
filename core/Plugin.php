@@ -19,6 +19,7 @@ use Octopus\Admin\JobsAjax;
 use Octopus\Admin\MediaColumn;
 use Octopus\Admin\Notices;
 use Octopus\Admin\PluginsScreen;
+use Octopus\Admin\SettingsAjax;
 use Octopus\Admin\SettingsPage;
 use Octopus\Delivery\Display;
 use Octopus\Delivery\Htaccess;
@@ -72,6 +73,7 @@ final class Plugin
 		add_action('init', [$this, 'load_translations']);
 		add_action('init', [Settings::class, 'register']);
 		new SettingsPage();
+		new SettingsAjax();
 		new UploadHooks();
 		new Notices();
 		new MediaColumn();

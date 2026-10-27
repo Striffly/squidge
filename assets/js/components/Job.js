@@ -79,6 +79,8 @@
 			this.addEvent({target: this.view, name: 'job:starting', callback: this.onStarting});
 			this.addEvent({target: this.view, name: 'job:started', callback: this.onStarted});
 			this.addEvent({target: this.view, name: 'job:start-failed', callback: this.refresh});
+			// A quality changed, and images are optimised with older settings.
+			this.addEvent({target: this.view, name: 'settings:saved', callback: this.refresh});
 		}
 
 		init() {
