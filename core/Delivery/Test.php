@@ -179,18 +179,20 @@ class Test
 		]);
 		foreach ($ids as $id) {
 			$file = get_attached_file($id);
-			$webp = $file && file_exists($file . WebP::extension());
-			$avif = $file && file_exists($file . AVIF::extension());
-			if (!$webp && !$avif) {
+			if (!$file) {
 				continue;
 			}
-			$url = wp_get_attachment_url($id);
+			$webp = Files::variant($file, WebP::extension());
+			$avif = Files::variant($file, AVIF::extension());
+			if (!file_exists($webp) && !file_exists($avif)) {
+				continue;
+			}
 			return [
 				'file' => $file,
 				'name' => wp_basename($file),
-				'image' => $url,
-				'webp' => $webp ? $url . WebP::extension() : '',
-				'avif' => $avif ? $url . AVIF::extension() : '',
+				'image' => wp_get_attachment_url($id),
+				'webp' => file_exists($webp) ? Files::url($webp) : '',
+				'avif' => file_exists($avif) ? Files::url($avif) : '',
 			];
 		}
 		return null;

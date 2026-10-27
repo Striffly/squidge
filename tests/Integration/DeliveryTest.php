@@ -104,7 +104,8 @@ class DeliveryTest extends TestCase
 		self::set('serve_rewrite', true);
 
 		$this->assertFileDoesNotExist(Htaccess::htaccess());
-		$this->assertStringContainsString('location ~* ^/wp-content/uploads/.+\.(jpe?g|png)$ {', Htaccess::nginx_rules());
+		$this->assertStringContainsString('location ~* ^/wp-content/uploads/(?<octopus_file>.+\.(?:jpe?g|png))$ {', Htaccess::nginx_rules());
+		$this->assertStringContainsString('try_files /wp-content/uploads/octopus/formats/$octopus_file$octopus_avif /wp-content/uploads/octopus/formats/$octopus_file$octopus_webp $uri =404;', Htaccess::nginx_rules());
 	}
 
 	public function test_a_working_delivery_passes_every_check()
@@ -165,8 +166,9 @@ class DeliveryTest extends TestCase
 		$id = self::factory()->attachment->create_object(['file' => '2026/10/photo.jpg', 'post_mime_type' => 'image/jpeg']);
 		$file = $this->uploads . '/2026/10/photo.jpg';
 		wp_mkdir_p(dirname($file));
+		wp_mkdir_p(dirname(Files::variant($file, '.webp')));
 		wp_mkdir_p(dirname(Files::backup_path($file)));
-		foreach ([$file, $file . '.webp', $file . '.avif', Files::backup_path($file)] as $path) {
+		foreach ([$file, Files::variant($file, '.webp'), Files::variant($file, '.avif'), Files::backup_path($file)] as $path) {
 			touch($path);
 		}
 		update_post_meta($id, WebP::meta_key(), 'quality:80');

@@ -19,7 +19,7 @@ OIO optimises the images of your media library with the libraries of your own se
 
 = Optimisation =
 
-* Compresses JPG and PNG images in place, and creates their WebP and AVIF versions next to them (`photo.jpg.webp`), kept only when lighter.
+* Compresses JPG and PNG images in place, and creates their WebP and AVIF versions in `uploads/octopus/formats/` (`photo.jpg.webp`), kept only when lighter.
 * Keeps the original images: every optimisation starts again from them, and they can be restored at any time.
 * Strips the metadata (camera, date, GPS position) from every optimised file.
 * Handles CMYK JPGs, which the WebP and AVIF encoders cannot read.
@@ -107,7 +107,7 @@ OIO sends nothing out of your server: no API, no tracking, no external request. 
 = 1.0.0 =
 * Renamed to OIO – Octopus Image Optimizer, starting again from Squidge 0.1.4: no migration of its data.
 * The original images are kept in `uploads/octopus-originals/`, and every optimisation starts again from them.
-* WebP and AVIF files keep the extension of their source (`image.jpg.webp`), and can be served on the site with `<picture>` or rewrite rules.
+* WebP and AVIF files keep the extension of their source (`image.jpg.webp`), in `uploads/octopus/formats/`, and can be served on the site with `<picture>` or rewrite rules.
 * Background optimisation of the media library, with pause and cancel, and re-optimisation when the settings or the thumbnail sizes change.
 * Clean up: remove the WebP and AVIF files, or restore the original images.
 * Status column in the media library and readable error notices.

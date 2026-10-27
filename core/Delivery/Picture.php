@@ -6,8 +6,9 @@
  * Picture wraps the HTML of an image from the
  * uploads folder in a <picture> element with its
  * AVIF and WebP versions (image.jpg.avif and
- * image.jpg.webp). Only files that exist are used,
- * the JPG or PNG is the fallback.
+ * image.jpg.webp, in uploads/octopus/formats). Only
+ * files that exist are used, the JPG or PNG is the
+ * fallback.
  *
  * @package     OIO
  * @author      Clément Gayot
@@ -17,6 +18,8 @@
  */
 
 namespace Octopus\Delivery;
+
+use Octopus\Media\Files;
 
 if (!defined('ABSPATH')) {
 	exit; // Exit if accessed directly
@@ -59,7 +62,7 @@ class Picture
 		}
 		$img = $match[0];
 		$src = self::attr($img, 'src');
-		if (!$src || !self::path($src)) {
+		if (!$src || self::relative($src) === null) {
 			return $html;
 		}
 		$srcset = self::attr($img, 'srcset');
@@ -105,7 +108,9 @@ class Picture
 
 	/**
 	 * Returns the URL of the AVIF or WebP version of an
-	 * image URL, if its file exists.
+	 * image URL, if its file exists: in the folder of
+	 * the versions, under the same address as the
+	 * image (its scheme and host kept).
 	 *
 	 * @param string $url
 	 * @param string $extension
@@ -114,9 +119,16 @@ class Picture
 	 */
 	private static function variant($url, $extension)
 	{
-		$variant = strtok($url, '?') . $extension;
-		$path = self::path($variant);
-		return $path && file_exists($path) ? $variant : null;
+		$relative = self::relative($url);
+		if ($relative === null) {
+			return null;
+		}
+		$path = Files::variant(wp_get_upload_dir()['basedir'] . $relative, $extension);
+		if (!file_exists($path)) {
+			return null;
+		}
+		$url = strtok(html_entity_decode($url), '?');
+		return substr($url, 0, -strlen($relative)) . '/' . Files::DIR . '/' . Files::FORMATS_DIR . $relative . $extension;
 	}
 
 	/**
@@ -164,22 +176,23 @@ class Picture
 	}
 
 	/**
-	 * Returns the file path of a URL of the uploads
-	 * folder, or null for any other URL.
+	 * Returns the path of a URL of the uploads folder
+	 * relative to it, with a / first, or null for any
+	 * other URL, and for the files of OIO.
 	 *
 	 * @param string $url
 	 * @return string|null
 	 * @since 1.0.0
 	 */
-	private static function path($url)
+	private static function relative($url)
 	{
-		$uploads = wp_get_upload_dir();
-		$base = preg_replace('#^https?:#i', '', $uploads['baseurl']);
+		$base = preg_replace('#^https?:#i', '', wp_get_upload_dir()['baseurl']);
 		$url = preg_replace('#^https?:#i', '', strtok(html_entity_decode($url), '?'));
 		if (strpos($url, $base . '/') !== 0 || preg_match('#(^|/)\.\.(/|$)#', $url)) {
 			return null;
 		}
-		return $uploads['basedir'] . substr($url, strlen($base));
+		$relative = substr($url, strlen($base));
+		return strpos($relative, '/' . Files::DIR . '/') === 0 ? null : $relative;
 	}
 
 	/**

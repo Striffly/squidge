@@ -80,8 +80,8 @@ class Cleaner
 	{
 		return Lock::run($id, function () use ($id) {
 			foreach (Files::of($id) as $file) {
-				Files::delete($file . WebP::extension());
-				Files::delete($file . AVIF::extension());
+				Files::delete(Files::variant($file, WebP::extension()));
+				Files::delete(Files::variant($file, AVIF::extension()));
 			}
 			$listed = Files::listed($id);
 			foreach ($listed as $index => $path) {
@@ -118,7 +118,7 @@ class Cleaner
 		}
 		$paths = Files::listed($id);
 		foreach (Files::of($id) as $file) {
-			array_push($paths, $file . WebP::extension(), $file . AVIF::extension(), Files::backup_path($file));
+			array_push($paths, Files::variant($file, WebP::extension()), Files::variant($file, AVIF::extension()), Files::backup_path($file));
 		}
 		foreach (array_unique($paths) as $path) {
 			Files::delete($path);
@@ -152,8 +152,8 @@ class Cleaner
 				} elseif ($index === 0 && $compressed && in_array(get_post_mime_type($id), Files::MIMES, true)) {
 					$restored = false;
 				}
-				Files::delete($file . WebP::extension());
-				Files::delete($file . AVIF::extension());
+				Files::delete(Files::variant($file, WebP::extension()));
+				Files::delete(Files::variant($file, AVIF::extension()));
 			}
 			// Without its original, e.g. the folder of the originals moved, the
 			// files kept elsewhere stay listed: they are restored once it is back.

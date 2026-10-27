@@ -13,6 +13,7 @@
 
 namespace Octopus\Tests\Integration;
 
+use Octopus\Media\Files;
 use Exception;
 use Octopus\Media\Cleaner;
 use Octopus\Media\Lock;
@@ -30,7 +31,7 @@ class LockTest extends TestCase
 		$this->assertNull(Optimiser::attachment($id, null, Optimiser::settings()));
 		$this->assertNull(Optimiser::update($id));
 		$this->assertNull(Cleaner::restore($id));
-		$this->assertFileDoesNotExist(get_attached_file($id) . '.webp');
+		$this->assertFileDoesNotExist(Files::variant(get_attached_file($id), '.webp'));
 		$this->assertTrue(self::locked($id), 'The lock of the other request stays.');
 	}
 
@@ -41,7 +42,7 @@ class LockTest extends TestCase
 		self::lock($id, time() - Lock::TIMEOUT - 1);
 
 		$this->assertTrue(Optimiser::attachment($id, null, Optimiser::settings()));
-		$this->assertFileExists(get_attached_file($id) . '.webp');
+		$this->assertFileExists(Files::variant(get_attached_file($id), '.webp'));
 		$this->assertFalse(self::locked($id));
 	}
 

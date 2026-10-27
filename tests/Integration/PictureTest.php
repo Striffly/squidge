@@ -36,8 +36,9 @@ class PictureTest extends TestCase
 		parent::set_up();
 		$this->url = wp_get_upload_dir()['baseurl'];
 		wp_mkdir_p($this->uploads . '/2026/10');
-		foreach (['photo.jpg', 'photo.jpg.webp', 'photo.jpg.avif', 'photo-300x200.jpg', 'photo-300x200.jpg.webp', 'other.jpg'] as $file) {
-			touch($this->uploads . '/2026/10/' . $file);
+		wp_mkdir_p($this->uploads . '/octopus/formats/2026/10');
+		foreach (['2026/10/photo.jpg', 'octopus/formats/2026/10/photo.jpg.webp', 'octopus/formats/2026/10/photo.jpg.avif', '2026/10/photo-300x200.jpg', 'octopus/formats/2026/10/photo-300x200.jpg.webp', '2026/10/other.jpg'] as $file) {
+			touch($this->uploads . '/' . $file);
 		}
 	}
 
@@ -47,8 +48,8 @@ class PictureTest extends TestCase
 
 		$this->assertSame(
 			'<picture class="octopus-picture">'
-			. '<source type="image/avif" srcset="' . $this->url . '/2026/10/photo.jpg.avif 640w, ' . $this->url . '/2026/10/photo-300x200.jpg 300w" sizes="(max-width: 640px) 100vw, 640px">'
-			. '<source type="image/webp" srcset="' . $this->url . '/2026/10/photo.jpg.webp 640w, ' . $this->url . '/2026/10/photo-300x200.jpg.webp 300w" sizes="(max-width: 640px) 100vw, 640px">'
+			. '<source type="image/avif" srcset="' . $this->url . '/octopus/formats/2026/10/photo.jpg.avif 640w, ' . $this->url . '/2026/10/photo-300x200.jpg 300w" sizes="(max-width: 640px) 100vw, 640px">'
+			. '<source type="image/webp" srcset="' . $this->url . '/octopus/formats/2026/10/photo.jpg.webp 640w, ' . $this->url . '/octopus/formats/2026/10/photo-300x200.jpg.webp 300w" sizes="(max-width: 640px) 100vw, 640px">'
 			. '<img data-octopus src="' . $this->url . '/2026/10/photo.jpg" srcset="' . $this->url . '/2026/10/photo.jpg 640w, ' . $this->url . '/2026/10/photo-300x200.jpg 300w" sizes="(max-width: 640px) 100vw, 640px" alt="A photo">'
 			. '</picture>',
 			$html
@@ -79,6 +80,22 @@ class PictureTest extends TestCase
 		$this->assertSame('<picture class="octopus-picture hero"><img data-octopus src="' . $this->url . '/2026/10/other.jpg" alt=""></picture>', Picture::render($img, 'hero'), 'Unless the <picture> is asked for, with its class.');
 	}
 
+	public function test_a_file_added_next_to_the_image_is_not_offered()
+	{
+		// E.g. uploaded to the media library under this name, by any author.
+		touch($this->uploads . '/2026/10/other.jpg.avif');
+		$img = '<img src="' . $this->url . '/2026/10/other.jpg" alt="">';
+
+		$this->assertSame('<img data-octopus src="' . $this->url . '/2026/10/other.jpg" alt="">', Picture::render($img));
+	}
+
+	public function test_the_files_of_oio_are_left_alone()
+	{
+		$img = '<img src="' . $this->url . '/octopus/formats/2026/10/photo.jpg.webp" alt="">';
+
+		$this->assertSame($img, Picture::render($img));
+	}
+
 	public function test_the_images_out_of_the_uploads_folder_are_left_alone()
 	{
 		$images = [
@@ -97,7 +114,7 @@ class PictureTest extends TestCase
 		$src = preg_replace('#^https?:#', 'https:', $this->url) . '/2026/10/photo.jpg?ver=2';
 		$html = Picture::render('<img src="' . $src . '" alt="">');
 
-		$this->assertStringContainsString('<source type="image/avif" srcset="' . preg_replace('#^https?:#', 'https:', $this->url) . '/2026/10/photo.jpg.avif">', $html);
+		$this->assertStringContainsString('<source type="image/avif" srcset="' . preg_replace('#^https?:#', 'https:', $this->url) . '/octopus/formats/2026/10/photo.jpg.avif">', $html);
 	}
 
 	public function test_the_images_of_the_site_are_wrapped_when_enabled()
@@ -140,8 +157,8 @@ class PictureTest extends TestCase
 
 		$this->assertSame(
 			[
-				'image/avif' => $this->url . '/2026/10/photo.jpg.avif 640w, ' . $this->url . '/2026/10/photo-300x200.jpg 300w',
-				'image/webp' => $this->url . '/2026/10/photo.jpg.webp 640w, ' . $this->url . '/2026/10/photo-300x200.jpg.webp 300w',
+				'image/avif' => $this->url . '/octopus/formats/2026/10/photo.jpg.avif 640w, ' . $this->url . '/2026/10/photo-300x200.jpg 300w',
+				'image/webp' => $this->url . '/octopus/formats/2026/10/photo.jpg.webp 640w, ' . $this->url . '/octopus/formats/2026/10/photo-300x200.jpg.webp 300w',
 			],
 			octopus_image_sources($srcset)
 		);
@@ -149,7 +166,7 @@ class PictureTest extends TestCase
 
 	public function test_octopus_image_sources_takes_a_single_url()
 	{
-		$this->assertSame(['image/webp' => $this->url . '/2026/10/photo-300x200.jpg.webp'], octopus_image_sources($this->url . '/2026/10/photo-300x200.jpg'));
+		$this->assertSame(['image/webp' => $this->url . '/octopus/formats/2026/10/photo-300x200.jpg.webp'], octopus_image_sources($this->url . '/2026/10/photo-300x200.jpg'));
 		$this->assertSame([], octopus_image_sources($this->url . '/2026/10/other.jpg'), 'An image without versions has no source.');
 		$this->assertSame([], octopus_image_sources('https://cdn.example.com/2026/10/photo.jpg'), 'Nor an image out of the uploads folder.');
 		$this->assertSame([], octopus_image_sources(''));

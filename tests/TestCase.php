@@ -15,6 +15,7 @@
 
 namespace Octopus\Tests;
 
+use Octopus\Media\Files;
 use Octopus\Engines\ImageEditor;
 use Octopus\Engines\Libraries;
 use Octopus\Media\Optimiser;
@@ -167,8 +168,8 @@ abstract class TestCase extends WP_UnitTestCase
 	protected function assert_versions($id, $extension, $magic, $offset)
 	{
 		foreach (self::files($id) as $index => $file) {
-			$version = $file . $extension;
-			if ($index > 0 && in_array(_wp_relative_upload_path($version), Optimiser::heavier($id), true)) {
+			$version = Files::variant($file, $extension);
+			if ($index > 0 && in_array(Files::relative($version), Optimiser::heavier($id), true)) {
 				$this->assertFileDoesNotExist($version);
 				continue;
 			}

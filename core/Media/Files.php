@@ -4,9 +4,10 @@
  * Files
  *
  * The files of the images: which they are, where
- * their originals are kept, which OIO made, and the
- * folders OIO may touch. OIO reads, writes and
- * deletes the files through it only.
+ * their WebP and AVIF versions and their originals
+ * are kept, which OIO made, and the folders OIO may
+ * touch. OIO reads, writes and deletes the files
+ * through it only.
  *
  * @package     OIO
  * @author      Clément Gayot
@@ -29,6 +30,18 @@ class Files
 	const JPG = 'image/jpeg';
 	const PNG = 'image/png';
 	const MIMES = [self::JPG, self::PNG];
+
+	/**
+	 * The folder of OIO, in the uploads folder, and in
+	 * it the folder of the WebP and AVIF versions, with
+	 * the same tree as the uploads folder (see
+	 * variant()). WordPress never writes there: no
+	 * image added to the media library takes the place
+	 * of a version, which the server would serve for
+	 * the image.
+	 */
+	const DIR = 'octopus';
+	const FORMATS_DIR = 'formats';
 
 	/**
 	 * The folder, in the uploads folder, where the
@@ -106,6 +119,69 @@ class Files
 			$path = str_replace('\\', '/', $path);
 		}
 		return ltrim($path, '/\\');
+	}
+
+	/**
+	 * Returns the folder of OIO.
+	 *
+	 * @return string
+	 * @since 1.0.0
+	 */
+	public static function dir()
+	{
+		return self::uploads_dir() . DIRECTORY_SEPARATOR . self::DIR;
+	}
+
+	/**
+	 * Returns the folder of the WebP and AVIF versions.
+	 *
+	 * @return string
+	 * @since 1.0.0
+	 */
+	public static function formats_dir()
+	{
+		return self::dir() . DIRECTORY_SEPARATOR . self::FORMATS_DIR;
+	}
+
+	/**
+	 * Returns the path of the WebP or AVIF version of
+	 * an image of the uploads folder: the same path, in
+	 * the folder of the versions, with the extension
+	 * added (photo.jpg.webp).
+	 *
+	 * @param string $path
+	 * @param string $extension .webp or .avif.
+	 * @return string
+	 * @since 1.0.0
+	 */
+	public static function variant($path, $extension)
+	{
+		return self::formats_dir() . DIRECTORY_SEPARATOR . self::relative($path) . $extension;
+	}
+
+	/**
+	 * Returns the URL of a file of the uploads folder.
+	 *
+	 * @param string $path
+	 * @return string
+	 * @since 1.0.0
+	 */
+	public static function url($path)
+	{
+		return wp_get_upload_dir()['baseurl'] . '/' . self::relative($path);
+	}
+
+	/**
+	 * Makes the folder of a file OIO writes, e.g. a
+	 * WebP version: the libraries do not.
+	 *
+	 * @param string $path
+	 * @return bool
+	 * @since 1.0.0
+	 */
+	public static function make_dir($path)
+	{
+		return wp_mkdir_p(dirname($path));
 	}
 
 	/**

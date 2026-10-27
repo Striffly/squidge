@@ -64,7 +64,7 @@ class LibrariesTest extends TestCase
 
 		$this->assertSame('cwebp', WebP::engine());
 		$id = $this->upload('photo.jpg');
-		$this->assertFileExists(get_attached_file($id) . '.webp');
+		$this->assertFileExists(Files::variant(get_attached_file($id), '.webp'));
 	}
 
 	public function test_a_failing_library_records_an_error()

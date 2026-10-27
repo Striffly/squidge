@@ -83,7 +83,7 @@ class WebP extends AbstractEncoder
 		}
 		$original = self::original($filepath);
 		$source = ImageEditor::readable($original, $mime);
-		$output = $filepath . self::extension();
+		$output = Files::variant($filepath, self::extension());
 		$options = ['-q', (int)$args['quality']];
 		if (self::multithreading()) {
 			$options[] = '-mt';

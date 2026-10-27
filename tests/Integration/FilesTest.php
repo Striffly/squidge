@@ -101,11 +101,11 @@ class FilesTest extends TestCase
 
 		$this->assertFileEquals(self::fixture('photo.jpg'), $target);
 		$this->assertSame(['photo.jpg'], array_values(array_diff(scandir($this->outside), ['.', '..'])));
-		$this->assertFileDoesNotExist($link . '.webp');
+		$this->assertFileDoesNotExist(Files::variant($link, '.webp'));
 		$this->assertFileDoesNotExist(Files::backup_path($link));
 		// The image is left as it is, its thumbnails too.
 		$metadata = wp_get_attachment_metadata($id);
-		$this->assertFileDoesNotExist($this->uploads . '/2026/10/' . $metadata['sizes']['thumbnail']['file'] . '.webp');
+		$this->assertFileDoesNotExist(Files::variant($this->uploads . '/2026/10/' . $metadata['sizes']['thumbnail']['file'], '.webp'));
 
 		// Deleting the image does not delete the file linked.
 		wp_delete_attachment($id, true);
@@ -126,8 +126,8 @@ class FilesTest extends TestCase
 		require_once ABSPATH . 'wp-admin/includes/image.php';
 		wp_update_attachment_metadata($id, wp_generate_attachment_metadata($id, $file));
 
-		$this->assertFileExists($file . '.webp');
-		$this->assertFileExists($file . '.avif');
+		$this->assertFileExists(Files::variant($file, '.webp'));
+		$this->assertFileExists(Files::variant($file, '.avif'));
 		$this->assertFileEquals(self::fixture('photo.jpg'), Files::backup_path($file));
 		foreach ([getcwd(), $this->uploads, $this->uploads . '/2026/10', ABSPATH] as $dir) {
 			$this->assertFileDoesNotExist($dir . '/octopus-pwned');

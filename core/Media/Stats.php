@@ -86,8 +86,9 @@ class Stats
 			$served = $size;
 			// The order of the <source> elements: the AVIF first, then the WebP.
 			foreach ([WebP::extension(), AVIF::extension()] as $extension) {
-				if (file_exists($file . $extension)) {
-					$served = (int)filesize($file . $extension);
+				$variant = Files::variant($file, $extension);
+				if (file_exists($variant)) {
+					$served = (int)filesize($variant);
 					$bytes['extra'] += $served;
 				}
 			}

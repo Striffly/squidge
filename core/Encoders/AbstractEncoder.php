@@ -70,8 +70,9 @@ abstract class AbstractEncoder
 
 	/**
 	 * Returns the extension added to the files made
-	 * (.webp, .avif), empty for the compressions in
-	 * place.
+	 * (.webp, .avif), in the folder of the versions
+	 * (see Files::variant()), empty for the
+	 * compressions in place.
 	 *
 	 * @return string
 	 * @since 1.0.0
@@ -119,7 +120,12 @@ abstract class AbstractEncoder
 			}
 			// The library reads the original and writes the version of the file:
 			// never through a link out of the folders.
-			if (!Files::contained($file . static::extension()) || !Files::contained(Files::backup_path($file))) {
+			$output = static::extension() !== '' ? Files::variant($file, static::extension()) : $file;
+			if (!Files::contained($output) || !Files::contained(Files::backup_path($file))) {
+				continue;
+			}
+			if (!Files::make_dir($output)) {
+				Errors::add($id, static::FORMAT, $file, 'cannot make the folder of the ' . static::FORMAT . ' version');
 				continue;
 			}
 			static::convert($file, (string)wp_get_image_mime($file), $args);
@@ -174,7 +180,7 @@ abstract class AbstractEncoder
 	protected static function convert_with_editor($filepath, $mime, $quality, $args)
 	{
 		$id = isset($args['id']) ? (int)$args['id'] : 0;
-		$output = $filepath . static::extension();
+		$output = Files::variant($filepath, static::extension());
 		$saved = ImageEditor::save(self::original($filepath), $mime, $output, static::EDITOR_MIME, $quality, $filepath);
 		if (is_wp_error($saved)) {
 			Errors::add($id, static::FORMAT, $filepath, static::editor() . ': ' . $saved->get_error_message());
@@ -262,7 +268,7 @@ abstract class AbstractEncoder
 	protected static function is_done($filepath, $id = 0)
 	{
 		if (static::extension() !== '') {
-			$variant = $filepath . static::extension();
+			$variant = Files::variant($filepath, static::extension());
 			return file_exists($variant) || in_array(Files::relative($variant), Optimiser::heavier($id), true);
 		}
 		return file_exists(Files::backup_path($filepath));

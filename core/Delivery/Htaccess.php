@@ -5,8 +5,8 @@
  *
  * The delivery of the WebP and AVIF files by the
  * server: rewrite rules answering photo.jpg with
- * photo.jpg.avif or .webp when the browser accepts
- * them, without changing the HTML. Writes the Apache
+ * octopus/formats/photo.jpg.avif or .webp when the
+ * browser accepts them, without changing the HTML. Writes the Apache
  * rules in uploads/.htaccess when the option is on,
  * and gives the nginx ones to copy.
  *
@@ -78,15 +78,21 @@ class Htaccess
 	/**
 	 * Returns the Apache rules: the AVIF, then the WebP
 	 * version of a JPG or PNG, when it exists and the
-	 * browser accepts it. Vary: Accept keeps the caches
-	 * from serving an AVIF to a browser that cannot
-	 * read it (needs mod_headers).
+	 * browser accepts it. The folder of the versions is
+	 * found from the file asked: its path relative to
+	 * the uploads folder ($1) ends its full path, the
+	 * rest is the uploads folder (%1). No path of the
+	 * server is written, the rules work wherever the
+	 * site moves. Vary: Accept keeps the caches from
+	 * serving an AVIF to a browser that cannot read it
+	 * (needs mod_headers).
 	 *
 	 * @return string[]
 	 * @since 1.0.0
 	 */
 	public static function apache_rules()
 	{
+		$formats = Files::DIR . '/' . Files::FORMATS_DIR;
 		return [
 			'<IfModule mod_mime.c>',
 			'	AddType image/avif .avif',
@@ -95,11 +101,13 @@ class Htaccess
 			'<IfModule mod_rewrite.c>',
 			'	RewriteEngine On',
 			'	RewriteCond %{HTTP_ACCEPT} image/avif',
-			'	RewriteCond %{REQUEST_FILENAME}.avif -f',
-			'	RewriteRule ^(.+)\.(jpe?g|png)$ $1.$2.avif [NC,T=image/avif,E=octopus_accept:1,L]',
+			'	RewriteCond %{REQUEST_FILENAME}::$1 ^(.*?/)(.+)::\2$',
+			'	RewriteCond %1' . $formats . '/$1.avif -f',
+			'	RewriteRule ^(.+\.(?:jpe?g|png))$ ' . $formats . '/$1.avif [NC,T=image/avif,L]',
 			'	RewriteCond %{HTTP_ACCEPT} image/webp',
-			'	RewriteCond %{REQUEST_FILENAME}.webp -f',
-			'	RewriteRule ^(.+)\.(jpe?g|png)$ $1.$2.webp [NC,T=image/webp,E=octopus_accept:1,L]',
+			'	RewriteCond %{REQUEST_FILENAME}::$1 ^(.*?/)(.+)::\2$',
+			'	RewriteCond %1' . $formats . '/$1.webp -f',
+			'	RewriteRule ^(.+\.(?:jpe?g|png))$ ' . $formats . '/$1.webp [NC,T=image/webp,L]',
 			'</IfModule>',
 			'<IfModule mod_headers.c>',
 			'	<FilesMatch "\.(jpe?g|png|webp|avif)$">',
@@ -111,8 +119,13 @@ class Htaccess
 
 	/**
 	 * Returns the nginx rules, to add to the server
-	 * block of the site: the map goes in the http
-	 * block (e.g. at the top of the site's file).
+	 * block of the site: the maps go in the http
+	 * block (e.g. at the top of the site's file). The
+	 * AVIF, then the WebP version, if the browser
+	 * accepts it: an empty suffix tries the JPG or PNG
+	 * in the folder of the versions, never there. The
+	 * path is a named capture: the regexes of the maps
+	 * would replace $1.
 	 *
 	 * @return string
 	 * @since 1.0.0
@@ -120,16 +133,20 @@ class Htaccess
 	public static function nginx_rules()
 	{
 		$uploads = wp_parse_url(wp_get_upload_dir()['baseurl'], PHP_URL_PATH);
+		$formats = $uploads . '/' . Files::DIR . '/' . Files::FORMATS_DIR;
 		return "# In the http block (e.g. at the top of the site's file):\n"
-			. "map \$http_accept \$octopus_suffix {\n"
+			. "map \$http_accept \$octopus_avif {\n"
 			. "\tdefault \"\";\n"
 			. "\t\"~image/avif\" \".avif\";\n"
+			. "}\n"
+			. "map \$http_accept \$octopus_webp {\n"
+			. "\tdefault \"\";\n"
 			. "\t\"~image/webp\" \".webp\";\n"
 			. "}\n\n"
 			. "# In the server block:\n"
-			. "location ~* ^" . $uploads . "/.+\\.(jpe?g|png)$ {\n"
+			. "location ~* ^" . $uploads . "/(?<octopus_file>.+\\.(?:jpe?g|png))$ {\n"
 			. "\tadd_header Vary Accept;\n"
-			. "\ttry_files \$uri\$octopus_suffix \$uri =404;\n"
+			. "\ttry_files " . $formats . "/\$octopus_file\$octopus_avif " . $formats . "/\$octopus_file\$octopus_webp \$uri =404;\n"
 			. "}";
 	}
 

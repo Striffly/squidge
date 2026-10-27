@@ -60,7 +60,7 @@ class OptimiseTest extends TestCase
 		$id = $this->upload('photo.jpg');
 
 		$this->assertSame(Status::TO_OPTIMISE, Status::of($id));
-		$this->assertFileDoesNotExist(get_attached_file($id) . '.webp');
+		$this->assertFileDoesNotExist(Files::variant(get_attached_file($id), '.webp'));
 		$this->assertFileDoesNotExist(Files::backup_path(get_attached_file($id)));
 	}
 
@@ -113,8 +113,8 @@ class OptimiseTest extends TestCase
 			$compressed += filesize($file);
 			$served = filesize($file);
 			foreach (['.webp', '.avif'] as $extension) {
-				if (file_exists($file . $extension)) {
-					$served = filesize($file . $extension);
+				if (file_exists(Files::variant($file, $extension))) {
+					$served = filesize(Files::variant($file, $extension));
 					$extra += $served;
 				}
 			}
@@ -139,8 +139,8 @@ class OptimiseTest extends TestCase
 		$this->assertSame(array_values($originals), array_values(self::hashes($files)));
 		$this->assertFileEquals(self::fixture('photo.jpg'), get_attached_file($id));
 		foreach ($files as $file) {
-			$this->assertFileDoesNotExist($file . '.webp');
-			$this->assertFileDoesNotExist($file . '.avif');
+			$this->assertFileDoesNotExist(Files::variant($file, '.webp'));
+			$this->assertFileDoesNotExist(Files::variant($file, '.avif'));
 			$this->assertFileDoesNotExist(Files::backup_path($file));
 		}
 		$this->assertSame([], preg_grep('/^_octopus_/', array_keys(get_post_meta($id))));
@@ -159,8 +159,8 @@ class OptimiseTest extends TestCase
 
 		$this->assertSame($compressed, self::hashes($files));
 		foreach ($files as $file) {
-			$this->assertFileDoesNotExist($file . '.webp');
-			$this->assertFileDoesNotExist($file . '.avif');
+			$this->assertFileDoesNotExist(Files::variant($file, '.webp'));
+			$this->assertFileDoesNotExist(Files::variant($file, '.avif'));
 			$this->assertFileExists(Files::backup_path($file));
 		}
 		$this->assertSame('', get_post_meta($id, WebP::meta_key(), true));
@@ -204,13 +204,13 @@ class OptimiseTest extends TestCase
 		$id = $this->upload('tiny.png');
 		$file = get_attached_file($id);
 
-		$this->assertFileDoesNotExist($file . '.avif');
-		$this->assertContains(_wp_relative_upload_path($file) . '.avif', Optimiser::heavier($id));
+		$this->assertFileDoesNotExist(Files::variant($file, '.avif'));
+		$this->assertContains(Files::relative(Files::variant($file, '.avif')), Optimiser::heavier($id));
 		$this->assertSame(Status::OPTIMISED, Status::of($id));
 
 		// Done: not made again by the next optimisation.
 		Optimiser::attachment($id, null, Optimiser::settings());
-		$this->assertFileDoesNotExist($file . '.avif');
+		$this->assertFileDoesNotExist(Files::variant($file, '.avif'));
 	}
 
 	public function test_an_avif_heavier_than_its_webp_is_deleted()
@@ -219,9 +219,9 @@ class OptimiseTest extends TestCase
 		$id = $this->upload('photo.jpg');
 		$file = get_attached_file($id);
 
-		$this->assertFileExists($file . '.webp');
-		$this->assertFileDoesNotExist($file . '.avif');
-		$this->assertContains(_wp_relative_upload_path($file) . '.avif', Optimiser::heavier($id));
+		$this->assertFileExists(Files::variant($file, '.webp'));
+		$this->assertFileDoesNotExist(Files::variant($file, '.avif'));
+		$this->assertContains(Files::relative(Files::variant($file, '.avif')), Optimiser::heavier($id));
 	}
 
 	public function test_an_image_wordpress_cannot_read_is_an_error()
@@ -238,7 +238,7 @@ class OptimiseTest extends TestCase
 	{
 		$id = $this->upload('photo.jpg');
 		$originals = self::hashes(array_map([Files::class, 'backup_path'], self::files($id)));
-		$webp = filesize(get_attached_file($id) . '.webp');
+		$webp = filesize(Files::variant(get_attached_file($id), '.webp'));
 
 		self::set('webp_quality', 40);
 		$this->assertSame(Status::OUTDATED, Status::of($id));
@@ -247,7 +247,7 @@ class OptimiseTest extends TestCase
 		$this->assertSame(Status::OPTIMISED, Status::of($id));
 		$this->assertSame('quality:40', get_post_meta($id, WebP::meta_key(), true));
 		clearstatcache();
-		$this->assertLessThan($webp, filesize(get_attached_file($id) . '.webp'));
+		$this->assertLessThan($webp, filesize(Files::variant(get_attached_file($id), '.webp')));
 		$this->assertSame($originals, self::hashes(array_map([Files::class, 'backup_path'], self::files($id))));
 	}
 
@@ -261,7 +261,7 @@ class OptimiseTest extends TestCase
 
 		$metadata = wp_get_attachment_metadata($id);
 		$this->assertArrayHasKey('octopus-test', $metadata['sizes']);
-		$this->assertFileExists(dirname(get_attached_file($id)) . '/' . $metadata['sizes']['octopus-test']['file'] . '.webp');
+		$this->assertFileExists(Files::variant(dirname(get_attached_file($id)) . '/' . $metadata['sizes']['octopus-test']['file'], '.webp'));
 		$this->assertSame(Status::OPTIMISED, Status::of($id));
 	}
 
@@ -272,7 +272,7 @@ class OptimiseTest extends TestCase
 		$scaled = get_attached_file($id);
 		$this->assertStringEndsWith('photo-scaled.jpg', $scaled);
 		$this->assertSame(400, wp_get_attachment_metadata($id)['width']);
-		$this->assertFileExists($scaled . '.webp');
+		$this->assertFileExists(Files::variant($scaled, '.webp'));
 
 		// No maximum any more: the image uploaded is the main file again.
 		self::set('max_size', 0);
@@ -282,8 +282,8 @@ class OptimiseTest extends TestCase
 		$main = get_attached_file($id);
 		$this->assertStringEndsWith('/photo.jpg', $main);
 		$this->assertSame(640, wp_get_attachment_metadata($id)['width']);
-		$this->assertFileExists($main . '.webp');
-		foreach ([$scaled, $scaled . '.webp', $scaled . '.avif', Files::backup_path($scaled)] as $file) {
+		$this->assertFileExists(Files::variant($main, '.webp'));
+		foreach ([$scaled, Files::variant($scaled, '.webp'), Files::variant($scaled, '.avif'), Files::backup_path($scaled)] as $file) {
 			$this->assertFileDoesNotExist($file);
 		}
 		$this->assertFileEquals(self::fixture('photo.jpg'), Files::backup_path($main));
@@ -332,6 +332,18 @@ class OptimiseTest extends TestCase
 		$this->assertSame(['octopus-originals/.htaccess', 'octopus-originals/index.php'], $left);
 	}
 
+	public function test_deleting_the_image_leaves_a_file_of_the_same_name()
+	{
+		$id = $this->upload('photo.jpg');
+		// E.g. another upload, named after the WebP version of this one.
+		$other = get_attached_file($id) . '.webp';
+		touch($other);
+
+		wp_delete_attachment($id, true);
+
+		$this->assertFileExists($other);
+	}
+
 	/**
 	 * Checks that the PNG files of an image are lighter
 	 * than their originals, still PNG files, with a WebP
@@ -345,7 +357,7 @@ class OptimiseTest extends TestCase
 		foreach (self::files($id) as $file) {
 			$this->assertLessThan(filesize(Files::backup_path($file)), filesize($file), $file);
 			$this->assertSame('image/png', wp_getimagesize($file)['mime'], $file);
-			$webp = $file . '.webp';
+			$webp = Files::variant($file, '.webp');
 			$this->assertTrue(file_exists($webp) || in_array(_wp_relative_upload_path($webp), Optimiser::heavier($id), true), $webp);
 		}
 		$this->assertSame(Status::OPTIMISED, Status::of($id));
