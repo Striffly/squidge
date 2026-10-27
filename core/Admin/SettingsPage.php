@@ -568,7 +568,14 @@ class SettingsPage
 				<?php $this->render_no_jobs(); ?>
 			<?php endif; ?>
 			<p class="octopus-card__footer">
-				<?php esc_html_e('New uploads are optimised right away.', 'octopus-image-optimizer'); ?>
+				<?php if (Settings::get('optimise_uploads')) : ?>
+					<span class="octopus-uploads octopus-uploads--on"><?php esc_html_e('New uploads are optimised right away.', 'octopus-image-optimizer'); ?></span>
+				<?php else : ?>
+					<span class="octopus-uploads octopus-uploads--off">
+						<?php esc_html_e('New uploads wait here, as new images.', 'octopus-image-optimizer'); ?>
+						<a class="js-octopus-tab-link" href="#settings" data-tab="settings" data-target="octopus-settings-general"><?php esc_html_e('Optimise them on upload', 'octopus-image-optimizer'); ?></a>
+					</span>
+				<?php endif; ?>
 				<a href="<?php echo esc_url(admin_url('upload.php?mode=list')); ?>"><?php esc_html_e('See each image in the Media library', 'octopus-image-optimizer'); ?></a>
 			</p>
 		</div>
@@ -788,7 +795,7 @@ class SettingsPage
 		?>
 		<div class="octopus-card" id="octopus-settings-general">
 			<header class="octopus-card__header">
-				<span class="octopus-card__icon dashicons dashicons-image-crop" aria-hidden="true"></span>
+				<span class="octopus-card__icon dashicons dashicons-upload" aria-hidden="true"></span>
 				<div>
 					<h2 class="octopus-card__title"><?php echo esc_html($general['title']); ?></h2>
 					<p class="octopus-card__description"><?php echo esc_html($general['description']); ?></p>
@@ -1422,14 +1429,19 @@ class SettingsPage
 				],
 			],
 			'general' => [
-				'title' => __('Image size', 'octopus-image-optimizer'),
-				'description' => __('WordPress scales the big images down on upload, and keeps the image uploaded as their original.', 'octopus-image-optimizer'),
+				'title' => __('Uploads', 'octopus-image-optimizer'),
+				'description' => __('What happens to the images added to the media library.', 'octopus-image-optimizer'),
 				'fields' => [
+					'optimise_uploads' => [
+						'type' => 'checkbox',
+						'label' => __('Optimise new uploads', 'octopus-image-optimizer'),
+						'help' => __('Each image added to the media library is optimised right away. Unticked, they wait in the Optimise tab, as new images.', 'octopus-image-optimizer'),
+					],
 					'max_size' => [
 						'type' => 'number',
 						'label' => __('Maximum image size', 'octopus-image-optimizer'),
 						'unit' => 'px',
-						'help' => __('Longest side, 2560 by default. <strong>0 means no limit: huge images can exhaust the server.</strong>', 'octopus-image-optimizer'),
+						'help' => __('WordPress scales the bigger images down on upload, and keeps them as their original. Longest side, 2560 by default. <strong>0 means no limit: huge images can exhaust the server.</strong>', 'octopus-image-optimizer'),
 					],
 				],
 			],

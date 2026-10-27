@@ -29,7 +29,7 @@ unlimited, no API key, no quota: your images never leave your server.
 
 **Media library**
 
-- Optimises the images on upload, scaled down to a maximum size (2560 pixels by default, as WordPress does).
+- Optimises the images on upload (optional), scaled down to a maximum size (2560 pixels by default, as WordPress does).
 - Optimises, re-optimises or cleans up the whole library in the background, with a progress bar, pause and cancel.
   The job goes on when the page is closed.
 - Spots the images optimised with older settings, or before the theme changed its image sizes, and makes their

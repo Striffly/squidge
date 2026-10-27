@@ -59,7 +59,9 @@ class UploadHooks
 	 * Optimises an uploaded image with the enabled
 	 * formats. Its metadata is not saved yet, so it
 	 * is passed along, and returned with the sizes of
-	 * the compressed files.
+	 * the compressed files. Without the optimisation of
+	 * the uploads (settings), the image waits as to
+	 * optimise.
 	 *
 	 * @param array $metadata
 	 * @param int $attachment_id
@@ -68,7 +70,7 @@ class UploadHooks
 	 */
 	public function process($metadata, $attachment_id)
 	{
-		if (Optimiser::$regenerating) {
+		if (Optimiser::$regenerating || !Settings::get('optimise_uploads')) {
 			return $metadata;
 		}
 		Optimiser::attachment($attachment_id, $metadata, Optimiser::settings());

@@ -53,6 +53,17 @@ class OptimiseTest extends TestCase
 		$this->assertSame('quality:30', get_post_meta($id, AVIF::meta_key(), true));
 	}
 
+	public function test_an_upload_waits_to_be_optimised_when_the_uploads_are_not()
+	{
+		self::set('optimise_uploads', false);
+
+		$id = $this->upload('photo.jpg');
+
+		$this->assertSame(Status::TO_OPTIMISE, Status::of($id));
+		$this->assertFileDoesNotExist(get_attached_file($id) . '.webp');
+		$this->assertFileDoesNotExist(Files::backup_path(get_attached_file($id)));
+	}
+
 	public function test_upload_compresses_the_jpg_files_and_keeps_their_originals()
 	{
 		$id = $this->upload('photo.jpg');
