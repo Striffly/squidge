@@ -331,7 +331,7 @@ abstract class AbstractEncoder
 			wp_delete_file($original);
 			return;
 		}
-		Errors::add(isset($args['id']) ? $args['id'] : 0, static::FORMAT, $filepath, 'cannot put the original back, it stays in ' . Files::BACKUP_DIR);
+		Errors::add(isset($args['id']) ? $args['id'] : 0, static::FORMAT, $filepath, 'cannot put the original back, it stays in the folder of the originals');
 	}
 
 	/**

@@ -6,7 +6,8 @@ The versions of OIO – Octopus Image Optimizer, newest first. Before 1.0.0, it 
 ## 1.0.0
 
 - Renamed to OIO – Octopus Image Optimizer, starting again from Squidge 0.1.4: no migration of its data.
-- The original images are kept in `uploads/octopus-originals/`, and every optimisation starts again from them.
+- The original images are kept in `uploads/octopus/originals-{key}/`, a folder whose URL cannot be guessed, and every
+  optimisation starts again from them.
 - WebP and AVIF files keep the extension of their source (`image.jpg.webp`), in `uploads/octopus/formats/`, and can
   be served on the site with `<picture>` or rewrite rules.
 - Background optimisation of the media library, with pause and cancel, and re-optimisation when the settings or the

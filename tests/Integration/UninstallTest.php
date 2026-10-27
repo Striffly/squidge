@@ -15,6 +15,7 @@
 namespace Octopus\Tests\Integration;
 
 use Octopus\Delivery\Htaccess;
+use Octopus\Media\Files;
 use Octopus\Settings;
 use Octopus\Tests\TestCase;
 
@@ -83,6 +84,8 @@ class UninstallTest extends TestCase
 		foreach (['octopus_errors', 'octopus_job', 'octopus_lock_7'] as $option) {
 			update_option($option, ['data']);
 		}
+		// The key of the folder of the originals.
+		Files::backup_dir();
 		set_transient('octopus_versions', ['cwebp' => '1.6.0']);
 		set_transient('octopus_theme_calls', ['functions.php']);
 		foreach (self::FOREIGN as $option) {

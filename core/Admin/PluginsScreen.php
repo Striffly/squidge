@@ -147,7 +147,7 @@ class PluginsScreen
 								/* translators: 1: the number of images, 2: the folder of the originals and its size. */
 								esc_html__('OIO has optimised %1$s. Deactivating or deleting OIO keeps them as they are: compressed, with their WebP and AVIF versions, and their originals in %2$s.', 'octopus-image-optimizer'),
 								'<strong class="js-octopus-deactivation-images"></strong>',
-								'<code>uploads/octopus-originals/</code><span class="js-octopus-deactivation-size"></span>'
+								'<code>uploads/octopus/</code><span class="js-octopus-deactivation-size"></span>'
 							),
 							['strong' => ['class' => true], 'code' => [], 'span' => ['class' => true]]
 						);

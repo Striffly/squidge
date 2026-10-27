@@ -44,12 +44,17 @@ class Files
 	const FORMATS_DIR = 'formats';
 
 	/**
-	 * The folder, in the uploads folder, where the
+	 * The folder, in the folder of OIO, where the
 	 * original images are kept before being optimised
 	 * in place, with the same tree as the uploads
-	 * folder (see backup_dir()).
+	 * folder (see backup_dir()): originals-, then a
+	 * key of the site, drawn once and kept in an
+	 * option. Its URL cannot be guessed from the one of
+	 * an image, where the server does not read the
+	 * .htaccess denying it (nginx).
 	 */
-	const BACKUP_DIR = 'octopus-originals';
+	const BACKUP_DIR = 'originals-';
+	const KEY_OPTION = 'octopus_originals_key';
 
 	/**
 	 * The meta listing the files OIO made for an image
@@ -173,7 +178,10 @@ class Files
 
 	/**
 	 * Makes the folder of a file OIO writes, e.g. a
-	 * WebP version: the libraries do not.
+	 * WebP version: the libraries do not. The folder
+	 * of OIO gets an index.php: where the server lists
+	 * the folders, it would show the name of the one
+	 * of the originals.
 	 *
 	 * @param string $path
 	 * @return bool
@@ -181,12 +189,19 @@ class Files
 	 */
 	public static function make_dir($path)
 	{
-		return wp_mkdir_p(dirname($path));
+		if (!wp_mkdir_p(dirname($path))) {
+			return false;
+		}
+		$index = self::dir() . DIRECTORY_SEPARATOR . 'index.php';
+		if (is_dir(self::dir()) && !file_exists($index)) {
+			file_put_contents($index, "<?php\n// Silence is golden.\n");
+		}
+		return true;
 	}
 
 	/**
 	 * Returns the folder of the original images:
-	 * uploads/octopus-originals by default. The
+	 * uploads/octopus/originals-{key} by default. The
 	 * octopus_backup_dir filter moves it, e.g. out of
 	 * the web root: the originals keep their metadata.
 	 *
@@ -195,8 +210,31 @@ class Files
 	 */
 	public static function backup_dir()
 	{
-		$default = self::uploads_dir() . DIRECTORY_SEPARATOR . self::BACKUP_DIR;
+		$default = self::dir() . DIRECTORY_SEPARATOR . self::BACKUP_DIR . self::key();
 		return untrailingslashit((string)apply_filters('octopus_backup_dir', $default));
+	}
+
+	/**
+	 * Returns the key of the folder of the originals:
+	 * the one kept, else the one of a folder already
+	 * there (e.g. OIO deleted then installed again, its
+	 * files kept), else a new one, 16 letters and
+	 * digits.
+	 *
+	 * @return string
+	 * @since 1.0.0
+	 */
+	private static function key()
+	{
+		$key = get_option(self::KEY_OPTION);
+		if (is_string($key) && preg_match('/^[a-z0-9]{16}$/', $key)) {
+			return $key;
+		}
+		$found = glob(self::dir() . DIRECTORY_SEPARATOR . self::BACKUP_DIR . '*', GLOB_ONLYDIR);
+		$found = preg_grep('/' . preg_quote(self::BACKUP_DIR, '/') . '[a-z0-9]{16}$/', $found ?: []);
+		$key = $found ? substr(reset($found), -16) : strtolower(wp_generate_password(16, false));
+		update_option(self::KEY_OPTION, $key);
+		return $key;
 	}
 
 	/**
@@ -219,15 +257,16 @@ class Files
 	 * from the optimised images (GPS position, camera),
 	 * and nothing serves them. The .htaccess works with
 	 * Apache and LiteSpeed, nginx needs a rule (see the
-	 * README). The index.php hides the files where the
-	 * folders are listed.
+	 * README), the name of the folder cannot be guessed
+	 * meanwhile. The index.php hides the files where
+	 * the folders are listed.
 	 *
 	 * @since 1.0.0
 	 */
 	public static function protect_backup_dir()
 	{
 		$dir = self::backup_dir();
-		if (!wp_mkdir_p($dir)) {
+		if (!self::make_dir($dir . DIRECTORY_SEPARATOR . 'index.php')) {
 			return;
 		}
 		$files = [

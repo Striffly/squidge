@@ -329,7 +329,8 @@ class OptimiseTest extends TestCase
 			$left[] = substr($file->getPathname(), strlen($this->uploads) + 1);
 		}
 		sort($left);
-		$this->assertSame(['octopus-originals/.htaccess', 'octopus-originals/index.php'], $left);
+		$originals = Files::relative(Files::backup_dir());
+		$this->assertSame(['octopus/index.php', $originals . '/.htaccess', $originals . '/index.php'], $left);
 	}
 
 	public function test_deleting_the_image_leaves_a_file_of_the_same_name()

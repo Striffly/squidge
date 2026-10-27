@@ -108,7 +108,7 @@ Node.js 22 or later and `zip` needed): it makes `octopus-image-optimizer.zip`.
 ### Does OIO replace my images?
 
 By default, yes: the JPG and PNG files are replaced by their compressed version, so the whole site uses them right
-away, and their originals are kept in `uploads/octopus-originals/`. `Restore original images` on the settings page,
+away, and their originals are kept in `uploads/octopus/originals-{key}/`. `Restore original images` on the settings page,
 or `Restore original` on an image of the media library, puts them back. To leave the files as they are, untick
 `Compress JPG images` or `Compress PNG images` on the Settings tab: OIO then only makes their WebP and AVIF versions.
 
@@ -175,9 +175,9 @@ Every optimisation starts from the original image:
 
 ```bash
 jpegoptim --strip-all --all-progressive --overwrite --max={quality} photo.jpg
-optipng -clobber -strip all -o {level} -out photo.png octopus-originals/photo.png
-oxipng -o {level} --strip safe --force --out photo.png octopus-originals/photo.png
-pngquant --quality={quality - 15}-{quality} --strip --skip-if-larger --force --output tmp.png -- octopus-originals/photo.png
+optipng -clobber -strip all -o {level} -out photo.png octopus/originals-{key}/photo.png
+oxipng -o {level} --strip safe --force --out photo.png octopus/originals-{key}/photo.png
+pngquant --quality={quality - 15}-{quality} --strip --skip-if-larger --force --output tmp.png -- octopus/originals-{key}/photo.png
 cwebp -q {quality} -mt photo.jpg -o octopus/formats/photo.jpg.webp
 avifenc -q {quality} --speed 6 --ignore-exif --ignore-xmp photo.jpg octopus/formats/photo.jpg.avif
 ```
@@ -196,12 +196,13 @@ tried in near-lossless.
 OIO sends nothing out of your server: no API, no tracking, no external request. The delivery test only requests the
 site itself.
 
-The optimised images lose their metadata, but the originals keep them, GPS position included. OIO writes a
-`.htaccess` denying the web access to `uploads/octopus-originals/`, which works with Apache and LiteSpeed. With nginx, add
-this rule to the `server` block of the site:
+The optimised images lose their metadata, but the originals keep them, GPS position included. They are kept in
+`uploads/octopus/originals-{key}/`, the key drawn at random for each site: their URL cannot be guessed from the one of
+an image. OIO also writes a `.htaccess` denying the web access to that folder, which works with Apache and LiteSpeed.
+With nginx, add this rule to the `server` block of the site (it is in the rules of the Delivery tab):
 
 ```nginx
-location ^~ /wp-content/uploads/octopus-originals/ {
+location ^~ /wp-content/uploads/octopus/originals- {
 	deny all;
 }
 ```
@@ -284,7 +285,7 @@ nothing is encoded again.
 
 | Filter                                | Default                                        | Sets                                                   |
 |---------------------------------------|------------------------------------------------|--------------------------------------------------------|
-| `octopus_backup_dir`                  | `uploads/octopus-originals`                    | The folder of the original images.                     |
+| `octopus_backup_dir`                  | `uploads/octopus/originals-{key}`              | The folder of the original images.                     |
 | `octopus_nice`                        | `19` in background jobs, `0` otherwise         | The priority of the libraries, `0` (normal) to `19`.   |
 | `octopus_avif_jobs`                   | `4` on upload, `2` in background, `all` in CLI | The threads of `avifenc`.                              |
 | `octopus_webp_mt`                     | `false` in background jobs, `true` otherwise   | A second thread for `cwebp` (`-mt`).                   |

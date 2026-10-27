@@ -20,6 +20,7 @@ use Octopus\Admin\PluginsScreen;
 use Octopus\Delivery\Htaccess;
 use Octopus\Engines\Libraries;
 use Octopus\Log\Errors;
+use Octopus\Media\Files;
 use Octopus\Media\Job;
 use Octopus\Media\Lock;
 
@@ -75,7 +76,8 @@ class Lifecycle
 		self::each_site(true, function () {
 			global $wpdb;
 			self::stop();
-			foreach ([Settings::OPTION, Errors::OPTION, Job::PROGRESS] as $option) {
+			// The key of the folder of the originals: found again from the folder if OIO comes back.
+			foreach ([Settings::OPTION, Errors::OPTION, Job::PROGRESS, Files::KEY_OPTION] as $option) {
 				delete_option($option);
 			}
 			foreach ([Libraries::VERSIONS_TRANSIENT, PluginsScreen::THEME_TRANSIENT] as $transient) {

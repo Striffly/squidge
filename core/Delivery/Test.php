@@ -149,7 +149,7 @@ class Test
 			'advice' => $public ? sprintf(
 				/* translators: 1: the nginx rule, 2: octopus_backup_dir */
 				esc_html__('Anyone can download them, with their metadata (GPS position of the photos). nginx: add %1$s to the server block, or move them with the %2$s filter.', 'octopus-image-optimizer'),
-				'<code>location ^~ ' . esc_html(wp_parse_url($uploads['baseurl'], PHP_URL_PATH)) . '/' . esc_html(Files::BACKUP_DIR) . '/ { deny all; }</code>',
+				'<code>' . esc_html(Htaccess::nginx_deny()) . '</code>',
 				'<code>octopus_backup_dir</code>'
 			) : '',
 		];

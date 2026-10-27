@@ -162,7 +162,7 @@ jobs:
           $uploads = (Resolve-Path wp-content\uploads).Path
           function Get-Images {
             Get-ChildItem $uploads -Recurse -File -Include *.jpg, *.jpeg, *.png |
-              Where-Object { $_.FullName -notlike '*\octopus-originals\*' }
+              Where-Object { $_.FullName -notlike '*\octopus\*' }
           }
           function Get-Formats {
             Get-ChildItem $uploads -Recurse -File -Include *.webp, *.avif

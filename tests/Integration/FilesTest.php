@@ -134,6 +134,24 @@ class FilesTest extends TestCase
 		}
 	}
 
+	public function test_the_folder_of_the_originals_cannot_be_guessed()
+	{
+		$dir = Files::backup_dir();
+
+		$this->assertMatchesRegularExpression('#/octopus/originals-[a-z0-9]{16}$#', $dir);
+		$this->assertSame($dir, Files::backup_dir(), 'Drawn once.');
+	}
+
+	public function test_the_folder_of_the_originals_is_found_again_without_its_key()
+	{
+		$dir = Files::backup_dir();
+		wp_mkdir_p($dir);
+		// E.g. OIO deleted, its files kept, then installed again.
+		delete_option(Files::KEY_OPTION);
+
+		$this->assertSame($dir, Files::backup_dir());
+	}
+
 	public function test_the_originals_can_be_moved_out_of_the_uploads_folder()
 	{
 		$this->require_libraries('jpegoptim');
@@ -147,7 +165,7 @@ class FilesTest extends TestCase
 		$backup = $originals . '/' . _wp_relative_upload_path($main);
 		$this->assertSame($backup, Files::backup_path($main));
 		$this->assertFileEquals(self::fixture('photo.jpg'), $backup);
-		$this->assertDirectoryDoesNotExist($this->uploads . '/' . Files::BACKUP_DIR);
+		$this->assertSame([], glob($this->uploads . '/' . Files::DIR . '/' . Files::BACKUP_DIR . '*'));
 
 		$this->assertTrue(Cleaner::restore($id));
 		$this->assertFileEquals(self::fixture('photo.jpg'), $main);

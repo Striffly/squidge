@@ -125,7 +125,7 @@ class Htaccess
 	 * accepts it: an empty suffix tries the JPG or PNG
 	 * in the folder of the versions, never there. The
 	 * path is a named capture: the regexes of the maps
-	 * would replace $1.
+	 * would replace $1. The originals are denied first.
 	 *
 	 * @return string
 	 * @since 1.0.0
@@ -144,10 +144,25 @@ class Htaccess
 			. "\t\"~image/webp\" \".webp\";\n"
 			. "}\n\n"
 			. "# In the server block:\n"
+			. self::nginx_deny() . "\n"
 			. "location ~* ^" . $uploads . "/(?<octopus_file>.+\\.(?:jpe?g|png))$ {\n"
 			. "\tadd_header Vary Accept;\n"
 			. "\ttry_files " . $formats . "/\$octopus_file\$octopus_avif " . $formats . "/\$octopus_file\$octopus_webp \$uri =404;\n"
 			. "}";
+	}
+
+	/**
+	 * Returns the nginx rule denying the originals,
+	 * whatever the key of their folder: ^~ goes before
+	 * the rule of the images.
+	 *
+	 * @return string
+	 * @since 1.0.0
+	 */
+	public static function nginx_deny()
+	{
+		$uploads = wp_parse_url(wp_get_upload_dir()['baseurl'], PHP_URL_PATH);
+		return 'location ^~ ' . $uploads . '/' . Files::DIR . '/' . Files::BACKUP_DIR . ' { deny all; }';
 	}
 
 	/**

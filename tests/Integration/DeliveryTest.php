@@ -189,7 +189,7 @@ class DeliveryTest extends TestCase
 			$accept = isset($args['headers']['Accept']) ? $args['headers']['Accept'] : '';
 			$status = 200;
 			$vary = '';
-			if (strpos($url, '/' . Files::BACKUP_DIR . '/') !== false) {
+			if (strpos($url, '/' . Files::BACKUP_DIR) !== false) {
 				list($status, $type) = [$server['originals'], 'image/jpeg'];
 			} elseif (substr($url, -5) === '.avif') {
 				$type = $server['avif'];
