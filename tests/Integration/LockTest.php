@@ -13,9 +13,10 @@
 
 namespace Octopus\Tests\Integration;
 
-use Octopus\Media\Files;
 use Exception;
+use Octopus\Engines\Libraries;
 use Octopus\Media\Cleaner;
+use Octopus\Media\Files;
 use Octopus\Media\Lock;
 use Octopus\Media\Optimiser;
 use Octopus\Tests\TestCase;
@@ -58,6 +59,55 @@ class LockTest extends TestCase
 		$this->assertFalse(self::locked(42));
 	}
 
+	public function test_the_lock_is_refreshed_while_the_image_is_processed()
+	{
+		$values = Lock::run(42, function () {
+			$before = self::value(42);
+			usleep(1000);
+			Lock::touch(42);
+			return [$before, self::value(42)];
+		});
+
+		$this->assertGreaterThan((float)$values[0], (float)$values[1]);
+	}
+
+	public function test_a_lock_taken_over_is_left_to_the_other_request()
+	{
+		Lock::run(42, function () {
+			// Stale for another request, which took it over.
+			global $wpdb;
+			$wpdb->update($wpdb->options, ['option_value' => '1.000000'], ['option_name' => Lock::PREFIX . 42]);
+		});
+
+		$this->assertTrue(self::locked(42));
+	}
+
+	public function test_a_library_taking_too_long_is_stopped()
+	{
+		if (PHP_OS_FAMILY === 'Windows') {
+			$this->markTestSkipped('sleep is not a program on Windows.');
+		}
+		add_filter('octopus_timeout', function () {
+			return 1;
+		});
+		$start = microtime(true);
+
+		list($code, $output) = Libraries::execute(['sleep', '10']);
+
+		$this->assertSame(124, $code);
+		$this->assertStringContainsString('sleep took longer than 1 s, stopped', $output);
+		$this->assertLessThan(3, microtime(true) - $start);
+	}
+
+	public function test_the_output_of_a_library_is_read_until_it_ends()
+	{
+		if (PHP_OS_FAMILY === 'Windows') {
+			$this->markTestSkipped('printf is not a program on Windows.');
+		}
+
+		$this->assertSame([3, 'line'], Libraries::execute(['sh', '-c', 'printf line; exit 3']));
+	}
+
 	public function test_the_lock_is_released_after_an_error()
 	{
 		try {
@@ -82,6 +132,18 @@ class LockTest extends TestCase
 	{
 		global $wpdb;
 		$wpdb->insert($wpdb->options, ['option_name' => Lock::PREFIX . $id, 'option_value' => $time, 'autoload' => 'no']);
+	}
+
+	/**
+	 * Returns the value of the lock of an image.
+	 *
+	 * @param int $id
+	 * @return string|null
+	 */
+	private static function value($id)
+	{
+		global $wpdb;
+		return $wpdb->get_var($wpdb->prepare("SELECT option_value FROM {$wpdb->options} WHERE option_name = %s", Lock::PREFIX . $id));
 	}
 
 	/**

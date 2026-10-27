@@ -290,6 +290,7 @@ nothing is encoded again.
 | `octopus_avif_jobs`                   | `4` on upload, `2` in background, `all` in CLI | The threads of `avifenc`.                              |
 | `octopus_webp_mt`                     | `false` in background jobs, `true` otherwise   | A second thread for `cwebp` (`-mt`).                   |
 | `octopus_oxipng_threads`              | `4` on upload, `2` in background, `all` in CLI | The threads of `oxipng`.                               |
+| `octopus_timeout`                     | `120`                                          | Seconds a library may take on a file, then stopped.    |
 | `octopus_job_seconds_between_batches` | `0`                                            | A pause after each image of a background job, seconds. |
 | `octopus_job_default_time_limit`      | `20`                                           | The duration of a batch of a background job, seconds.  |
 | `octopus_binary_path`                 | Found in the `PATH`, then `/usr/bin`...        | The path of a library, or `false` to turn it off.      |

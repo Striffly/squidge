@@ -109,6 +109,7 @@ class Notices
 			'/permission denied|read-only|cannot (open|create|write)/i' => __('the file could not be written, check the permissions of the uploads folder.', 'octopus-image-optimizer'),
 			'/cannot read the image/i' => __('the image file is damaged or incomplete, WordPress cannot read it.', 'octopus-image-optimizer'),
 			'/premature end|corrupt|not a (jpeg|png)|recoverable errors|bad huffman|invalid|input file read error|cannot read input file/i' => __('the image file seems damaged or incomplete.', 'octopus-image-optimizer'),
+			'/took longer than \d+ s, stopped/' => __('the library took too long on this image and was stopped: optimise it again, or lower the maximum image size.', 'octopus-image-optimizer'),
 			'/not found|code 127/i' => __('the library does not work on the server, check its installation.', 'octopus-image-optimizer'),
 		];
 	}

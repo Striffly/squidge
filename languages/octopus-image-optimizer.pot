@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-10-27T22:37:11+00:00\n"
+"POT-Creation-Date: 2026-10-27T23:20:34+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: octopus-image-optimizer\n"
@@ -182,24 +182,28 @@ msgid "the image file seems damaged or incomplete."
 msgstr ""
 
 #: core/Admin/Notices.php:112
+msgid "the library took too long on this image and was stopped: optimise it again, or lower the maximum image size."
+msgstr ""
+
+#: core/Admin/Notices.php:113
 msgid "the library does not work on the server, check its installation."
 msgstr ""
 
-#: core/Admin/Notices.php:181
+#: core/Admin/Notices.php:182
 msgid "Octopus Image Optimizer could not fully optimise some images:"
 msgstr ""
 
 #. translators: 1: what failed, e.g. WebP conversion and AVIF conversion, 2: why.
-#: core/Admin/Notices.php:214
+#: core/Admin/Notices.php:215
 #, php-format
 msgid "%1$s failed: %2$s"
 msgstr ""
 
-#: core/Admin/Notices.php:215
+#: core/Admin/Notices.php:216
 msgid "Technical details"
 msgstr ""
 
-#: core/Admin/Notices.php:236
+#: core/Admin/Notices.php:237
 msgid "an unexpected error occurred, see the technical details."
 msgstr ""
 
@@ -1168,15 +1172,15 @@ msgstr[1] ""
 msgid "Tested on %s."
 msgstr ""
 
-#: assets/js/components/Form.js:104
+#: assets/js/components/Form.js:126
 msgid "Not applied"
 msgstr ""
 
-#: assets/js/components/Form.js:202
+#: assets/js/components/Form.js:247
 msgid "Saved"
 msgstr ""
 
-#: assets/js/components/Form.js:202
+#: assets/js/components/Form.js:247
 msgid "Not saved"
 msgstr ""
 

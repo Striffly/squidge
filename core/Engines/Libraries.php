@@ -45,6 +45,14 @@ class Libraries
 	const VERSION_OPTIONS = ['cwebp' => '-version'];
 
 	/**
+	 * The time a library may take on a file, in
+	 * seconds: a few seconds on a big photo, more is a
+	 * library stuck. Stopped, the file gets an error.
+	 * The octopus_timeout filter sets it.
+	 */
+	const TIMEOUT = 120;
+
+	/**
 	 * The versions of the libraries, by name, with
 	 * their path, once read in this request.
 	 *
@@ -63,11 +71,13 @@ class Libraries
 	/**
 	 * Executes a command without shell: each argument
 	 * reaches the program as given, nothing is
-	 * interpreted. Falls back on exec(), with escaped
-	 * arguments, where proc_open() is disabled. On
-	 * Windows, exec() runs cmd.exe /s /c "command",
-	 * and escapeshellarg() quotes each argument for it
-	 * (and blanks out its % ! " characters).
+	 * interpreted. Stopped after TIMEOUT, with the code
+	 * 124 of the timeout command. Falls back on exec(),
+	 * with escaped arguments and without time limit,
+	 * where proc_open() is disabled. On Windows, exec()
+	 * runs cmd.exe /s /c "command", and escapeshellarg()
+	 * quotes each argument for it (and blanks out its
+	 * % ! " characters).
 	 *
 	 * @param string[] $command The program, then its arguments.
 	 * @return array The exit code and the output (stdout and stderr).
@@ -81,9 +91,7 @@ class Libraries
 			// phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.system_calls_proc_open, Generic.PHP.ForbiddenFunctions.Found -- Running the libraries (cwebp, avifenc...) is what OIO does: each argument apart, without shell.
 			$process = @proc_open($command, [0 => ['file', $null, 'r'], 1 => ['pipe', 'w'], 2 => ['redirect', 1]], $pipes);
 			if (is_resource($process)) {
-				$output = stream_get_contents($pipes[1]);
-				fclose($pipes[1]); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fclose -- The output pipe of the library, not a file.
-				return [proc_close($process), (string)$output];
+				return self::wait($process, $pipes[1], $command[0]);
 			}
 		}
 		if (function_exists('exec')) {
@@ -92,6 +100,53 @@ class Libraries
 			return [$code, implode("\n", $lines)];
 		}
 		return [127, 'cannot run ' . basename($command[0])];
+	}
+
+	/**
+	 * Reads the output of a process until it ends, or
+	 * stops it once it took longer than TIMEOUT.
+	 *
+	 * @param resource $process
+	 * @param resource $pipe Its output.
+	 * @param string $program
+	 * @return array The exit code and the output.
+	 * @since 1.0.0
+	 */
+	private static function wait($process, $pipe, $program)
+	{
+		$timeout = max(1, (int)apply_filters('octopus_timeout', self::TIMEOUT));
+		$end = microtime(true) + $timeout;
+		$output = '';
+		stream_set_blocking($pipe, false);
+		$code = null;
+		while (true) {
+			$read = [$pipe];
+			$write = $except = null;
+			// Wakes up as soon as the library writes, at least every 200 ms.
+			@stream_select($read, $write, $except, 0, 200000);
+			$chunk = (string)stream_get_contents($pipe);
+			$output .= $chunk;
+			$status = proc_get_status($process);
+			if (!$status['running']) {
+				// Given once only: proc_close() would then return -1.
+				$code = $status['exitcode'];
+				break;
+			}
+			if ($chunk === '') {
+				// On Windows, stream_select() does not wait on a pipe.
+				usleep(10000);
+			}
+			if (microtime(true) > $end) {
+				proc_terminate($process, 9);
+				$output .= sprintf("\n%s took longer than %d s, stopped", basename($program), $timeout);
+				$code = 124;
+				break;
+			}
+		}
+		$output .= (string)stream_get_contents($pipe);
+		fclose($pipe); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fclose -- The output pipe of the library, not a file.
+		proc_close($process);
+		return [$code, $output];
 	}
 
 	/**

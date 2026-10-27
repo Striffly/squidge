@@ -180,25 +180,25 @@ msgstr "le fichier de l’image est endommagé ou incomplet, WordPress ne peut p
 msgid "the image file seems damaged or incomplete."
 msgstr "le fichier de l’image semble endommagé ou incomplet."
 
-#: core/Admin/Notices.php:112
+#: core/Admin/Notices.php:113
 msgid "the library does not work on the server, check its installation."
 msgstr "la bibliothèque ne fonctionne pas sur le serveur, vérifiez son installation."
 
-#: core/Admin/Notices.php:181
+#: core/Admin/Notices.php:182
 msgid "Octopus Image Optimizer could not fully optimise some images:"
 msgstr "Octopus Image Optimizer n’a pas pu optimiser entièrement certaines images :"
 
 #. translators: 1: what failed, e.g. WebP conversion and AVIF conversion, 2: why.
-#: core/Admin/Notices.php:214
+#: core/Admin/Notices.php:215
 #, php-format
 msgid "%1$s failed: %2$s"
 msgstr "%1$s en échec : %2$s"
 
-#: core/Admin/Notices.php:215
+#: core/Admin/Notices.php:216
 msgid "Technical details"
 msgstr "Détails techniques"
 
-#: core/Admin/Notices.php:236
+#: core/Admin/Notices.php:237
 msgid "an unexpected error occurred, see the technical details."
 msgstr "une erreur inattendue s’est produite, voir les détails techniques."
 
@@ -1299,11 +1299,11 @@ msgstr "Chaque image ajoutée à la médiathèque est optimisée aussitôt. Déc
 msgid "WordPress scales the bigger images down on upload, and keeps them as their original. Longest side, 2560 by default. <strong>0 means no limit: huge images can exhaust the server.</strong>"
 msgstr "WordPress réduit les grandes images au téléversement, et les garde comme original. Plus grand côté, 2560 par défaut. <strong>0 signifie sans limite : des images énormes peuvent épuiser le serveur.</strong>"
 
-#: assets/js/components/Form.js:202
+#: assets/js/components/Form.js:247
 msgid "Saved"
 msgstr "Enregistré"
 
-#: assets/js/components/Form.js:202
+#: assets/js/components/Form.js:247
 msgid "Not saved"
 msgstr "Non enregistré"
 
@@ -1319,6 +1319,10 @@ msgstr "Demande une image optimisée comme le ferait un navigateur."
 msgid "OIO could not remove its rules from uploads/.htaccess: remove them by hand, between the lines with Octopus Image Optimizer."
 msgstr "OIO n’a pas pu retirer ses règles de uploads/.htaccess : retirez-les à la main, entre les lignes avec Octopus Image Optimizer."
 
-#: assets/js/components/Form.js:104
+#: assets/js/components/Form.js:126
 msgid "Not applied"
 msgstr "Non appliqué"
+
+#: core/Admin/Notices.php:112
+msgid "the library took too long on this image and was stopped: optimise it again, or lower the maximum image size."
+msgstr "la bibliothèque a mis trop de temps sur cette image et a été arrêtée : optimisez-la à nouveau, ou baissez la taille maximale des images."
