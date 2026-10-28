@@ -21,12 +21,13 @@
 
 	class Job extends Component {
 		/** The refresh, by state of the job: none once it ended. */
-		static DELAYS = {running: 1000, paused: 5000};
+		static DELAYS = {running: 500, paused: 5000};
 
 		/**
 		 * While the job runs, its progress alone is asked
-		 * every second, and the counts of the media library
-		 * at most this often: they take longer on a big one.
+		 * every half second, and the counts of the media
+		 * library at most this often: they take longer on a
+		 * big one.
 		 */
 		static COUNTS_DELAY = 3000;
 
