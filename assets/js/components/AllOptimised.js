@@ -4,8 +4,9 @@
  * The message of the Optimise tab when the page opens
  * on a media library all optimised
  * (.js-octopus-all-optimised), with confetti the first
- * time it is seen. Not while a job runs, nor after it:
- * the result of the job already says it.
+ * time it is seen. Not while a job runs, from the click
+ * starting it, nor after it: the result of the job
+ * already says it.
  */
 
 (() => {
@@ -15,11 +16,14 @@
 		vars() {
 			super.vars();
 			this.celebrated = false;
+			this.hiddenBefore = false;
 		}
 
 		events() {
 			super.events();
 			this.addEvent({target: this.view, name: 'job:status', callback: this.onStatus});
+			this.addEvent({target: this.view, name: 'job:starting', callback: this.onStarting});
+			this.addEvent({target: this.view, name: 'job:start-failed', callback: this.onStartFailed});
 			this.addEvent({target: this.view, name: 'tab:shown', callback: this.celebrate});
 		}
 
@@ -34,6 +38,16 @@
 		onStatus({detail: {busy, seen, allOptimised}}) {
 			this.el.hidden = busy || seen || !allOptimised;
 			this.celebrate();
+		}
+
+		// At once: the first status of the job comes about a second later.
+		onStarting() {
+			this.hiddenBefore = this.el.hidden;
+			this.el.hidden = true;
+		}
+
+		onStartFailed() {
+			this.el.hidden = this.hiddenBefore;
 		}
 
 		// Only once visible: its tab may be hidden.
