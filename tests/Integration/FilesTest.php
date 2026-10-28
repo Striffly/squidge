@@ -209,6 +209,24 @@ class FilesTest extends TestCase
 		$this->assertSame([], glob(Files::temp_dir() . '/octopus-*'), 'The copies are removed.');
 	}
 
+	public function test_the_lossy_png_is_reduced_in_the_folder_of_the_temporary_files()
+	{
+		$this->require_libraries('pngquant');
+		self::set('png_compression', 'lossy');
+
+		$deleted = [];
+		add_filter('wp_delete_file', function ($path) use (&$deleted) {
+			$deleted[] = $path;
+			return $path;
+		});
+		$this->upload('graphic.png');
+
+		// pngquant writes there, then the lossless library reads its file.
+		$this->assertNotEmpty(preg_grep('#^' . preg_quote(Files::temp_dir(), '#') . '/octopus-[a-z0-9]+\.png$#', $deleted));
+		$this->assertSame([], glob(Files::temp_dir() . '/octopus-*'));
+		$this->assertSame([], glob(get_temp_dir() . 'octopus*.tmp'), 'Nothing in the shared temporary folder.');
+	}
+
 	public function test_the_near_lossless_webp_leaves_no_temporary_file()
 	{
 		$this->require_libraries('cwebp');

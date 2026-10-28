@@ -135,8 +135,11 @@ class PNG extends AbstractEncoder
 		if ($quality === null || !self::installed('pngquant')) {
 			return null;
 		}
-		require_once ABSPATH . 'wp-admin/includes/file.php';
-		$temp = wp_tempnam('octopus.png');
+		// Private, unlike the temporary folder of the server (see Files::temp_file()).
+		$temp = Files::temp_file('.png');
+		if ($temp === null) {
+			return null;
+		}
 		$range = max(0, $quality - 15) . '-' . $quality;
 		list($code, $output) = yield ['command' => array_merge(Libraries::nice(Optimiser::$context), [Libraries::binary('pngquant'), '--quality=' . $range, '--strip', '--skip-if-larger', '--force', '--output', $temp, '--', $original]), 'threads' => 1];
 		clearstatcache();
