@@ -106,8 +106,9 @@ final class Plugin
 
 	/**
 	 * Loads the translations shipped in /languages,
-	 * e.g. French. Those of translate.wordpress.org,
-	 * in wp-content/languages, come first.
+	 * e.g. French, for the PHP and the scripts. Those
+	 * of translate.wordpress.org, in
+	 * wp-content/languages, come first.
 	 *
 	 * @since 1.0.0
 	 */
@@ -138,7 +139,9 @@ final class Plugin
 
 	/**
 	 * Enqueues a script of assets/js in the footer, with
-	 * its translations when it uses wp.i18n.
+	 * its translations when it uses wp.i18n: from the
+	 * folder WordPress picked for the PHP ones (see
+	 * load_translations()), not always /languages.
 	 *
 	 * @param string $path Relative to assets/js, without .js.
 	 * @param string[] $deps
@@ -151,7 +154,7 @@ final class Plugin
 		$file = 'assets/js/' . $path . '.js';
 		wp_enqueue_script($handle, OCTOPUS_URL . $file, $deps, filemtime(OCTOPUS_PATH . $file), true);
 		if (in_array('wp-i18n', $deps, true)) {
-			wp_set_script_translations($handle, 'octopus-image-optimizer', OCTOPUS_PATH . 'languages');
+			wp_set_script_translations($handle, 'octopus-image-optimizer');
 		}
 		return $handle;
 	}
