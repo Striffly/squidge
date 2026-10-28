@@ -56,6 +56,7 @@ class Settings
 		'webp_quality' => ['type' => 'int', 'min' => 0, 'max' => 100, 'default' => 80],
 		'avif_enable' => ['type' => 'bool', 'default' => true],
 		'avif_quality' => ['type' => 'int', 'min' => 0, 'max' => 100, 'default' => 70],
+		'avif_speed' => ['type' => 'int', 'min' => 0, 'max' => 10, 'default' => 6],
 		'optimise_uploads' => ['type' => 'bool', 'default' => true],
 		'max_size' => ['type' => 'int', 'min' => 0, 'max' => 20000, 'default' => 2560],
 		'serve_picture' => ['type' => 'bool', 'default' => false],

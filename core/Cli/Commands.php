@@ -111,7 +111,7 @@ class Commands extends WP_CLI_Command
 	 * : The quality of the AVIF files, from 0 to 100.
 	 *
 	 * [--avif-speed=<speed>]
-	 * : The speed of avifenc, from 0 (slowest, smallest) to 10. 6 by default: faster speeds make heavier files.
+	 * : The speed of avifenc, from 0 (slowest) to 10. Faster, the files are often heavier.
 	 *
 	 * [--force]
 	 * : Optimise again the images already optimised.

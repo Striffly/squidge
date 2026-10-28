@@ -253,6 +253,17 @@ class LibrariesTest extends TestCase
 		$this->assertSame(2, max($counts), 'Two libraries at once, never more.');
 	}
 
+	public function test_the_avif_speed_of_the_settings_reaches_avifenc()
+	{
+		$log = dirname($this->uploads) . '/avifenc.log';
+		$this->fake_library('avifenc', 'echo "$@" >> "' . $log . '"');
+		self::set('avif_speed', 8);
+
+		$this->upload('photo.jpg');
+
+		$this->assertStringContainsString('--speed 8 ', file_get_contents($log));
+	}
+
 	/**
 	 * Replaces a library with a shell script, run with
 	 * the arguments of the library.

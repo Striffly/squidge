@@ -1248,7 +1248,9 @@ class SettingsPage
 	 * Greys a setting of a format that nothing can use:
 	 * all of them without a library or an image editor
 	 * making the format, those of a missing optional
-	 * library (e.g. pngquant), and the values needing
+	 * library (e.g. pngquant) or of the library of the
+	 * format, missing while the image editor makes it
+	 * (the speed of avifenc), and the values needing
 	 * one. A field disabled is not sent: it keeps its
 	 * value.
 	 *
@@ -1260,7 +1262,7 @@ class SettingsPage
 	private static function availability($field, $format)
 	{
 		$missing = function ($library) use ($format) {
-			return empty($format['extras'][$library]);
+			return $library === $format['library'] ? !$format['installed'] : empty($format['extras'][$library]);
 		};
 		$field['disabled'] = !$format['engine'] || (!empty($field['needs']) && $missing($field['needs']));
 		$field['disabled_options'] = [];
@@ -1481,6 +1483,12 @@ class SettingsPage
 						'type' => 'number',
 						'label' => __('Quality', 'octopus-image-optimizer'),
 						'help' => __('From 0 to 100 (lossless), 70 by default.', 'octopus-image-optimizer'),
+					],
+					'avif_speed' => [
+						'type' => 'number',
+						'label' => __('Speed', 'octopus-image-optimizer'),
+						'needs' => 'avifenc',
+						'help' => __('From 0 to 10 (fastest, heavier files), 6 by default.', 'octopus-image-optimizer'),
 					],
 				],
 			],

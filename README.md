@@ -180,14 +180,15 @@ optipng -clobber -strip all -o {level} -out photo.png octopus/originals-{key}/ph
 oxipng -o {level} --strip safe --force --threads {threads} --out photo.png octopus/originals-{key}/photo.png
 pngquant --quality={quality - 15}-{quality} --strip --skip-if-larger --force --output tmp.png -- octopus/originals-{key}/photo.png
 cwebp -q {quality} photo.jpg -o octopus/formats/photo.jpg.webp
-avifenc -q {quality} --ignore-exif --ignore-xmp --speed 6 --jobs {threads} photo.jpg octopus/formats/photo.jpg.avif
+avifenc -q {quality} --ignore-exif --ignore-xmp --speed {speed} --jobs {threads} photo.jpg octopus/formats/photo.jpg.avif
 ```
 
-`avifenc` older than 1.0 gets the quality as `cq-level` instead of `-q`. `oxipng` runs instead of `optipng` when
-installed, after `pngquant` when the PNG compression is lossy (it then compresses `tmp.png`). The libraries run on
-several files of an image at once, within `octopus_threads` (4 on upload, 2 in background jobs): `avifenc` and `oxipng`
-get the threads left, `{threads}`. A PNG is also encoded with `cwebp -near_lossless 60`, kept if lighter: graphics and
-screenshots get much lighter and sharper, photos are left lossy.
+`avifenc` older than 1.0 gets the quality as `cq-level` instead of `-q`, and its speed is 6 by default (settings).
+`oxipng` runs instead of `optipng` when installed, after `pngquant` when the PNG compression is lossy (it then
+compresses `tmp.png`). The libraries run on several files of an image at once, within `octopus_threads` (4 on upload, 2
+in background jobs): `avifenc` and `oxipng` get the threads left, `{threads}`. A PNG is also encoded with
+`cwebp -near_lossless 60`, kept if lighter: graphics and screenshots get much lighter and sharper, photos are left
+lossy.
 
 Without `cwebp` or `avifenc`, the WordPress image editor (GD or Imagick) makes the WebP at the same quality, and the
 AVIF at the quality + 5 (up to 89, from 90 as is), for files close to the ones of `avifenc`. The PNG images are not

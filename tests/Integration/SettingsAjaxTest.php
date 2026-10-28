@@ -51,6 +51,15 @@ class SettingsAjaxTest extends TestCase
 		$this->assertSame('lossless', Settings::get('png_compression'));
 	}
 
+	public function test_the_avif_speed_is_refused_while_the_image_editor_makes_the_avif_files()
+	{
+		self::hide_libraries('avifenc');
+		$this->require_editor('image/avif');
+
+		$this->assertFalse($this->save('avif_speed', '8')['success'], 'GD and Imagick encode at their own speed.');
+		$this->assertTrue($this->save('avif_quality', '60')['success']);
+	}
+
 	public function test_the_rules_not_written_are_told()
 	{
 		$_SERVER['SERVER_SOFTWARE'] = 'Apache/2.4.66 (Debian)';

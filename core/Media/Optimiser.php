@@ -116,7 +116,7 @@ class Optimiser
 	{
 		$settings = [
 			'webp' => ['quality' => Settings::get('webp_quality')],
-			'avif' => ['quality' => Settings::get('avif_quality')],
+			'avif' => ['quality' => Settings::get('avif_quality'), 'speed' => Settings::get('avif_speed')],
 			'jpg' => ['quality' => Settings::get('jpg_quality')],
 			'png' => [
 				'lossy' => Settings::get('png_compression') === 'lossy',
