@@ -105,7 +105,7 @@ class Lifecycle
 	{
 		global $wpdb;
 		// The job and the queue of each site, see Background::__construct().
-		if (class_exists('Octopus_Vendor_WP_Background_Process')) {
+		if (Plugin::has_background()) {
 			(new Job())->stop();
 			(new Queue())->stop();
 		}

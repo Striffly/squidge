@@ -83,13 +83,25 @@ final class Plugin
 		new PluginsScreen();
 		new Htaccess();
 		new Test();
-		// The background jobs need the dependencies of composer install.
-		if (class_exists('Octopus_Vendor_WP_Background_Process')) {
+		if (self::has_background()) {
 			Job::instance();
 			Queue::instance();
 			new JobsAjax();
 		}
 		new Display();
+	}
+
+	/**
+	 * Determines if the background jobs and the queue of
+	 * the media library can run: they need the
+	 * dependencies of composer install.
+	 *
+	 * @return bool
+	 * @since 1.0.0
+	 */
+	public static function has_background()
+	{
+		return class_exists('Octopus_Vendor_WP_Background_Process');
 	}
 
 	/**

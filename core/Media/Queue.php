@@ -29,28 +29,6 @@ class Queue extends Background
 	protected $action = 'queue';
 
 	/**
-	 * The instance, created on every request so that it
-	 * handles its background requests and cron.
-	 *
-	 * @var Queue|null
-	 */
-	private static $instance = null;
-
-	/**
-	 * Returns the instance.
-	 *
-	 * @return Queue
-	 * @since 1.0.0
-	 */
-	public static function instance()
-	{
-		if (self::$instance === null) {
-			self::$instance = new self();
-		}
-		return self::$instance;
-	}
-
-	/**
 	 * Adds an image to the queue, once, and starts it.
 	 *
 	 * @param int $id
@@ -91,11 +69,8 @@ class Queue extends Background
 	 */
 	protected function task($id)
 	{
-		Optimiser::$context = 'background';
 		if (get_post($id) && Optimiser::optimise($id) === null) {
-			// E.g. a worker PHP stopped, its lock not stale yet: again after the others.
-			sleep(1);
-			return $id;
+			return $this->retry($id);
 		}
 		return false;
 	}

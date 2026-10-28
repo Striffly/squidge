@@ -51,26 +51,14 @@ class Job extends Background
 	protected $action = 'job';
 
 	/**
-	 * The instance, created on every request so that it
-	 * handles its background requests and cron.
+	 * Marks the progress cancelled when the library
+	 * cancels the job.
 	 *
-	 * @var Job|null
-	 */
-	private static $instance = null;
-
-	/**
-	 * Returns the instance.
-	 *
-	 * @return Job
 	 * @since 1.0.0
 	 */
-	public static function instance()
+	protected function hooks()
 	{
-		if (self::$instance === null) {
-			self::$instance = new self();
-			add_action(self::$instance->identifier . '_cancelled', [self::$instance, 'cancelled_progress']);
-		}
-		return self::$instance;
+		add_action($this->identifier . '_cancelled', [$this, 'cancelled_progress']);
 	}
 
 	/**
@@ -199,7 +187,6 @@ class Job extends Background
 		if (!is_array($progress) || $progress['cancelled']) {
 			return false;
 		}
-		Optimiser::$context = 'background';
 		$counts = ['done' => 1, 'failed' => 0, 'missing' => 0];
 		if (get_post($id)) {
 			if ($progress['action'] === self::OPTIMISE) {
@@ -208,11 +195,9 @@ class Job extends Background
 					self::save_progress($progress, [], ['waiting' => null]);
 				}
 				if (Optimiser::optimise($id, $progress['mode']) === null) {
-					// Another request processes it, e.g. a worker PHP stopped, its lock not stale yet: again
-					// after the others, the page telling it waits.
+					// Another request processes it: the page tells it waits.
 					self::save_progress($progress, [], ['waiting' => ['id' => $id, 'until' => time() + Lock::left($id)]]);
-					sleep(1);
-					return $id;
+					return $this->retry($id);
 				}
 				$counts['failed'] = (int)(Status::of($id) === Status::ERROR);
 			} elseif ($progress['action'] === self::REMOVE_FORMATS) {

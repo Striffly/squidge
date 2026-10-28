@@ -55,6 +55,39 @@ abstract class Background extends Octopus_Vendor_WP_Background_Process
 	private $beaten = 0.0;
 
 	/**
+	 * The instance of each queue, by class.
+	 *
+	 * @var Background[]
+	 */
+	private static $instances = [];
+
+	/**
+	 * Returns the instance of the queue, created on
+	 * every request so that it handles its background
+	 * requests and cron.
+	 *
+	 * @return static
+	 * @since 1.0.0
+	 */
+	public static function instance()
+	{
+		if (!isset(self::$instances[static::class])) {
+			self::$instances[static::class] = new static();
+			self::$instances[static::class]->hooks();
+		}
+		return self::$instances[static::class];
+	}
+
+	/**
+	 * Hooks the instance of the queue, once.
+	 *
+	 * @since 1.0.0
+	 */
+	protected function hooks()
+	{
+	}
+
+	/**
 	 * Sets the prefix of the queue: the library keeps
 	 * it, with its status and lock, in the site
 	 * options, shared by the sites of a network. Each
@@ -168,6 +201,7 @@ abstract class Background extends Octopus_Vendor_WP_Background_Process
 			$this->unlock_process();
 			return $this->maybe_wp_die();
 		}
+		Optimiser::$context = 'background';
 		add_action('octopus_working', [$this, 'beat']);
 		try {
 			return parent::handle();
@@ -176,6 +210,22 @@ abstract class Background extends Octopus_Vendor_WP_Background_Process
 			$this->unlock_process();
 			$this->batch = null;
 		}
+	}
+
+	/**
+	 * Keeps an image another request is processing in
+	 * the queue, e.g. a worker PHP stopped, its lock not
+	 * stale yet: tried again after the others, a second
+	 * later at least.
+	 *
+	 * @param int $id
+	 * @return int The item kept, see task().
+	 * @since 1.0.0
+	 */
+	protected function retry($id)
+	{
+		sleep(1);
+		return $id;
 	}
 
 	/**

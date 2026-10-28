@@ -189,7 +189,7 @@ class SettingsPage
 		$sections = self::sections();
 		$formats = self::formats($sections);
 		$counts = Status::counts();
-		$jobs = class_exists('Octopus_Vendor_WP_Background_Process');
+		$jobs = Plugin::has_background();
 		$tabs = [
 			'overview' => __('Overview', 'octopus-image-optimizer'),
 			'optimise' => __('Optimise', 'octopus-image-optimizer'),
