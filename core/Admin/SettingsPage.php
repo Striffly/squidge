@@ -726,38 +726,33 @@ class SettingsPage
 		</div>
 
 		<h2 class="octopus-heading"><?php esc_html_e('Rules and code', 'octopus-image-optimizer'); ?></h2>
-		<?php if ($server === 'apache') : ?>
-			<?php $written = Htaccess::rules_written(); ?>
+		<?php if ($server !== 'nginx') : ?>
 			<details class="octopus-fold">
 				<summary class="octopus-fold__summary">
 					<span class="octopus-fold__title"><?php esc_html_e('Rewrite rules for Apache and LiteSpeed', 'octopus-image-optimizer'); ?></span>
-					<?php $this->render_badge($written ? 'on' : 'muted', $written ? __('Written in uploads/.htaccess', 'octopus-image-optimizer') : __('Not written', 'octopus-image-optimizer'), 'octopus-delivery-rules-state'); ?>
+					<?php if ($server === 'apache') : ?>
+						<?php $written = Htaccess::rules_written(); ?>
+						<?php $this->render_badge($written ? 'on' : 'muted', $written ? __('Written in uploads/.htaccess', 'octopus-image-optimizer') : __('Not written', 'octopus-image-optimizer'), 'octopus-delivery-rules-state'); ?>
+					<?php endif; ?>
 				</summary>
 				<div class="octopus-fold__content">
 					<p class="octopus-fold__text">
-							<?php
-							/* translators: %s: uploads/.htaccess */
-							$this->printf_html(__('OIO writes them in %s when the server option is on, and removes them when it is off.', 'octopus-image-optimizer'), '<code>uploads/.htaccess</code>');
-							?>
-						</p>
+						<?php
+						$this->printf_html(
+							$server === 'apache'
+								/* translators: %s: uploads/.htaccess */
+								? __('OIO writes them in %s when the server option is on, and removes them when it is off.', 'octopus-image-optimizer')
+								/* translators: %s: uploads/.htaccess */
+								: __('In %s, written by OIO when the server option is on.', 'octopus-image-optimizer'),
+							'<code>uploads/.htaccess</code>'
+						);
+						?>
+					</p>
 					<?php $this->render_code(implode("\n", Htaccess::apache_rules()), 'octopus-code-apache'); ?>
 				</div>
 			</details>
-		<?php else : ?>
-			<?php if ($server === 'other') : ?>
-				<details class="octopus-fold">
-					<summary class="octopus-fold__summary"><span class="octopus-fold__title"><?php esc_html_e('Rewrite rules for Apache and LiteSpeed', 'octopus-image-optimizer'); ?></span></summary>
-					<div class="octopus-fold__content">
-						<p class="octopus-fold__text">
-								<?php
-								/* translators: %s: uploads/.htaccess */
-								$this->printf_html(__('In %s, written by OIO when the server option is on.', 'octopus-image-optimizer'), '<code>uploads/.htaccess</code>');
-								?>
-							</p>
-						<?php $this->render_code(implode("\n", Htaccess::apache_rules()), 'octopus-code-apache'); ?>
-					</div>
-				</details>
-			<?php endif; ?>
+		<?php endif; ?>
+		<?php if ($server !== 'apache') : ?>
 			<details class="octopus-fold">
 				<summary class="octopus-fold__summary"><span class="octopus-fold__title"><?php esc_html_e('Rewrite rules for nginx', 'octopus-image-optimizer'); ?></span></summary>
 				<div class="octopus-fold__content">
@@ -834,7 +829,7 @@ class SettingsPage
 						<div class="octopus-format__top">
 							<h2 class="octopus-format__title"><?php echo esc_html($format['title']); ?></h2>
 							<?php $this->render_badge($state, self::state_label($state), 'octopus-settings-' . $id . '-state'); ?>
-							<?php $this->render_switch($switch, $format['fields'][$switch]); ?>
+							<?php $this->render_toggle($switch, $format['fields'][$switch]['label']); ?>
 						</div>
 						<div class="octopus-format__engines">
 							<?php $this->render_engine($format); ?>
@@ -1236,7 +1231,7 @@ class SettingsPage
 	 */
 	private function render_field($name, $field)
 	{
-		$id = 'octopus-' . str_replace('_', '-', $name);
+		$id = self::field_id($name);
 		$input = Settings::OPTION . '[' . $name . ']';
 		$value = Settings::get($name);
 		$setting = Settings::FIELDS[$name];
@@ -1264,11 +1259,7 @@ class SettingsPage
 		);
 
 		if ($field['type'] === 'checkbox') {
-			// An unticked box is not sent: the hidden field sends 0 instead.
-			printf(
-				'<input type="hidden" name="%s" value="0"><label class="octopus-toggle"><input type="checkbox" class="octopus-toggle__input" id="%s" name="%s" value="1" aria-labelledby="%s-label" %s><span class="octopus-toggle__track" aria-hidden="true"></span></label>',
-				esc_attr($input), esc_attr($id), esc_attr($input), esc_attr($id), checked($value, true, false)
-			);
+			$this->render_toggle($name);
 		} else {
 			echo '<div class="octopus-field__control">';
 			if ($field['type'] === 'number') {
@@ -1319,21 +1310,43 @@ class SettingsPage
 	}
 
 	/**
-	 * Renders a checkbox option as a bare switch, for
-	 * the header of a format card: its label is read by
-	 * screen readers, its help shown apart.
+	 * Renders the toggle of a checkbox option, named by
+	 * the label of its field. With a label, a bare
+	 * switch, for the header of a format card: its label
+	 * is read by screen readers, its help shown apart.
+	 * An unticked box is not sent: the hidden field
+	 * sends 0 instead.
 	 *
 	 * @param string $name
-	 * @param array $field
+	 * @param string $label
 	 * @since 1.0.0
 	 */
-	private function render_switch($name, $field)
+	private function render_toggle($name, $label = '')
 	{
+		$id = self::field_id($name);
 		$input = Settings::OPTION . '[' . $name . ']';
 		printf(
-			'<input type="hidden" name="%s" value="0"><label class="octopus-toggle octopus-toggle--switch"><input type="checkbox" class="octopus-toggle__input" id="%s" name="%s" value="1" %s><span class="octopus-toggle__track" aria-hidden="true"></span><span class="screen-reader-text">%s</span></label>',
-			esc_attr($input), esc_attr('octopus-' . str_replace('_', '-', $name)), esc_attr($input), checked(Settings::get($name), true, false), esc_html($field['label'])
+			'<input type="hidden" name="%1$s" value="0"><label class="octopus-toggle%2$s"><input type="checkbox" class="octopus-toggle__input" id="%3$s" name="%1$s" value="1"%4$s %5$s><span class="octopus-toggle__track" aria-hidden="true"></span>%6$s</label>',
+			esc_attr($input),
+			$label ? ' octopus-toggle--switch' : '',
+			esc_attr($id),
+			$label ? '' : sprintf(' aria-labelledby="%s-label"', esc_attr($id)), // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Escaped here.
+			checked(Settings::get($name), true, false),
+			$label ? sprintf('<span class="screen-reader-text">%s</span>', esc_html($label)) : '' // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Escaped here.
 		);
+	}
+
+	/**
+	 * Returns the id of the control of an option, e.g.
+	 * octopus-jpg-quality.
+	 *
+	 * @param string $name
+	 * @return string
+	 * @since 1.0.0
+	 */
+	private static function field_id($name)
+	{
+		return 'octopus-' . str_replace('_', '-', $name);
 	}
 
 	/**
