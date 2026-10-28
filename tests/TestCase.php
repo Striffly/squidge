@@ -43,6 +43,24 @@ abstract class TestCase extends WP_UnitTestCase
 		add_filter('upload_dir', [$this, 'upload_dir']);
 		Optimiser::$context = 'upload';
 		self::forget_libraries();
+		// The errors of the settings of a test, kept by WordPress for the request.
+		$GLOBALS['wp_settings_errors'] = [];
+		// The check of the rules of uploads/.htaccess once written (Htaccess::sync()):
+		// the folder answers, without network.
+		add_filter('pre_http_request', function ($pre, $args, $url) {
+			return $pre === false && strpos($url, '/octopus/check-') !== false ? self::response(404) : $pre;
+		}, 20, 3);
+	}
+
+	/**
+	 * Returns an HTTP response, as from the network.
+	 *
+	 * @param int $code
+	 * @return array
+	 */
+	protected static function response($code)
+	{
+		return ['headers' => [], 'body' => '', 'response' => ['code' => $code, 'message' => ''], 'cookies' => [], 'filename' => null];
 	}
 
 	/**

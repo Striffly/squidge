@@ -187,9 +187,40 @@ class Htaccess
 			return;
 		}
 		require_once ABSPATH . 'wp-admin/includes/misc.php';
+		$written = self::rules_written();
 		if (!insert_with_markers(self::htaccess(), self::MARKER, self::apache_rules())) {
 			add_settings_error(Settings::OPTION, 'octopus_rewrite_rules', __('OIO could not write the rules in uploads/.htaccess: copy them by hand from the Delivery tab.', 'octopus-image-optimizer'));
+			return;
 		}
+		// Just written: a server refusing them answers every file of the uploads
+		// folder with an error, images included. They go, and the option with them,
+		// or the options page would write them again.
+		if (!$written && self::server() === 'apache' && self::breaks_uploads()) {
+			Settings::set(['serve_rewrite' => false]);
+			add_settings_error(Settings::OPTION, 'octopus_rewrite_rules', __('The server refuses the rules of uploads/.htaccess (error 500 on every image): OIO removed them. Ask your host to allow them (AllowOverride FileInfo), or serve the WebP and AVIF files in the HTML.', 'octopus-image-optimizer'));
+		}
+	}
+
+	/**
+	 * Determines if the uploads folder answers with a
+	 * server error, as Apache does for every file of a
+	 * folder whose .htaccess it refuses: a request to
+	 * the site itself, for a file that does not exist.
+	 * Not reached (e.g. a password on the site) counts
+	 * as working.
+	 *
+	 * @return bool
+	 * @since 1.0.0
+	 */
+	private static function breaks_uploads()
+	{
+		$response = wp_remote_head(Files::url(Files::dir() . '/check-' . strtolower(wp_generate_password(8, false)) . '.txt'), [
+			'timeout' => 5,
+			'redirection' => 0,
+			// As WordPress for its own loopback requests.
+			'sslverify' => apply_filters('https_local_ssl_verify', false), // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- A filter of WordPress.
+		]);
+		return !is_wp_error($response) && wp_remote_retrieve_response_code($response) >= 500;
 	}
 
 	/**

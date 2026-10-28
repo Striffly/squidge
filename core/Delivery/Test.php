@@ -94,11 +94,11 @@ class Test
 		$rewritten = $rewrite['type'] === $expected;
 		$wanted = Settings::get('serve_rewrite') || Htaccess::server() === 'nginx';
 		$checks[] = [
-			'state' => $rewritten ? 'ok' : ($wanted ? 'fail' : 'info'),
+			'state' => $rewritten ? 'ok' : ($wanted || $rewrite['status'] >= 500 ? 'fail' : 'info'),
 			/* translators: %s: AVIF or WebP. */
 			'label' => $rewritten ? sprintf(__('The server answers the image with its %s version', 'octopus-image-optimizer'), $expected === 'image/avif' ? 'AVIF' : 'WebP') : __('The server answers the image with the JPG or PNG', 'octopus-image-optimizer'),
 			'detail' => self::describe($rewrite),
-			'advice' => $rewritten ? '' : ($wanted ? esc_html__('The rewrite rules are not applied: check that they are in the configuration of the server, and that mod_rewrite is on (Apache).', 'octopus-image-optimizer') : esc_html__('Expected while the server rewrite is off.', 'octopus-image-optimizer')),
+			'advice' => $rewritten ? '' : self::rewrite_advice($rewrite, $wanted),
 		];
 		if ($rewritten) {
 			$vary = stripos($rewrite['vary'], 'accept') !== false;
@@ -117,6 +117,28 @@ class Test
 			'sample' => $sample['name'],
 			'checks' => $checks,
 		]);
+	}
+
+	/**
+	 * Tells why the server answers the image with the
+	 * JPG or PNG, or with an error: a server error is
+	 * the one of a .htaccess Apache refuses, for every
+	 * file of the uploads folder.
+	 *
+	 * @param array $response
+	 * @param bool $wanted Whether the server rewrite is on.
+	 * @return string
+	 * @since 1.0.0
+	 */
+	private static function rewrite_advice($response, $wanted)
+	{
+		if ($response['status'] >= 500) {
+			return esc_html__('The server answers with an error: it refuses the rules of uploads/.htaccess, and serves no image of the uploads folder. Untick the server option, then ask your host to allow them (AllowOverride FileInfo).', 'octopus-image-optimizer');
+		}
+		if ($wanted) {
+			return esc_html__('The rewrite rules are not applied: check that they are in the configuration of the server, and that mod_rewrite is on (Apache).', 'octopus-image-optimizer');
+		}
+		return esc_html__('Expected while the server rewrite is off.', 'octopus-image-optimizer');
 	}
 
 	/**

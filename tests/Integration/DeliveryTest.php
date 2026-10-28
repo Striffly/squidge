@@ -20,6 +20,7 @@ use Octopus\Delivery\Test;
 use Octopus\Encoders\AVIF;
 use Octopus\Encoders\WebP;
 use Octopus\Media\Files;
+use Octopus\Settings;
 use Octopus\Tests\TestCase;
 use WPAjaxDieContinueException;
 
@@ -97,6 +98,20 @@ class DeliveryTest extends TestCase
 		$this->assertSame($other, file_get_contents(Htaccess::htaccess()));
 	}
 
+	public function test_rules_the_server_refuses_are_removed_with_the_option()
+	{
+		// Apache refuses them: every file of the uploads folder answers 500.
+		add_filter('pre_http_request', function ($pre, $args, $url) {
+			return strpos($url, '/octopus/check-') !== false ? self::response(500) : $pre;
+		}, 5, 3);
+
+		self::set('serve_rewrite', true);
+
+		$this->assertFalse(Htaccess::rules_written());
+		$this->assertFalse(Settings::get('serve_rewrite'), 'Or the options page would write them again.');
+		$this->assertStringContainsString('error 500', wp_json_encode(get_settings_errors(Settings::OPTION)));
+	}
+
 	public function test_the_rules_removed_behind_oio_are_put_back()
 	{
 		self::set('serve_rewrite', true);
@@ -169,6 +184,17 @@ class DeliveryTest extends TestCase
 		$this->assertSame('info', $checks[2]['state'], 'The rewrite is off: not a failure.');
 	}
 
+	public function test_a_refused_htaccess_is_told()
+	{
+		$this->sample();
+		$this->serve(['broken' => true]);
+
+		$checks = $this->run_test()['data']['checks'];
+
+		$this->assertSame('fail', $checks[2]['state']);
+		$this->assertStringContainsString('refuses the rules of uploads/.htaccess', $checks[2]['advice']);
+	}
+
 	public function test_public_originals_fail()
 	{
 		$this->sample();
@@ -213,16 +239,19 @@ class DeliveryTest extends TestCase
 	 * would, without network.
 	 *
 	 * @param array $server The type of the AVIF files, whether the rewrite
-	 *                      works, the status of the originals.
+	 *                      works, the status of the originals, whether
+	 *                      the uploads folder answers 500.
 	 */
 	private function serve($server = [])
 	{
-		$server = array_merge(['avif' => 'image/avif', 'rewrite' => true, 'originals' => 403], $server);
+		$server = array_merge(['avif' => 'image/avif', 'rewrite' => true, 'originals' => 403, 'broken' => false], $server);
 		add_filter('pre_http_request', function ($pre, $args, $url) use ($server) {
 			$accept = isset($args['headers']['Accept']) ? $args['headers']['Accept'] : '';
 			$status = 200;
 			$vary = '';
-			if (strpos($url, '/' . Files::BACKUP_DIR) !== false) {
+			if ($server['broken']) {
+				list($status, $type) = [500, 'text/html'];
+			} elseif (strpos($url, '/' . Files::BACKUP_DIR) !== false) {
 				list($status, $type) = [$server['originals'], 'image/jpeg'];
 			} elseif (substr($url, -5) === '.avif') {
 				$type = $server['avif'];
