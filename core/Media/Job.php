@@ -194,7 +194,7 @@ class Job extends Background
 				if (isset($progress['waiting']['id']) && $progress['waiting']['id'] === $id) {
 					self::save_progress($progress, [], ['waiting' => null]);
 				}
-				if (Optimiser::optimise($id, $progress['mode']) === null) {
+				if (Optimiser::optimise($id, $progress['mode'], Optimiser::BACKGROUND) === null) {
 					// Another request processes it: the page tells it waits.
 					self::save_progress($progress, [], ['waiting' => ['id' => $id, 'until' => time() + Lock::left($id)]]);
 					return $this->retry($id);

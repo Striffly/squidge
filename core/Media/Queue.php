@@ -69,7 +69,7 @@ class Queue extends Background
 	 */
 	protected function task($id)
 	{
-		if (get_post($id) && Optimiser::optimise($id) === null) {
+		if (get_post($id) && Optimiser::optimise($id, null, Optimiser::BACKGROUND) === null) {
 			return $this->retry($id);
 		}
 		return false;

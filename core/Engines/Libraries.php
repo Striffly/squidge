@@ -401,9 +401,10 @@ class Libraries
 	 * of the libraries: in background jobs by default,
 	 * the requests of the site go first. The octopus_nice
 	 * filter sets the level, from 0 (normal) to 19
-	 * (lowest), by context (see $context).
+	 * (lowest), by context (see Optimiser::UPLOAD).
 	 * Windows has no nice.
 	 *
+	 * @param string $context
 	 * @return string[]
 	 * @since 1.0.0
 	 */
@@ -497,7 +498,7 @@ class Libraries
 	 * them in WP-CLI. The octopus_threads filter sets
 	 * another number, or "all".
 	 *
-	 * @param string $context See Optimiser::$context.
+	 * @param string $context See Optimiser::UPLOAD.
 	 * @return int
 	 * @since 1.0.0
 	 */

@@ -201,7 +201,6 @@ abstract class Background extends Octopus_Vendor_WP_Background_Process
 			$this->unlock_process();
 			return $this->maybe_wp_die();
 		}
-		Optimiser::$context = 'background';
 		add_action('octopus_working', [$this, 'beat']);
 		try {
 			return parent::handle();

@@ -67,15 +67,16 @@ class Optimiser
 	public static $regenerating = false;
 
 	/**
-	 * Where the images are optimised: "upload" during a
-	 * request of the admin (upload, media library
-	 * action), "background" in a background job, "cli"
-	 * in WP-CLI. Passed to the octopus_nice and
-	 * octopus_threads filters.
-	 *
-	 * @var string
+	 * Where the images are optimised: during a request
+	 * of the admin (upload, media library action), in a
+	 * background job, or in WP-CLI. Passed to the
+	 * libraries, and to the octopus_nice and
+	 * octopus_threads filters (see Libraries::nice()
+	 * and budget()).
 	 */
-	public static $context = 'upload';
+	const UPLOAD = 'upload';
+	const BACKGROUND = 'background';
+	const CLI = 'cli';
 
 	/**
 	 * Returns the formats made together, on every file
@@ -102,10 +103,11 @@ class Optimiser
 	 *
 	 * @param int $id
 	 * @param string|null $mode See the MODE_ constants.
+	 * @param string $context See UPLOAD.
 	 * @return true|null Null if another request is processing the image.
 	 * @since 1.0.0
 	 */
-	public static function optimise($id, $mode = null)
+	public static function optimise($id, $mode = null, $context = self::UPLOAD)
 	{
 		if ($mode === null) {
 			$modes = [Status::OPTIMISED => self::MODE_ALL, Status::OUTDATED => self::MODE_OUTDATED];
@@ -113,9 +115,9 @@ class Optimiser
 			$mode = isset($modes[$status]) ? $modes[$status] : self::MODE_NEW;
 		}
 		if ($mode === self::MODE_NEW) {
-			return self::attachment($id, null, Formats::settings());
+			return self::attachment($id, null, Formats::settings(), ['context' => $context]);
 		}
-		return self::update($id, $mode === self::MODE_ALL);
+		return self::update($id, $mode === self::MODE_ALL, $context);
 	}
 
 	/**
@@ -128,14 +130,15 @@ class Optimiser
 	 * @param int $id
 	 * @param array|null $metadata The attachment metadata, when it is not saved yet (on upload).
 	 * @param array $settings Args by format, see Formats::settings().
-	 * @param bool $force Optimise again the formats already done.
-	 * @param bool $thumbnails_only
+	 * @param array $options force: optimise again the formats already done,
+	 *                       thumbnails_only, and context: see UPLOAD.
 	 * @return true|null Null if another request is processing the image.
 	 * @since 1.0.0
 	 */
-	public static function attachment($id, $metadata, $settings, $force = false, $thumbnails_only = false)
+	public static function attachment($id, $metadata, $settings, $options = [])
 	{
-		return Lock::run($id, function () use ($id, $metadata, $settings, $force, $thumbnails_only) {
+		$options = array_merge(['force' => false, 'thumbnails_only' => false, 'context' => self::UPLOAD], $options);
+		return Lock::run($id, function () use ($id, $metadata, $settings, $options) {
 			if (!self::readable($id, $metadata)) {
 				return true;
 			}
@@ -151,8 +154,9 @@ class Optimiser
 						$service = Formats::ENCODERS[$format];
 						$args = array_merge($settings[$format], [
 							'id' => (int)$id,
-							'force' => $force,
-							'thumbnailsOnly' => $thumbnails_only,
+							'force' => $options['force'],
+							'thumbnailsOnly' => $options['thumbnails_only'],
+							'context' => $options['context'],
 						]);
 						try {
 							$format_jobs = $service::jobs($metadata, $args);
@@ -165,7 +169,7 @@ class Optimiser
 							$processed[$service] = $args;
 						}
 					}
-					Libraries::run_all(self::biggest_first($jobs), Libraries::budget(self::$context));
+					Libraries::run_all(self::biggest_first($jobs), Libraries::budget($options['context']));
 					foreach ($processed as $service => $args) {
 						$service::processed($args);
 					}
@@ -366,19 +370,20 @@ class Optimiser
 	 *
 	 * @param int $id
 	 * @param bool $regenerate
+	 * @param string $context See UPLOAD.
 	 * @return true|null Null if another request is processing the image.
 	 * @since 1.0.0
 	 */
-	public static function update($id, $regenerate = false)
+	public static function update($id, $regenerate = false, $context = self::UPLOAD)
 	{
-		return Lock::run($id, function () use ($id, $regenerate) {
+		return Lock::run($id, function () use ($id, $regenerate, $context) {
 			$settings = Formats::settings();
 			$metadata = wp_get_attachment_metadata($id);
 			$sizes = get_post_meta($id, Status::SIZES_KEY, true);
 			if ($regenerate || !Status::sizes_current($metadata) || ($sizes !== '' && $sizes !== Status::sizes_signature())) {
 				$metadata = self::regenerate($id);
 				if ($metadata) {
-					self::attachment($id, $metadata, $settings, true);
+					self::attachment($id, $metadata, $settings, ['force' => true, 'context' => $context]);
 				}
 				return true;
 			}
@@ -395,7 +400,7 @@ class Optimiser
 				$outdated = array_merge($outdated, array_intersect_key($settings, Formats::variants()));
 			}
 			if ($outdated) {
-				self::attachment($id, $metadata, $outdated, true);
+				self::attachment($id, $metadata, $outdated, ['force' => true, 'context' => $context]);
 			} else {
 				Status::stamp_sizes($id, $metadata);
 				// Nothing to encode: the sizes of the files, e.g. of an image optimised

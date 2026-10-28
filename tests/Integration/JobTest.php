@@ -52,6 +52,11 @@ class JobTest extends TestCase
 		$this->assertTrue($this->job->start(Job::OPTIMISE, $ids));
 		$this->assertSame('running', $this->job->progress()['state']);
 		$this->assertFalse($this->job->start(Job::OPTIMISE, $ids), 'One job at a time.');
+		$contexts = [];
+		add_filter('octopus_threads', function ($threads, $context) use (&$contexts) {
+			$contexts[] = $context;
+			return $threads;
+		}, 10, 2);
 		$this->run_job();
 
 		$progress = $this->job->progress();
@@ -61,7 +66,7 @@ class JobTest extends TestCase
 			$this->assertSame(Status::OPTIMISED, Status::of($id));
 		}
 		$this->assertFalse($this->job->is_active());
-		$this->assertSame('background', Optimiser::$context);
+		$this->assertSame([Optimiser::BACKGROUND], array_values(array_unique($contexts)));
 	}
 
 	public function test_the_images_in_error_are_counted()

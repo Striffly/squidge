@@ -240,7 +240,7 @@ abstract class AbstractEncoder
 	 */
 	protected static function run($arguments, $filepath, $args, $threads = 1)
 	{
-		list($code, $output) = yield ['command' => self::command(static::library(), $arguments), 'threads' => $threads];
+		list($code, $output) = yield ['command' => self::command(static::library(), $arguments, $args), 'threads' => $threads];
 		if ($code === 0) {
 			return true;
 		}
@@ -251,17 +251,19 @@ abstract class AbstractEncoder
 
 	/**
 	 * Returns the command running a library with its
-	 * arguments, at the priority of the context (see
-	 * Libraries::nice()).
+	 * arguments, at the priority of the context of the
+	 * run (see Libraries::nice()).
 	 *
 	 * @param string $library
 	 * @param array $arguments
+	 * @param array $args The args of the run, with its context (see Optimiser::UPLOAD).
 	 * @return array
 	 * @since 1.0.0
 	 */
-	protected static function command($library, $arguments)
+	protected static function command($library, $arguments, $args)
 	{
-		return array_merge(Libraries::nice(Optimiser::$context), [Libraries::binary($library)], $arguments);
+		$context = isset($args['context']) ? $args['context'] : Optimiser::UPLOAD;
+		return array_merge(Libraries::nice($context), [Libraries::binary($library)], $arguments);
 	}
 
 	/**

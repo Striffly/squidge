@@ -42,7 +42,6 @@ abstract class TestCase extends WP_UnitTestCase
 		$this->uploads = sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'octopus-tests-' . wp_generate_password(12, false) . DIRECTORY_SEPARATOR . 'uploads';
 		wp_mkdir_p($this->uploads);
 		add_filter('upload_dir', [$this, 'upload_dir']);
-		Optimiser::$context = 'upload';
 		self::forget_libraries();
 		// The errors of the settings of a test, kept by WordPress for the request.
 		$GLOBALS['wp_settings_errors'] = [];

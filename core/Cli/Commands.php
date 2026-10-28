@@ -137,7 +137,6 @@ class Commands extends WP_CLI_Command
 	public function run($args, $assoc_args)
 	{
 		$this->print_welcome();
-		Optimiser::$context = 'cli';
 
 		$settings = Formats::settings(false);
 		$enabled = Formats::settings();
@@ -180,7 +179,7 @@ class Commands extends WP_CLI_Command
 			WP_CLI::log(WP_CLI::colorize('%B' . __('Processing image:', 'octopus-image-optimizer') . ' %n') . get_the_title($id));
 			$done = Lock::run($id, function () use ($id, $regenerate, $settings, $force, $thumbnails_only) {
 				$metadata = $regenerate ? Optimiser::regenerate($id) : null;
-				return Optimiser::attachment($id, $metadata, $settings, $force || $regenerate, $thumbnails_only);
+				return Optimiser::attachment($id, $metadata, $settings, ['force' => $force || $regenerate, 'thumbnails_only' => $thumbnails_only, 'context' => Optimiser::CLI]);
 			});
 			if ($done === null) {
 				self::skipped($id);
@@ -210,7 +209,6 @@ class Commands extends WP_CLI_Command
 	public function clean()
 	{
 		$this->print_welcome();
-		Optimiser::$context = 'cli';
 		$ids = Cleaner::ids();
 		foreach ($ids as $id) {
 			Cleaner::remove_formats($id);
@@ -230,7 +228,6 @@ class Commands extends WP_CLI_Command
 	public function restore()
 	{
 		$this->print_welcome();
-		Optimiser::$context = 'cli';
 		$ids = Cleaner::ids();
 		$missing = 0;
 		$skipped = 0;
