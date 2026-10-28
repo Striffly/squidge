@@ -603,7 +603,7 @@ class SettingsPage
 	{
 		$server = Htaccess::server();
 		$names = ['apache' => 'Apache', 'nginx' => 'nginx', 'other' => __('Your server', 'octopus-image-optimizer')];
-		$made = self::with_formats();
+		$made = Status::with_versions();
 		$total = $counts['total'];
 		$percent = $total ? min(100, (int)round($made / $total * 100)) : 0;
 		$rewrite = $display['fields']['serve_rewrite'];
@@ -758,30 +758,6 @@ class SettingsPage
 	}
 
 	/**
-	 * Returns the number of images with a WebP or an
-	 * AVIF version, for the first step of the delivery.
-	 *
-	 * @return int
-	 * @since 1.0.0
-	 */
-	private static function with_formats()
-	{
-		global $wpdb;
-		$keys = array_values(array_map(function ($encoder) {
-			return $encoder::meta_key();
-		}, Formats::variants()));
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery -- One count over the media library, once per page.
-		return (int)$wpdb->get_var($wpdb->prepare(
-			"SELECT COUNT(DISTINCT m.post_id) FROM {$wpdb->postmeta} m
-			INNER JOIN {$wpdb->posts} p ON p.ID = m.post_id
-			WHERE m.meta_key IN (" . implode(', ', array_fill(0, count($keys), '%s')) . ")
-			AND p.post_type = 'attachment' AND p.post_status = 'inherit'
-			AND p.post_mime_type IN (" . implode(', ', array_fill(0, count(Files::MIMES), '%s')) . ")",
-			array_merge($keys, Files::MIMES)
-		));
-	}
-
-	/**
 	 * Renders the settings: the image size, then one
 	 * compact card per format, two per row on wide
 	 * screens: its name, state and switch, the library
@@ -853,7 +829,7 @@ class SettingsPage
 						<summary class="octopus-format__summary"><?php esc_html_e('Settings', 'octopus-image-optimizer'); ?></summary>
 						<div class="octopus-format__fields octopus-fields">
 							<?php foreach ($fields as $name => $field) : ?>
-								<?php $this->render_field($name, self::availability($field, $format)); ?>
+								<?php $this->render_field($name, $field + Formats::availability($name)); ?>
 							<?php endforeach; ?>
 							<?php foreach ($format['extras'] as $name => $installed) : ?>
 								<?php if ($format['installed'] && !$installed) : ?>
@@ -1163,60 +1139,6 @@ class SettingsPage
 	}
 
 	/**
-	 * Determines if a value of a setting is one the page
-	 * greys, e.g. the lossy PNG compression without
-	 * pngquant: the server refuses it as well
-	 * (SettingsAjax). Not the switch of a format, never
-	 * greyed.
-	 *
-	 * @param string $name
-	 * @param string $value
-	 * @return bool
-	 * @since 1.0.0
-	 */
-	public static function unavailable($name, $value)
-	{
-		foreach (self::formats(self::sections()) as $id => $format) {
-			if ($name === $id . '_enable' || !isset($format['fields'][$name])) {
-				continue;
-			}
-			$field = self::availability($format['fields'][$name], $format);
-			return $field['disabled'] || isset($field['disabled_options'][(string)$value]);
-		}
-		return false;
-	}
-
-	/**
-	 * Greys a setting of a format that nothing can use:
-	 * all of them without a library or an image editor
-	 * making the format, those of a missing optional
-	 * library (e.g. pngquant) or of the library of the
-	 * format, missing while the image editor makes it
-	 * (the speed of avifenc), and the values needing
-	 * one. A field disabled is not sent: it keeps its
-	 * value.
-	 *
-	 * @param array $field
-	 * @param array $format See formats().
-	 * @return array The field, with disabled and disabled_options.
-	 * @since 1.0.0
-	 */
-	private static function availability($field, $format)
-	{
-		$missing = function ($library) use ($format) {
-			return $library === $format['library'] ? !$format['installed'] : empty($format['extras'][$library]);
-		};
-		$field['disabled'] = !$format['engine'] || (!empty($field['needs']) && $missing($field['needs']));
-		$field['disabled_options'] = [];
-		foreach (isset($field['option_needs']) ? $field['option_needs'] : [] as $option => $library) {
-			if ($missing($library)) {
-				$field['disabled_options'][$option] = $library;
-			}
-		}
-		return $field;
-	}
-
-	/**
 	 * Renders an option field: a toggle for a checkbox,
 	 * a label and its control otherwise.
 	 *
@@ -1416,7 +1338,6 @@ class SettingsPage
 							'lossless' => __('Lossless', 'octopus-image-optimizer'),
 							'lossy' => __('Lossy (pngquant)', 'octopus-image-optimizer'),
 						],
-						'option_needs' => ['lossy' => 'pngquant'],
 						'help' => __('Lossy: often 60 to 80 % lighter, for graphics and screenshots. Needs pngquant.', 'octopus-image-optimizer'),
 					],
 					'png_level' => [
@@ -1430,7 +1351,6 @@ class SettingsPage
 						'type' => 'number',
 						'label' => __('Lossy quality', 'octopus-image-optimizer'),
 						'when' => ['png_compression', 'lossy'],
-						'needs' => 'pngquant',
 						/* translators: 1: the minimum, 2: the maximum, 3: the default. */
 						'help' => self::bounds(__('The quality pngquant aims at, %3$d by default.', 'octopus-image-optimizer'), 'png_lossy_quality'),
 					],
@@ -1471,7 +1391,6 @@ class SettingsPage
 					'avif_speed' => [
 						'type' => 'number',
 						'label' => __('Speed', 'octopus-image-optimizer'),
-						'needs' => 'avifenc',
 						/* translators: 1: the minimum, 2: the maximum, 3: the default. */
 						'help' => self::bounds(__('From %1$d to %2$d (fastest, heavier files), %3$d by default.', 'octopus-image-optimizer'), 'avif_speed'),
 					],

@@ -207,6 +207,31 @@ class Status
 	}
 
 	/**
+	 * Returns the number of images with a WebP or an
+	 * AVIF version, for the first step of the delivery
+	 * on the settings page.
+	 *
+	 * @return int
+	 * @since 1.0.0
+	 */
+	public static function with_versions()
+	{
+		global $wpdb;
+		$keys = array_values(array_map(function ($encoder) {
+			return $encoder::meta_key();
+		}, Formats::variants()));
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery -- One count over the media library, once per page.
+		return (int)$wpdb->get_var($wpdb->prepare(
+			"SELECT COUNT(DISTINCT m.post_id) FROM {$wpdb->postmeta} m
+			INNER JOIN {$wpdb->posts} p ON p.ID = m.post_id
+			WHERE m.meta_key IN (" . implode(', ', array_fill(0, count($keys), '%s')) . ")
+			AND p.post_type = 'attachment' AND p.post_status = 'inherit'
+			AND p.post_mime_type IN (" . implode(', ', array_fill(0, count(Files::MIMES), '%s')) . ")",
+			array_merge($keys, Files::MIMES)
+		));
+	}
+
+	/**
 	 * Returns the IDs of the images of a status, all
 	 * images with null.
 	 *

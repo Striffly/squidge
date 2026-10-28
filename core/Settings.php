@@ -42,6 +42,9 @@ class Settings
 	/**
 	 * The settings: their type (bool, int with its
 	 * bounds, or choice with its values) and default.
+	 * A setting of a format may need a library (needs),
+	 * or some of its values (value_needs): see
+	 * Formats::availability().
 	 *
 	 * @var array
 	 */
@@ -49,16 +52,16 @@ class Settings
 		'jpg_enable' => ['type' => 'bool', 'default' => true],
 		'jpg_quality' => ['type' => 'int', 'min' => 0, 'max' => 100, 'default' => 80],
 		'png_enable' => ['type' => 'bool', 'default' => true],
-		'png_compression' => ['type' => 'choice', 'values' => ['lossless', 'lossy'], 'default' => 'lossless'],
+		'png_compression' => ['type' => 'choice', 'values' => ['lossless', 'lossy'], 'default' => 'lossless', 'value_needs' => ['lossy' => 'pngquant']],
 		'png_level' => ['type' => 'int', 'min' => 0, 'max' => 7, 'default' => 2],
-		'png_lossy_quality' => ['type' => 'int', 'min' => 0, 'max' => 100, 'default' => 80],
+		'png_lossy_quality' => ['type' => 'int', 'min' => 0, 'max' => 100, 'default' => 80, 'needs' => 'pngquant'],
 		'webp_enable' => ['type' => 'bool', 'default' => true],
 		'webp_quality' => ['type' => 'int', 'min' => 0, 'max' => 100, 'default' => 80],
 		'avif_enable' => ['type' => 'bool', 'default' => true],
 		'avif_quality' => ['type' => 'int', 'min' => 0, 'max' => 100, 'default' => 70],
 		// 0 slowest to 10 fastest. With aom, 0 to 6 make files of about the same size (0 is ~40x
 		// slower), 7 to 10 switch to fast modes making larger files: 6 is the best trade-off.
-		'avif_speed' => ['type' => 'int', 'min' => 0, 'max' => 10, 'default' => 6],
+		'avif_speed' => ['type' => 'int', 'min' => 0, 'max' => 10, 'default' => 6, 'needs' => 'avifenc'],
 		'optimise_uploads' => ['type' => 'bool', 'default' => true],
 		'max_size' => ['type' => 'int', 'min' => 0, 'max' => 20000, 'default' => 2560],
 		'serve_picture' => ['type' => 'bool', 'default' => false],

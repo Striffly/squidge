@@ -16,6 +16,7 @@
 
 namespace Octopus\Admin;
 
+use Octopus\Encoders\Formats;
 use Octopus\Settings;
 
 if (!defined('ABSPATH')) {
@@ -55,7 +56,7 @@ class SettingsAjax
 		}
 		$value = isset($_POST['value']) ? sanitize_text_field(wp_unslash($_POST['value'])) : '';
 		// A value the page greys, e.g. lossy without pngquant: sent by hand.
-		if (SettingsPage::unavailable($name, $value)) {
+		if (Formats::unavailable($name, $value)) {
 			wp_send_json_error(null, 400);
 		}
 		Settings::set([$name => $value]);

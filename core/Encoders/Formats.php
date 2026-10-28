@@ -88,6 +88,54 @@ class Formats
 	}
 
 	/**
+	 * Returns what greys a setting of a format, as
+	 * nothing can use it: all of them without a library
+	 * or an image editor making the format, those
+	 * needing a library missing, e.g. the speed of
+	 * avifenc while the image editor makes the AVIF,
+	 * and the values needing one, e.g. the lossy PNG
+	 * compression without pngquant. Never the switch
+	 * of a format.
+	 *
+	 * @param string $name
+	 * @return array disabled, and disabled_options: the library each value greyed needs, by value.
+	 * @since 1.0.0
+	 */
+	public static function availability($name)
+	{
+		$availability = ['disabled' => false, 'disabled_options' => []];
+		$format = (string)strstr($name, '_', true);
+		if (!isset(self::ENCODERS[$format], Settings::FIELDS[$name]) || $name === $format . '_enable') {
+			return $availability;
+		}
+		$encoder = self::ENCODERS[$format];
+		$field = Settings::FIELDS[$name];
+		$availability['disabled'] = !$encoder::engine() || (isset($field['needs']) && !$encoder::installed($field['needs']));
+		foreach ($field['value_needs'] ?? [] as $value => $library) {
+			if (!$encoder::installed($library)) {
+				$availability['disabled_options'][$value] = $library;
+			}
+		}
+		return $availability;
+	}
+
+	/**
+	 * Determines if a value of a setting is one nothing
+	 * can use, see availability(): the settings page
+	 * greys it, the server refuses it (SettingsAjax).
+	 *
+	 * @param string $name
+	 * @param string $value
+	 * @return bool
+	 * @since 1.0.0
+	 */
+	public static function unavailable($name, $value)
+	{
+		$availability = self::availability($name);
+		return $availability['disabled'] || isset($availability['disabled_options'][(string)$value]);
+	}
+
+	/**
 	 * Returns the args of each format from the
 	 * settings, see AbstractEncoder::args(): the
 	 * enabled formats only, or all of them.
