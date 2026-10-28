@@ -56,6 +56,10 @@ class SettingsAjax
 			wp_send_json_error(null, 400);
 		}
 		$value = isset($_POST['value']) ? sanitize_text_field(wp_unslash($_POST['value'])) : '';
+		// A value the page greys, e.g. lossy without pngquant: sent by hand.
+		if (SettingsPage::unavailable($name, $value)) {
+			wp_send_json_error(null, 400);
+		}
 		Settings::set([$name => $value]);
 		$errors = wp_list_pluck(get_settings_errors(Settings::OPTION), 'message');
 		wp_send_json_success(['value' => Settings::get($name), 'error' => $errors ? wp_strip_all_tags(implode(' ', $errors)) : '']);

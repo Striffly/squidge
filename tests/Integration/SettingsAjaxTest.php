@@ -41,6 +41,16 @@ class SettingsAjaxTest extends TestCase
 		$this->assertSame('', $response['data']['error']);
 	}
 
+	public function test_a_value_the_page_greys_is_refused()
+	{
+		self::hide_libraries('pngquant');
+
+		$this->assertFalse($this->save('png_compression', 'lossy')['success'], 'A choice greyed.');
+		$this->assertFalse($this->save('png_lossy_quality', '60')['success'], 'A field greyed.');
+		$this->assertTrue($this->save('png_compression', 'lossless')['success']);
+		$this->assertSame('lossless', Settings::get('png_compression'));
+	}
+
 	public function test_the_rules_not_written_are_told()
 	{
 		$_SERVER['SERVER_SOFTWARE'] = 'Apache/2.4.66 (Debian)';

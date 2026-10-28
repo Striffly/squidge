@@ -1207,6 +1207,30 @@ class SettingsPage
 	}
 
 	/**
+	 * Determines if a value of a setting is one the page
+	 * greys, e.g. the lossy PNG compression without
+	 * pngquant: the server refuses it as well
+	 * (SettingsAjax). Not the switch of a format, never
+	 * greyed.
+	 *
+	 * @param string $name
+	 * @param string $value
+	 * @return bool
+	 * @since 1.0.0
+	 */
+	public static function unavailable($name, $value)
+	{
+		foreach (self::formats(self::sections()) as $id => $format) {
+			if ($name === $id . '_enable' || !isset($format['fields'][$name])) {
+				continue;
+			}
+			$field = self::availability($format['fields'][$name], $format);
+			return $field['disabled'] || isset($field['disabled_options'][(string)$value]);
+		}
+		return false;
+	}
+
+	/**
 	 * Greys a setting of a format that nothing can use:
 	 * all of them without a library or an image editor
 	 * making the format, those of a missing optional
