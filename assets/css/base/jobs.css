@@ -361,6 +361,12 @@
 .octopus-result__detail {
 	margin: 0;
 	color: var(--octopus-text-soft);
+
+	/* The numbers of the result. */
+	strong {
+		color: var(--octopus-text);
+		font-weight: 600;
+	}
 }
 
 .octopus-result__close {
