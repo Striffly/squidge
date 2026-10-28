@@ -204,17 +204,16 @@ class Test
 			if (!$file) {
 				continue;
 			}
-			$webp = Files::variant($file, WebP::extension());
-			$avif = Files::variant($file, AVIF::extension());
-			if (!file_exists($webp) && !file_exists($avif)) {
+			$variants = array_filter(Files::variants($file), 'file_exists');
+			if (!$variants) {
 				continue;
 			}
 			return [
 				'file' => $file,
 				'name' => wp_basename($file),
 				'image' => wp_get_attachment_url($id),
-				'webp' => file_exists($webp) ? Files::url($webp) : '',
-				'avif' => file_exists($avif) ? Files::url($avif) : '',
+				'webp' => isset($variants[WebP::extension()]) ? Files::url($variants[WebP::extension()]) : '',
+				'avif' => isset($variants[AVIF::extension()]) ? Files::url($variants[AVIF::extension()]) : '',
 			];
 		}
 		return null;

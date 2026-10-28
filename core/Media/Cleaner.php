@@ -81,8 +81,7 @@ class Cleaner
 		return Lock::run($id, function () use ($id) {
 			$files = array_unique(array_merge(Files::of($id), Files::listed($id)));
 			foreach ($files as $file) {
-				Files::delete(Files::variant($file, WebP::extension()));
-				Files::delete(Files::variant($file, AVIF::extension()));
+				Files::delete_variants($file);
 			}
 			// Listed while they keep their original.
 			Files::save_listed($id, array_filter(Files::listed($id), function ($file) {
@@ -165,8 +164,7 @@ class Cleaner
 	private static function delete_made($id, $metadata)
 	{
 		foreach (array_unique(array_merge(Files::of($id, $metadata), Files::listed($id))) as $file) {
-			Files::delete(Files::variant($file, WebP::extension()));
-			Files::delete(Files::variant($file, AVIF::extension()));
+			Files::delete_variants($file);
 			Files::delete(Files::backup_path($file));
 		}
 	}
@@ -198,16 +196,14 @@ class Cleaner
 				} elseif ($index === 0 && $compressed && in_array(get_post_mime_type($id), Files::MIMES, true)) {
 					$restored = false;
 				}
-				Files::delete(Files::variant($file, WebP::extension()));
-				Files::delete(Files::variant($file, AVIF::extension()));
+				Files::delete_variants($file);
 			}
 			// The files of former sizes too. Without its original, e.g. the folder
 			// of the originals moved, the image stays listed: its originals are
 			// restored once the folder is back.
 			$listed = Files::listed($id);
 			foreach ($listed as $file) {
-				Files::delete(Files::variant($file, WebP::extension()));
-				Files::delete(Files::variant($file, AVIF::extension()));
+				Files::delete_variants($file);
 				if ($restored) {
 					Files::delete(Files::backup_path($file));
 				}

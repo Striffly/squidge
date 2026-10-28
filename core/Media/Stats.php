@@ -16,8 +16,6 @@
 
 namespace Octopus\Media;
 
-use Octopus\Encoders\AVIF;
-use Octopus\Encoders\WebP;
 use Octopus\Settings;
 
 if (!defined('ABSPATH')) {
@@ -85,8 +83,7 @@ class Stats
 			$bytes['compressed'] += $size;
 			$served = $size;
 			// The order of the <source> elements: the AVIF first, then the WebP.
-			foreach ([WebP::extension(), AVIF::extension()] as $extension) {
-				$variant = Files::variant($file, $extension);
+			foreach (Files::variants($file) as $variant) {
 				if (file_exists($variant)) {
 					$served = (int)filesize($variant);
 					$bytes['extra'] += $served;

@@ -350,15 +350,15 @@ class Optimiser
 		$heavier = self::heavier($id);
 		clearstatcache();
 		foreach (Files::of($id, $metadata) as $file) {
-			foreach ([WebP::extension(), AVIF::extension()] as $extension) {
-				$variant = Files::variant($file, $extension);
+			$variants = Files::variants($file);
+			foreach ($variants as $extension => $variant) {
 				if (!file_exists($variant) || !file_exists($file) || !Files::contained($variant)) {
 					continue;
 				}
 				$relative = Files::relative($variant);
 				$limit = filesize($file);
 				// WebP comes first: the AVIF is compared to the WebP kept.
-				$webp = Files::variant($file, WebP::extension());
+				$webp = $variants[WebP::extension()];
 				if ($extension === AVIF::extension() && file_exists($webp)) {
 					$limit = min($limit, filesize($webp));
 				}
@@ -541,12 +541,10 @@ class Optimiser
 	 */
 	private static function release_main($file, $uploaded)
 	{
-		$paths = [Files::variant($file, WebP::extension()), Files::variant($file, AVIF::extension()), Files::backup_path($file)];
+		Files::delete_variants($file);
+		Files::delete(Files::backup_path($file));
 		if ($file !== $uploaded) {
-			$paths[] = $file;
-		}
-		foreach ($paths as $path) {
-			Files::delete($path);
+			Files::delete($file);
 		}
 	}
 }

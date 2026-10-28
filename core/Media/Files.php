@@ -18,6 +18,9 @@
 
 namespace Octopus\Media;
 
+use Octopus\Encoders\AVIF;
+use Octopus\Encoders\WebP;
+
 if (!defined('ABSPATH')) {
 	exit; // Exit if accessed directly
 }
@@ -172,6 +175,39 @@ class Files
 	public static function variant($path, $extension)
 	{
 		return self::formats_dir() . DIRECTORY_SEPARATOR . self::relative($path) . $extension;
+	}
+
+	/**
+	 * Returns the paths of the WebP and AVIF versions of
+	 * an image of the uploads folder, by extension: the
+	 * WebP first, the one the AVIF is compared to (see
+	 * Optimiser::drop_heavier()).
+	 *
+	 * @param string $path
+	 * @return string[]
+	 * @since 1.0.0
+	 */
+	public static function variants($path)
+	{
+		$variants = [];
+		foreach ([WebP::extension(), AVIF::extension()] as $extension) {
+			$variants[$extension] = self::variant($path, $extension);
+		}
+		return $variants;
+	}
+
+	/**
+	 * Deletes the WebP and AVIF versions of an image of
+	 * the uploads folder.
+	 *
+	 * @param string $path
+	 * @since 1.0.0
+	 */
+	public static function delete_variants($path)
+	{
+		foreach (self::variants($path) as $variant) {
+			self::delete($variant);
+		}
 	}
 
 	/**
