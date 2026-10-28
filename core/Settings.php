@@ -6,7 +6,7 @@
  * The settings of OIO, in one option: what each one
  * is (type, default, bounds), reading and saving
  * them. The settings page renders them, see
- * Admin\SettingsPage.
+ * Admin\Fields.
  *
  * @package     OIO
  * @author      Clément Gayot

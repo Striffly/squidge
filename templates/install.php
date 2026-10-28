@@ -5,7 +5,7 @@
  *
  * How to install the library of a format, by system:
  * its command, and where to learn more. Rendered by
- * SettingsPage::render_install(), with $octopus_install
+ * View::render_install(), with $octopus_install
  * the format (jpg, png, webp, avif), or oxipng shown
  * while optipng compresses the PNG images.
  *
