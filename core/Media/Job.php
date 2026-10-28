@@ -79,7 +79,9 @@ class Job extends Octopus_Vendor_WP_Background_Process
 		if (is_multisite()) {
 			$this->prefix = 'octopus_' . get_current_blog_id();
 		}
-		parent::__construct();
+		// The queue holds image IDs only: read back without any object, so that
+		// a queue written by someone else in the database creates none.
+		parent::__construct(false);
 	}
 
 	/**

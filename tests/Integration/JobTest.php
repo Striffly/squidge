@@ -134,6 +134,17 @@ class JobTest extends TestCase
 		$this->job->delete_all();
 	}
 
+	public function test_a_queue_written_with_objects_creates_none()
+	{
+		// E.g. written in the database through a flaw of another plugin.
+		update_site_option(self::identifier($this->job) . '_batch_injected', [new \ArrayObject([1])]);
+
+		$batches = $this->job->get_batches();
+
+		$this->assertInstanceOf(\__PHP_Incomplete_Class::class, $batches[0]->data[0]);
+		$this->job->delete_all();
+	}
+
 	public function test_each_site_of_a_network_has_its_own_job()
 	{
 		$this->skipWithoutMultisite();
