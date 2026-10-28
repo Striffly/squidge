@@ -1,0 +1,16 @@
+Dispatch from the AJAX request of a plugin: get_chain_id() checked the nonce
+of the library in any AJAX request, and ended with -1 the requests of the
+options page starting a job. Only in its own request now. Merged in the
+library, not released yet: https://github.com/deliciousbrains/wp-background-processing/pull/130
+
+--- a/classes/wp-background-process.php
++++ b/classes/wp-background-process.php
+@@ -931,7 +931,7 @@
+ 	 * @return string
+ 	 */
+ 	public function get_chain_id() {
+-		if ( empty( $this->chain_id ) && wp_doing_ajax() ) {
++		if ( empty( $this->chain_id ) && wp_doing_ajax() && isset( $_REQUEST['action'] ) && $_REQUEST['action'] === $this->identifier ) {
+ 			check_ajax_referer( $this->identifier, 'nonce' );
+ 
+ 			if ( ! empty( $_GET[ $this->get_chain_id_arg_name() ] ) ) {

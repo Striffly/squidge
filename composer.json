@@ -28,6 +28,10 @@
                 {
                     "description": "Let the cron of WordPress go on while a job runs (pull request 144 of the library)",
                     "url": "patches/wp-background-processing-cron-healthcheck.patch"
+                },
+                {
+                    "description": "Dispatch from the AJAX request of a plugin (pull request 130 of the library, not released yet)",
+                    "url": "patches/wp-background-processing-ajax-dispatch.patch"
                 }
             ]
         }
