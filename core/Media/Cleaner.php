@@ -30,6 +30,15 @@ if (!defined('ABSPATH')) {
 class Cleaner
 {
 	/**
+	 * The prefix of the metas OIO writes on the images:
+	 * the settings used, the files made, the errors and
+	 * the bytes measured.
+	 *
+	 * @var string
+	 */
+	const META_PREFIX = '_octopus_';
+
+	/**
 	 * Returns the IDs of the images OIO processed:
 	 * with an OIO meta. One query on the meta keys,
 	 * meta queries joining postmeta for each key are slow.
@@ -43,7 +52,7 @@ class Cleaner
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery -- No API lists the posts by meta key prefix; read live, while a job changes them.
 		$ids = $wpdb->get_col($wpdb->prepare(
 			"SELECT DISTINCT post_id FROM {$wpdb->postmeta} WHERE meta_key LIKE %s ORDER BY post_id",
-			$wpdb->esc_like('_octopus_') . '%'
+			$wpdb->esc_like(self::META_PREFIX) . '%'
 		));
 		return array_map('intval', $ids);
 	}
@@ -59,12 +68,35 @@ class Cleaner
 	 */
 	public static function has_data($id)
 	{
-		foreach (array_keys(get_post_meta($id)) as $key) {
-			if (strpos($key, '_octopus_') === 0) {
-				return true;
-			}
+		return self::meta_keys($id) !== [];
+	}
+
+	/**
+	 * Returns the keys of the metas OIO wrote on an
+	 * image.
+	 *
+	 * @param int $id
+	 * @return string[]
+	 * @since 1.0.0
+	 */
+	private static function meta_keys($id)
+	{
+		return array_values(array_filter(array_keys(get_post_meta($id)), function ($key) {
+			return strpos($key, self::META_PREFIX) === 0;
+		}));
+	}
+
+	/**
+	 * Deletes the metas OIO wrote on an image.
+	 *
+	 * @param int $id
+	 * @since 1.0.0
+	 */
+	private static function delete_metas($id)
+	{
+		foreach (self::meta_keys($id) as $key) {
+			delete_post_meta($id, $key);
 		}
-		return false;
 	}
 
 	/**
@@ -79,8 +111,7 @@ class Cleaner
 	public static function remove_formats($id)
 	{
 		return Lock::run($id, function () use ($id) {
-			$files = array_unique(array_merge(Files::of($id), Files::listed($id)));
-			foreach ($files as $file) {
+			foreach (self::files($id) as $file) {
 				Files::delete_variants($file);
 			}
 			// Listed while they keep their original.
@@ -145,11 +176,22 @@ class Cleaner
 	public static function forget($id, $metadata)
 	{
 		self::delete_made($id, $metadata);
-		foreach (array_keys(get_post_meta($id)) as $key) {
-			if (strpos($key, '_octopus_') === 0) {
-				delete_post_meta($id, $key);
-			}
-		}
+		self::delete_metas($id);
+	}
+
+	/**
+	 * Returns the files of an image: of its current
+	 * sizes, and the ones listed (e.g. of sizes that
+	 * no longer exist).
+	 *
+	 * @param int $id
+	 * @param array|null $metadata The metadata, when it is not saved any more.
+	 * @return string[]
+	 * @since 1.0.0
+	 */
+	private static function files($id, $metadata = null)
+	{
+		return array_unique(array_merge(Files::of($id, $metadata), Files::listed($id)));
 	}
 
 	/**
@@ -163,7 +205,7 @@ class Cleaner
 	 */
 	private static function delete_made($id, $metadata)
 	{
-		foreach (array_unique(array_merge(Files::of($id, $metadata), Files::listed($id))) as $file) {
+		foreach (self::files($id, $metadata) as $file) {
 			Files::delete_variants($file);
 			Files::delete(Files::backup_path($file));
 		}
@@ -208,15 +250,10 @@ class Cleaner
 					Files::delete(Files::backup_path($file));
 				}
 			}
-			foreach (array_keys(get_post_meta($id)) as $key) {
-				if (strpos($key, '_octopus_') === 0) {
-					delete_post_meta($id, $key);
-				}
-			}
+			self::delete_metas($id);
 			Files::save_listed($id, $restored ? [] : $listed);
 			Optimiser::save_file_sizes($id);
 			return $restored;
 		});
 	}
-
 }
