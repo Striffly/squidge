@@ -16,6 +16,7 @@ namespace Octopus\Tests\Integration;
 
 use Octopus\Delivery\Htaccess;
 use Octopus\Media\Files;
+use Octopus\Media\Lock;
 use Octopus\Settings;
 use Octopus\Tests\TestCase;
 
@@ -116,7 +117,8 @@ class UninstallTest extends TestCase
 	{
 		update_site_option($identifier . '_batch_' . md5($identifier), [1, 2, 3]);
 		update_site_option($identifier . '_status', 1);
-		set_site_transient($identifier . '_process_lock', microtime(), 60);
+		// The lock of its worker, see Background::handle().
+		Lock::take(Lock::PREFIX . 'worker_job', 60);
 		wp_schedule_event(time(), 'hourly', $identifier . '_cron');
 	}
 

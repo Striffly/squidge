@@ -149,6 +149,8 @@ class Libraries
 					$used += $run['threads'];
 				}
 				self::poll($running);
+				// Every 200 ms at most: the request tells it is still at work, its locks refreshed (Lock::beat(), Background::beat()).
+				do_action('octopus_working');
 				foreach ($running as $key => $run) {
 					if (isset($run['code'])) {
 						$used -= $run['threads'];

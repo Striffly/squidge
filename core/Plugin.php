@@ -25,6 +25,7 @@ use Octopus\Delivery\Display;
 use Octopus\Delivery\Htaccess;
 use Octopus\Delivery\Test;
 use Octopus\Media\Job;
+use Octopus\Media\Lock;
 use Octopus\Media\Queue;
 use Octopus\Media\UploadHooks;
 
@@ -73,6 +74,7 @@ final class Plugin
 		define('OCTOPUS_TEMPLATE_PATH', dirname($base) . DIRECTORY_SEPARATOR . 'templates');
 		add_action('init', [$this, 'load_translations']);
 		add_action('init', [Settings::class, 'register']);
+		add_action('octopus_working', [Lock::class, 'beat']);
 		new SettingsPage();
 		new SettingsAjax();
 		new UploadHooks();

@@ -86,14 +86,16 @@ class Queue extends Background
 	 * optimised one made again from its original.
 	 *
 	 * @param int $id
-	 * @return false Removes the item from the queue.
+	 * @return int|false Removes the item from the queue, or keeps it while another request processes the image.
 	 * @since 1.0.0
 	 */
 	protected function task($id)
 	{
 		Optimiser::$context = 'background';
-		if (get_post($id)) {
-			Optimiser::optimise($id);
+		if (get_post($id) && Optimiser::optimise($id) === null) {
+			// E.g. a worker PHP stopped, its lock not stale yet: again after the others.
+			sleep(1);
+			return $id;
 		}
 		return false;
 	}

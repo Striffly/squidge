@@ -18,6 +18,7 @@ namespace Octopus\Tests\Integration;
 use Octopus\Encoders\WebP;
 use Octopus\Media\Files;
 use Octopus\Media\Job;
+use Octopus\Media\Lock;
 use Octopus\Media\Optimiser;
 use Octopus\Media\Status;
 use Octopus\Tests\TestCase;
@@ -137,7 +138,7 @@ class JobTest extends TestCase
 	public function test_the_cron_goes_on_while_a_job_runs()
 	{
 		$this->job->start(Job::REMOVE_FORMATS, [1, 2]);
-		set_site_transient(self::identifier($this->job) . '_process_lock', microtime(), 60);
+		$this->other_worker();
 		$ran = false;
 		add_action('octopus_test_next_event', function () use (&$ran) {
 			$ran = true;
@@ -173,16 +174,183 @@ class JobTest extends TestCase
 		$this->assertSame('octopus_' . $site . '_job', self::identifier($job));
 	}
 
+	public function test_the_worker_holds_its_lock_in_the_database_while_it_runs()
+	{
+		$this->job->start(Job::OPTIMISE, [$this->upload_unoptimised('photo.jpg')]);
+		$seen = [];
+		add_action('octopus_working', function () use (&$seen) {
+			$seen[] = $this->job->is_processing();
+		});
+
+		$this->run_job();
+
+		$this->assertNotEmpty($seen);
+		$this->assertNotContains(false, $seen, 'Held while the libraries run.');
+		$this->assertFalse($this->job->is_processing(), 'Released at the end.');
+		$this->assertFalse(get_site_transient(self::identifier($this->job) . '_process_lock'), 'Not a transient, which a persistent object cache may drop.');
+	}
+
+	public function test_a_worker_never_runs_alongside_another()
+	{
+		$this->job->start(Job::OPTIMISE, [$this->upload_unoptimised('photo.jpg')]);
+		$this->other_worker();
+
+		$this->handle();
+
+		$this->assertSame(0, $this->job->progress()['done']);
+		$this->assertCount(1, $this->job->get_batches());
+		$this->job->delete_all();
+	}
+
+	public function test_a_cancel_is_applied_at_once_without_a_worker()
+	{
+		$this->job->start(Job::REMOVE_FORMATS, [1, 2]);
+		// Its worker stopped with PHP: its lock went stale.
+		$this->other_worker(120);
+
+		$this->job->cancel();
+
+		$this->assertSame('cancelled', $this->job->progress()['state']);
+		$this->assertSame([], $this->job->get_batches());
+		$this->assertFalse($this->job->is_active());
+	}
+
+	public function test_a_cancel_is_applied_at_once_with_a_worker_at_work()
+	{
+		$this->job->start(Job::REMOVE_FORMATS, [1, 2]);
+		$this->other_worker();
+
+		$this->job->cancel();
+
+		$this->assertSame('cancelled', $this->job->progress()['state']);
+		$this->assertSame([], $this->job->get_batches());
+		$this->assertFalse($this->job->is_processing(), 'The next job does not wait for the worker.');
+		$this->assertTrue($this->job->start(Job::REMOVE_FORMATS, [3]));
+		$this->job->delete_all();
+	}
+
+	public function test_a_worker_ends_its_image_then_stops_once_the_job_is_cancelled()
+	{
+		$ids = [$this->upload_unoptimised('photo.jpg'), $this->upload_unoptimised('photo.jpg'), $this->upload_unoptimised('photo.jpg')];
+		$this->job->start(Job::OPTIMISE, $ids);
+		// Cancelled by another request while the worker encodes the first image.
+		$cancelled = false;
+		add_action('octopus_working', function () use (&$cancelled) {
+			if (!$cancelled) {
+				$cancelled = true;
+				(new Job())->cancel();
+			}
+		});
+
+		$this->handle();
+
+		$progress = $this->job->progress();
+		$this->assertSame('cancelled', $progress['state'], 'Not finished: the worker kept its own copy of the progress.');
+		$this->assertSame(1, $progress['done'], 'Its image is ended, and counted.');
+		$this->assertSame([], $this->job->get_batches(), 'Its batch is not saved back.');
+		$this->assertSame(Status::OPTIMISED, Status::of($ids[0]));
+		$this->assertSame([Status::TO_OPTIMISE, Status::TO_OPTIMISE], [Status::of($ids[1]), Status::of($ids[2])]);
+	}
+
+	public function test_a_job_started_right_after_a_cancel_never_gets_the_images_cancelled()
+	{
+		$ids = [$this->upload_unoptimised('photo.jpg'), $this->upload_unoptimised('photo.jpg'), $this->upload_unoptimised('photo.jpg')];
+		$next = $this->upload_unoptimised('graphic.png');
+		$this->job->start(Job::OPTIMISE, $ids);
+		// Cancelled, then another job started, while the worker encodes the first image.
+		$cancelled = false;
+		add_action('octopus_working', function () use (&$cancelled, $next) {
+			if (!$cancelled) {
+				$cancelled = true;
+				(new Job())->cancel();
+				(new Job())->start(Job::OPTIMISE, [$next]);
+			}
+		});
+
+		$this->handle();
+		$this->run_job();
+
+		$this->assertSame([Status::TO_OPTIMISE, Status::TO_OPTIMISE], [Status::of($ids[1]), Status::of($ids[2])], 'The worker did not put the images cancelled back.');
+		$this->assertSame(Status::OPTIMISED, Status::of($next));
+		$progress = $this->job->progress();
+		$this->assertSame(['finished', 1, 1], [$progress['state'], $progress['total'], $progress['done']], 'The image ended by the worker counts for the job cancelled.');
+	}
+
+	public function test_an_image_another_request_processes_waits_instead_of_being_skipped()
+	{
+		$id = $this->upload_unoptimised('photo.jpg');
+		$this->job->start(Job::OPTIMISE, [$id]);
+		// E.g. the worker PHP stopped on it, its lock not stale yet.
+		$lock = Lock::take(Lock::PREFIX . $id, Lock::TIMEOUT);
+		add_filter(self::identifier($this->job) . '_default_time_limit', function () {
+			return 1;
+		});
+
+		$this->handle();
+
+		$this->assertSame(0, $this->job->progress()['done']);
+		$this->assertSame([$id], $this->job->get_batches()[0]->data, 'Kept in the queue.');
+
+		Lock::free(Lock::PREFIX . $id, $lock);
+		$this->run_job();
+		$this->assertSame(1, $this->job->progress()['done']);
+		$this->assertSame(Status::OPTIMISED, Status::of($id));
+	}
+
+	public function test_a_job_its_worker_left_is_started_again()
+	{
+		$this->job->start(Job::REMOVE_FORMATS, [1, 2]);
+		$dispatched = 0;
+		add_filter(self::identifier($this->job) . '_pre_dispatch', function ($cancel) use (&$dispatched) {
+			$dispatched++;
+			return $cancel;
+		}, 20);
+
+		$this->other_worker();
+		$this->job->settle();
+		$this->assertSame(0, $dispatched, 'Its worker runs.');
+
+		$this->other_worker(120);
+		$this->job->settle();
+		$this->assertSame(1, $dispatched);
+
+		$this->job->pause();
+		$this->job->settle();
+		$this->assertSame(1, $dispatched, 'Paused, it waits.');
+		$this->job->delete_all();
+	}
+
 	/**
 	 * Runs the job until its queue is empty, as its
 	 * requests to the site would.
 	 */
 	private function run_job()
 	{
+		$this->handle();
+		$this->assertSame([], $this->job->get_batches());
+	}
+
+	/**
+	 * Runs the request of the job processing its queue.
+	 */
+	private function handle()
+	{
 		$handle = new ReflectionMethod($this->job, 'handle');
 		$handle->setAccessible(true);
 		$handle->invoke($this->job);
-		$this->assertSame([], $this->job->get_batches());
+	}
+
+	/**
+	 * Locks the job as another request working on it
+	 * would, its lock refreshed some seconds ago: stale
+	 * past the lock time of the library (60 s).
+	 *
+	 * @param int $age
+	 */
+	private function other_worker($age = 0)
+	{
+		global $wpdb;
+		$wpdb->replace($wpdb->options, ['option_name' => Lock::PREFIX . 'worker_job', 'option_value' => sprintf('%.6F', microtime(true) - $age), 'autoload' => 'no']);
 	}
 
 	/**

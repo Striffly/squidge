@@ -415,6 +415,10 @@ class MediaColumn
 	public function ajax_state()
 	{
 		check_ajax_referer(self::NONCE);
+		// The images its worker left go on while the media library follows them, see Background::settle().
+		if (self::queue() && current_user_can('upload_files')) {
+			self::queue()->settle();
+		}
 		$ids = isset($_POST['ids']) ? array_slice(array_map('intval', explode(',', sanitize_text_field(wp_unslash($_POST['ids'])))), 0, 100) : [];
 		$states = [];
 		foreach (array_unique($ids) as $id) {

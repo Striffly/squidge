@@ -485,9 +485,16 @@ class Optimiser
 
 			$previous = wp_get_attachment_metadata($id);
 			require_once ABSPATH . 'wp-admin/includes/image.php';
+			// WordPress saves the metadata after each size it makes: the request tells it still works.
+			$working = function ($data) {
+				do_action('octopus_working');
+				return $data;
+			};
+			add_filter('wp_update_attachment_metadata', $working);
 			self::$regenerating = true;
 			$metadata = wp_generate_attachment_metadata($id, $source);
 			self::$regenerating = false;
+			remove_filter('wp_update_attachment_metadata', $working);
 			if (empty($metadata) || is_wp_error($metadata)) {
 				return null;
 			}

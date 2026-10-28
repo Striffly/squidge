@@ -136,6 +136,8 @@ class JobsAjax
 	{
 		check_ajax_referer(self::NONCE);
 		$this->authorize();
+		// A job its worker left goes on while the page follows it, see Background::settle().
+		Job::instance()->settle();
 		wp_send_json_success([
 			'job' => Job::instance()->progress(),
 			'counts' => array_merge(Status::counts(), ['processed' => count(Cleaner::ids())]),
