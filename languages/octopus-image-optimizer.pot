@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-10-28T16:46:36+00:00\n"
+"POT-Creation-Date: 2026-10-28T16:46:55+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: octopus-image-optimizer\n"
@@ -1302,16 +1302,12 @@ msgid_plural "%s images restored"
 msgstr[0] ""
 msgstr[1] ""
 
-#: assets/js/components/Job.js:129
-msgid "Cancel the job? The images already processed stay processed."
-msgstr ""
-
-#: assets/js/components/Job.js:138
+#: assets/js/components/Job.js:136
 msgid "The site did not answer: try again."
 msgstr ""
 
 #. translators: 1: the number of images processed, 2: the number of images.
-#: assets/js/components/Job.js:175
+#: assets/js/components/Job.js:173
 #, js-format
 msgid "%1$s / %2$s image"
 msgid_plural "%1$s / %2$s images"
@@ -1319,7 +1315,7 @@ msgstr[0] ""
 msgstr[1] ""
 
 #. translators: 1: the progress, e.g. 3 / 12 images, 2: the number of images with errors.
-#: assets/js/components/Job.js:178
+#: assets/js/components/Job.js:176
 #, js-format
 msgid "%1$s, %2$s with errors"
 msgid_plural "%1$s, %2$s with errors"
@@ -1327,23 +1323,23 @@ msgstr[0] ""
 msgstr[1] ""
 
 #. translators: 1: the progress, e.g. 3 / 12 images, 2: a number of seconds.
-#: assets/js/components/Job.js:183
+#: assets/js/components/Job.js:181
 #, js-format
 msgid "%1$s · an image waits for another request, %2$s second at most"
 msgid_plural "%1$s · an image waits for another request, %2$s seconds at most"
 msgstr[0] ""
 msgstr[1] ""
 
-#: assets/js/components/Job.js:186
+#: assets/js/components/Job.js:184
 msgid "Paused:"
 msgstr ""
 
-#: assets/js/components/Job.js:187
+#: assets/js/components/Job.js:185
 msgid "Processing"
 msgstr ""
 
 #. translators: %s: the number of images.
-#: assets/js/components/Job.js:204
+#: assets/js/components/Job.js:202
 #, js-format
 msgid "%s could not be optimised:"
 msgid_plural "%s could not be optimised:"
@@ -1351,7 +1347,7 @@ msgstr[0] ""
 msgstr[1] ""
 
 #. translators: %s: the number of images.
-#: assets/js/components/Job.js:207
+#: assets/js/components/Job.js:205
 #, js-format
 msgid "%s had no original to restore, it stays compressed."
 msgid_plural "%s had no original to restore, they stay compressed."
@@ -1359,37 +1355,37 @@ msgstr[0] ""
 msgstr[1] ""
 
 #. translators: 1: the number of images processed, 2: the number of images.
-#: assets/js/components/Job.js:230
+#: assets/js/components/Job.js:228
 #, js-format
 msgid "Stopped after %1$s of %2$s image"
 msgid_plural "Stopped after %1$s of %2$s images"
 msgstr[0] ""
 msgstr[1] ""
 
-#: assets/js/components/Job.js:231
+#: assets/js/components/Job.js:229
 msgid "The images already processed stay processed."
 msgstr ""
 
 #. translators: 1: what was done, e.g. 12 images optimised, 2: a duration, e.g. 2 min 5 s.
-#: assets/js/components/Job.js:246
+#: assets/js/components/Job.js:244
 #, js-format
 msgid "%1$s in %2$s"
 msgstr ""
 
 #. translators: 1: hours, 2: minutes.
-#: assets/js/components/Job.js:257
+#: assets/js/components/Job.js:255
 #, js-format
 msgid "%1$d h %2$d min"
 msgstr ""
 
 #. translators: 1: minutes, 2: seconds.
-#: assets/js/components/Job.js:261
+#: assets/js/components/Job.js:259
 #, js-format
 msgid "%1$d min %2$d s"
 msgstr ""
 
 #. translators: %d: seconds.
-#: assets/js/components/Job.js:264
+#: assets/js/components/Job.js:262
 #, js-format
 msgid "%d s"
 msgstr ""

@@ -126,9 +126,7 @@
 				this.dismiss();
 				return;
 			}
-			if (command === 'cancel' && !window.confirm(__('Cancel the job? The images already processed stay processed.', 'octopus-image-optimizer'))) {
-				return;
-			}
+			// At once, without asking: the job goes on while a dialog waits, and the images processed stay so.
 			const response = await this.view.api.post('octopus_job_control', {command});
 			if (response.success) {
 				this.render(response.data);
