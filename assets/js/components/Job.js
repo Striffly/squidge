@@ -253,8 +253,11 @@
 			if (this.controlling || !Job.COMMANDS[this.el.dataset.state]?.includes(command)) {
 				return;
 			}
-			// Off at the click, the one clicked telling it: never sent twice, nor another one meanwhile.
-			this.showControls(command, true);
+			// Never sent twice, nor another one meanwhile. A pause or a cancel, applied once the image in progress is ended,
+			// is told at the click on its control, the others off; a resume, at once, changes nothing until its answer.
+			if (Object.values(Job.CLICKED).includes(command)) {
+				this.showControls(command, true);
+			}
 			this.controlling = true;
 			// Clicked as the job starts: sent once it is there, e.g. while the images of a big media library are listed.
 			await this.started;
@@ -343,16 +346,25 @@
 		/**
 		 * Shows the controls: the one at work with its busy
 		 * label (data-label-busy), the others with theirs.
+		 * The one at work stays in its colours, to be read,
+		 * busy (aria-busy), not disabled, which would grey
+		 * it: a click on it sends nothing, see control().
 		 *
 		 * @param {?string} clicked
 		 * @param {boolean} off All of them off but the close of the result.
 		 */
 		showControls(clicked, off) {
 			this.controls.forEach((control) => {
+				const busy = control.dataset.control === clicked;
 				if (control.dataset.labelBusy) {
-					control.textContent = control.dataset.control === clicked ? control.dataset.labelBusy : control.dataset.label;
+					control.textContent = busy ? control.dataset.labelBusy : control.dataset.label;
 				}
-				control.disabled = off && control.dataset.control !== 'dismiss';
+				control.disabled = off && !busy && control.dataset.control !== 'dismiss';
+				if (busy) {
+					control.setAttribute('aria-busy', 'true');
+				} else {
+					control.removeAttribute('aria-busy');
+				}
 			});
 		}
 

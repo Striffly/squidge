@@ -281,6 +281,31 @@
 	@container (width < 30rem) {
 		margin-left: auto;
 	}
+
+	/* The control at work, e.g. Pausing…: in its colours, to be read, yet nothing to click, without hover, with the spinner of the job. */
+	& [aria-busy="true"] {
+		text-decoration: none;
+		pointer-events: none;
+
+		/* Clicked, it keeps the focus: without the ring of WordPress nor the background of a hover, but from the keyboard. */
+		.octopus-page &:focus:not(:focus-visible) {
+			background: transparent;
+			box-shadow: none;
+		}
+
+		&::before {
+			content: "\f463"; /* Dashicon update. */
+			display: inline-block;
+			margin-right: var(--octopus-space-1);
+			font: normal 16px/1 dashicons;
+			vertical-align: -3px;
+			animation: octopus-spin 1.6s linear infinite;
+
+			@media (prefers-reduced-motion: reduce) {
+				animation: none;
+			}
+		}
+	}
 }
 
 .octopus-job__bar {
