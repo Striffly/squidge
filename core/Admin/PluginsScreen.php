@@ -101,10 +101,7 @@ class PluginsScreen
 			return;
 		}
 		$script = Plugin::enqueue_chain(['utils/Api', 'views/Screen', 'components/Component', 'components/DeactivationWarning', 'plugins'], 'script');
-		wp_localize_script($script, 'octopusPlugins', [
-			'ajaxurl' => admin_url('admin-ajax.php'),
-			'nonce' => wp_create_nonce(self::NONCE),
-		]);
+		Ajax::localize($script, 'octopusPlugins', self::NONCE);
 		Plugin::enqueue_style('screens/plugins');
 	}
 

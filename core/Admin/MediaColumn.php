@@ -593,10 +593,7 @@ class MediaColumn
 		}
 		Plugin::enqueue_style('screens/media');
 		$script = Plugin::enqueue_chain(['utils/Api', 'views/Screen', 'components/Component', 'components/MediaQueue', 'media'], 'script');
-		wp_localize_script($script, 'octopusMedia', [
-			'ajaxurl' => admin_url('admin-ajax.php'),
-			'nonce' => wp_create_nonce(self::NONCE),
-		]);
+		Ajax::localize($script, 'octopusMedia', self::NONCE);
 	}
 
 	/**

@@ -269,11 +269,7 @@ class Notices
 			return;
 		}
 		$script = Plugin::enqueue_chain(['utils/Api', 'views/Screen', 'components/Component', 'components/ErrorsNotice', 'notices'], 'script');
-		wp_localize_script($script, 'octopusNotices', [
-			'ajaxurl' => admin_url('admin-ajax.php'),
-			'action' => self::NONCE,
-			'nonce' => wp_create_nonce(self::NONCE),
-		]);
+		Ajax::localize($script, 'octopusNotices', self::NONCE, ['action' => self::NONCE]);
 		Plugin::enqueue_style('screens/notices');
 	}
 

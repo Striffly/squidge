@@ -3,10 +3,11 @@
 /**
  * Ajax
  *
- * The AJAX requests of OIO: the nonce of the options
- * page, and the capability of the user, checked once
- * the nonce is. The nonce is checked in each request,
- * where Plugin Check sees it.
+ * The AJAX requests of OIO: what the scripts send
+ * them, the nonce of the options page, and the
+ * capability of the user, checked once the nonce is.
+ * The nonce is checked in each request, where Plugin
+ * Check sees it.
  *
  * @package     OIO
  * @author      Clément Gayot
@@ -34,6 +35,25 @@ class Ajax
 	 * @var string
 	 */
 	const NONCE = 'octopus_admin';
+
+	/**
+	 * Gives a script of a screen what its requests need
+	 * (see utils/Api.js): the URL of admin-ajax.php and
+	 * the nonce of the screen, with other data.
+	 *
+	 * @param string $handle
+	 * @param string $name The object of the script, e.g. octopusSettings.
+	 * @param string $nonce The nonce action.
+	 * @param array $data
+	 * @since 1.0.0
+	 */
+	public static function localize($handle, $name, $nonce, $data = [])
+	{
+		wp_localize_script($handle, $name, array_merge([
+			'ajaxurl' => admin_url('admin-ajax.php'),
+			'nonce' => wp_create_nonce($nonce),
+		], $data));
+	}
 
 	/**
 	 * Ends a request, its nonce checked, if the user
