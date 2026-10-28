@@ -379,12 +379,24 @@
 	padding-top: var(--octopus-space-3);
 	border-top: 1px solid var(--octopus-border);
 	text-align: right;
+
+	@media (width <= 782px) {
+		text-align: center;
+	}
 }
 
 .octopus-support__links {
 	margin: 0;
 	color: var(--octopus-muted);
 	font-size: var(--octopus-size-small);
+}
+
+/* On a phone, on their own line, rather than cut from the text. */
+.octopus-support__methods {
+	@media (width <= 782px) {
+		display: block;
+		margin-top: var(--octopus-space-1);
+	}
 }
 
 .octopus-support__links a,

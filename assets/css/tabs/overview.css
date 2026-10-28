@@ -92,6 +92,9 @@
 	flex: none;
 	align-items: center;
 	gap: var(--octopus-space-2);
+	/* Within the card on a phone, its text wrapping. */
+	box-sizing: border-box;
+	max-width: 100%;
 	padding: 10px 18px 10px 22px;
 	border: 1px solid var(--octopus-violet-line);
 	border-radius: var(--octopus-radius-pill);
@@ -256,6 +259,11 @@
 	align-items: center;
 	gap: var(--octopus-space-1);
 	margin-right: var(--octopus-space-1);
+
+	/* On a phone, on its own line, the pills under it, both from the left. */
+	@media (width <= 480px) {
+		flex-basis: 100%;
+	}
 
 	& .dashicons {
 		width: 16px;

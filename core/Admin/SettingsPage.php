@@ -304,9 +304,11 @@ class SettingsPage extends View
 				/* translators: Followed by the links to PayPal and Bitcoin. */
 				esc_html_e('OIO is free, and will stay so. If it saves you time or bytes, you can buy me a coffee:', 'octopus-image-optimizer');
 				?>
-				<a href="<?php echo esc_url(self::PAYPAL); ?>" target="_blank" rel="noopener">PayPal</a>
-				<span aria-hidden="true">&middot;</span>
-				<button type="button" class="button-link octopus-support__toggle js-octopus-wallet-toggle" aria-expanded="true" aria-controls="octopus-support-wallet">Bitcoin</button>
+				<span class="octopus-support__methods">
+					<a href="<?php echo esc_url(self::PAYPAL); ?>" target="_blank" rel="noopener">PayPal</a>
+					<span aria-hidden="true">&middot;</span>
+					<button type="button" class="button-link octopus-support__toggle js-octopus-wallet-toggle" aria-expanded="true" aria-controls="octopus-support-wallet">Bitcoin</button>
+				</span>
 			</p>
 			<div class="octopus-support__wallet js-octopus-wallet" id="octopus-support-wallet">
 				<a class="octopus-support__qr" href="<?php echo esc_url('bitcoin:' . self::BITCOIN, ['bitcoin']); ?>">
