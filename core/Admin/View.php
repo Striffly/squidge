@@ -41,7 +41,7 @@ abstract class View
 
 	/**
 	 * Renders a block of code, with its copy button
-	 * (CopyButton.js, hidden without JS).
+	 * above it (CopyButton.js, hidden without JS).
 	 *
 	 * @param string $code
 	 * @param string $id Unique on the page.
@@ -51,8 +51,10 @@ abstract class View
 	{
 		?>
 		<div class="octopus-code-block">
+			<div class="octopus-code-block__head">
+				<button type="button" class="octopus-copy js-octopus-copy" aria-controls="<?php echo esc_attr($id); ?>"><?php esc_html_e('Copy', 'octopus-image-optimizer'); ?></button>
+			</div>
 			<pre class="octopus-code" id="<?php echo esc_attr($id); ?>"><code><?php echo esc_html($code); ?></code></pre>
-			<button type="button" class="octopus-copy js-octopus-copy" aria-controls="<?php echo esc_attr($id); ?>"><?php esc_html_e('Copy', 'octopus-image-optimizer'); ?></button>
 		</div>
 		<?php
 	}

@@ -287,18 +287,17 @@
 	}
 }
 
-/* A block of code, its button at the top right. */
+/* A block of code, its button above it, on a bar of the same box: never over the code, on a phone too. */
 .octopus-code-block {
-	position: relative;
+	overflow: hidden;
+	border-radius: var(--octopus-radius-small);
+	background: var(--octopus-night);
 
 	& .octopus-code {
-		padding-right: 88px;
+		border-radius: 0;
 	}
 
 	& .octopus-copy {
-		position: absolute;
-		top: var(--octopus-space-2);
-		right: var(--octopus-space-2);
 		border-color: rgb(255 255 255 / 30%);
 		background: rgb(255 255 255 / 8%);
 		color: var(--octopus-code-text);
@@ -311,7 +310,19 @@
 	}
 }
 
-/* After a command, or at the top right of a block. */
+.octopus-code-block__head {
+	display: flex;
+	justify-content: flex-end;
+	padding: var(--octopus-space-2);
+	border-bottom: 1px solid rgb(255 255 255 / 12%);
+
+	/* Its button copies with JS only. */
+	.octopus-page:not(.octopus-page--js) & {
+		display: none;
+	}
+}
+
+/* After a command, or above a block. */
 .octopus-copy {
 	padding: 2px 12px;
 	border: 1px solid var(--octopus-violet);
