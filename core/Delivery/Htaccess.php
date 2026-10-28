@@ -19,6 +19,7 @@
 
 namespace Octopus\Delivery;
 
+use Octopus\Encoders\Formats;
 use Octopus\Media\Files;
 use Octopus\Settings;
 
@@ -93,28 +94,32 @@ class Htaccess
 	public static function apache_rules()
 	{
 		$formats = Files::DIR . '/' . Files::FORMATS_DIR;
-		return [
-			'<IfModule mod_mime.c>',
-			'	AddType image/avif .avif',
-			'	AddType image/webp .webp',
-			'</IfModule>',
-			'<IfModule mod_rewrite.c>',
-			'	RewriteEngine On',
-			'	RewriteCond %{HTTP_ACCEPT} image/avif',
-			'	RewriteCond %{REQUEST_FILENAME}::$1 ^(.*?/)(.+)::\2$',
-			'	RewriteCond %1' . $formats . '/$1.avif -f',
-			'	RewriteRule ^(.+\.(?:jpe?g|png))$ ' . $formats . '/$1.avif [NC,T=image/avif,L]',
-			'	RewriteCond %{HTTP_ACCEPT} image/webp',
-			'	RewriteCond %{REQUEST_FILENAME}::$1 ^(.*?/)(.+)::\2$',
-			'	RewriteCond %1' . $formats . '/$1.webp -f',
-			'	RewriteRule ^(.+\.(?:jpe?g|png))$ ' . $formats . '/$1.webp [NC,T=image/webp,L]',
+		// The lightest version first: the browser gets the first one it reads.
+		$variants = array_reverse(Formats::variants());
+		$rules = ['<IfModule mod_mime.c>'];
+		foreach ($variants as $encoder) {
+			$rules[] = '	AddType ' . $encoder::MIME . ' ' . $encoder::extension();
+		}
+		$rules[] = '</IfModule>';
+		$rules[] = '<IfModule mod_rewrite.c>';
+		$rules[] = '	RewriteEngine On';
+		foreach ($variants as $encoder) {
+			$rules[] = '	RewriteCond %{HTTP_ACCEPT} ' . $encoder::MIME;
+			$rules[] = '	RewriteCond %{REQUEST_FILENAME}::$1 ^(.*?/)(.+)::\2$';
+			$rules[] = '	RewriteCond %1' . $formats . '/$1' . $encoder::extension() . ' -f';
+			$rules[] = '	RewriteRule ^(.+\.(?:jpe?g|png))$ ' . $formats . '/$1' . $encoder::extension() . ' [NC,T=' . $encoder::MIME . ',L]';
+		}
+		$extensions = array_map(function ($encoder) {
+			return ltrim($encoder::extension(), '.');
+		}, array_values(Formats::variants()));
+		return array_merge($rules, [
 			'</IfModule>',
 			'<IfModule mod_headers.c>',
-			'	<FilesMatch "\.(jpe?g|png|webp|avif)$">',
+			'	<FilesMatch "\.(jpe?g|png|' . implode('|', $extensions) . ')$">',
 			'		Header append Vary Accept',
 			'	</FilesMatch>',
 			'</IfModule>',
-		];
+		]);
 	}
 
 	/**
@@ -134,20 +139,23 @@ class Htaccess
 	{
 		$uploads = wp_parse_url(wp_get_upload_dir()['baseurl'], PHP_URL_PATH);
 		$formats = $uploads . '/' . Files::DIR . '/' . Files::FORMATS_DIR;
+		$maps = '';
+		$tries = '';
+		// The lightest version first, as for Apache.
+		foreach (array_reverse(Formats::variants()) as $format => $encoder) {
+			$maps .= "map \$http_accept \$octopus_" . $format . " {\n"
+				. "\tdefault \"\";\n"
+				. "\t\"~" . $encoder::MIME . "\" \"" . $encoder::extension() . "\";\n"
+				. "}\n";
+			$tries .= $formats . "/\$octopus_file\$octopus_" . $format . ' ';
+		}
 		return "# In the http block (e.g. at the top of the site's file):\n"
-			. "map \$http_accept \$octopus_avif {\n"
-			. "\tdefault \"\";\n"
-			. "\t\"~image/avif\" \".avif\";\n"
-			. "}\n"
-			. "map \$http_accept \$octopus_webp {\n"
-			. "\tdefault \"\";\n"
-			. "\t\"~image/webp\" \".webp\";\n"
-			. "}\n\n"
+			. $maps . "\n"
 			. "# In the server block:\n"
 			. self::nginx_deny() . "\n"
 			. "location ~* ^" . $uploads . "/(?<octopus_file>.+\\.(?:jpe?g|png))$ {\n"
 			. "\tadd_header Vary Accept;\n"
-			. "\ttry_files " . $formats . "/\$octopus_file\$octopus_avif " . $formats . "/\$octopus_file\$octopus_webp \$uri =404;\n"
+			. "\ttry_files " . $tries . "\$uri =404;\n"
 			. "}";
 	}
 
