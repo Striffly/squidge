@@ -51,3 +51,15 @@
 .octopus-page .button[disabled] {
 	opacity: .55;
 }
+
+/* A link button off, e.g. Cancel while a pause is applied: greyed as the buttons off, not in the red of a link to delete. */
+.octopus-page .button-link[disabled] {
+	color: #a7aaad;
+	text-decoration: none;
+	cursor: default;
+
+	/* Above the hover of WordPress, red again. */
+	&:hover {
+		color: #a7aaad;
+	}
+}
