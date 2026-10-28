@@ -114,6 +114,10 @@ class JobsAjax
 		Ajax::authorize();
 		// A job its worker left goes on while the page follows it, see Background::settle().
 		Job::instance()->settle();
+		// The progress alone, asked every second while a job runs: the counts take longer on a big media library.
+		if (!empty($_POST['light'])) {
+			wp_send_json_success(['job' => Job::instance()->progress()]);
+		}
 		wp_send_json_success([
 			'job' => Job::instance()->progress(),
 			'counts' => array_merge(Status::counts(), ['processed' => count(Cleaner::ids())]),

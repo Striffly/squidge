@@ -7,8 +7,10 @@
  * then sums up what it did, with confetti once all the
  * images are optimised.
  *
- * Emits job:status at each refresh, with the counts
- * and the bytes saved; renders the job a JobStart
+ * Emits job:status at each refresh with the counts and
+ * the bytes saved, every COUNTS_DELAY at most while the
+ * job runs, its progress asked alone in between;
+ * renders the job a JobStart
  * starts at once on job:starting, as it is on
  * job:started, and as it was if it could not start.
  */
@@ -19,7 +21,14 @@
 
 	class Job extends Component {
 		/** The refresh, by state of the job: none once it ended. */
-		static DELAYS = {running: 2000, paused: 5000};
+		static DELAYS = {running: 1000, paused: 5000};
+
+		/**
+		 * While the job runs, its progress alone is asked
+		 * every second, and the counts of the media library
+		 * at most this often: they take longer on a big one.
+		 */
+		static COUNTS_DELAY = 3000;
 
 		/**
 		 * The texts of each job: while it runs, done,
@@ -57,6 +66,8 @@
 			this.seen = false;
 			this.following = false;
 			this.timer = null;
+			// When the counts were last asked, see COUNTS_DELAY.
+			this.counted = 0;
 		}
 
 		getElems() {
@@ -89,14 +100,46 @@
 		}
 
 		async refresh() {
-			const response = await this.view.api.post('octopus_job_status');
+			const light = this.state === 'running' && Date.now() - this.counted < Job.COUNTS_DELAY;
+			const response = await this.view.api.post('octopus_job_status', light ? {light: '1'} : {});
+			if (response.success && light) {
+				this.follow(response.data.job);
+				return;
+			}
 			if (response.success) {
 				this.render(response.data);
 				return;
 			}
 			// Not answered, e.g. PHP restarting: asked again, the page goes on following the job.
+			this.schedule(Job.DELAYS[this.state] ?? Job.DELAYS.running);
+		}
+
+		/**
+		 * Asks the job again later: after the delay of its
+		 * state, never once it ended.
+		 *
+		 * @param {number} [delay]
+		 */
+		schedule(delay = Job.DELAYS[this.state]) {
 			clearTimeout(this.timer);
-			this.timer = setTimeout(() => this.refresh(), Job.DELAYS[this.state] ?? Job.DELAYS.running);
+			this.timer = delay ? setTimeout(() => this.refresh(), delay) : null;
+		}
+
+		/**
+		 * Shows the progress of the job while it runs, from
+		 * a light refresh; asks the counts with it at once
+		 * if it paused or ended meanwhile.
+		 *
+		 * @param {?Object} job
+		 */
+		follow(job) {
+			if (job?.state !== this.state) {
+				this.counted = 0;
+				this.refresh();
+				return;
+			}
+			this.showProgress(job);
+			this.schedule();
 		}
 
 		/**
@@ -140,6 +183,7 @@
 		 * @param {{job: ?Object, counts: Object<string, number>, savings: Object<string, string>}} data
 		 */
 		render({job, counts, savings}) {
+			this.counted = Date.now();
 			this.state = ['running', 'paused'].includes(job?.state) ? job.state : 'idle';
 			const busy = this.state !== 'idle';
 			this.seen ||= busy;
@@ -156,9 +200,7 @@
 			}
 
 			this.view.emit('job:status', {counts: this.counts, savings, busy, seen: this.seen, allOptimised: this.allOptimised()});
-
-			clearTimeout(this.timer);
-			this.timer = busy ? setTimeout(() => this.refresh(), Job.DELAYS[this.state]) : null;
+			this.schedule();
 		}
 
 		/**

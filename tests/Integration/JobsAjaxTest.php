@@ -27,7 +27,7 @@ class JobsAjaxTest extends TestCase
 	public function tear_down()
 	{
 		Job::instance()->delete_all();
-		unset($_REQUEST['_ajax_nonce'], $_REQUEST['action'], $_POST['job']);
+		unset($_REQUEST['_ajax_nonce'], $_REQUEST['action'], $_POST['job'], $_POST['light']);
 		parent::tear_down();
 	}
 
@@ -44,6 +44,17 @@ class JobsAjaxTest extends TestCase
 
 		$this->assertTrue($response['success'], 'The library checked its own nonce in this request.');
 		$this->assertSame([$id], $job->get_batches()[0]->data);
+	}
+
+	public function test_the_progress_is_asked_alone_while_a_job_runs()
+	{
+		$this->upload_unoptimised('photo.jpg');
+
+		$light = $this->request('octopus_job_status', ['light' => '1']);
+		$full = $this->request('octopus_job_status', ['light' => '']);
+
+		$this->assertSame(['job'], array_keys($light['data']), 'Without the counts, which take longer on a big media library.');
+		$this->assertSame(['job', 'counts', 'savings'], array_keys($full['data']));
 	}
 
 	/**
@@ -74,7 +85,9 @@ class JobsAjaxTest extends TestCase
 		});
 		ob_start();
 		try {
-			(new JobsAjax())->start();
+			// octopus_job_start runs start(), octopus_job_status status().
+			$method = substr($action, strlen('octopus_job_'));
+			(new JobsAjax())->$method();
 		} catch (WPAjaxDieContinueException $e) {
 			// wp_send_json() ends the request.
 		} finally {
