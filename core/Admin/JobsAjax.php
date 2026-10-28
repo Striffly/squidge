@@ -28,18 +28,6 @@ if (!defined('ABSPATH')) {
 class JobsAjax
 {
 	/**
-	 * Nonce action of the requests of the options page:
-	 * the jobs, the settings and the delivery test. Not
-	 * octopus_job, the action of the background library
-	 * (Job): its nonce, made for the same user, goes in
-	 * the URL of its requests, and so in the logs of the
-	 * server.
-	 *
-	 * @var string
-	 */
-	const NONCE = 'octopus_admin';
-
-	/**
 	 * The jobs that can be started: their action, their
 	 * mode and the statuses of their images.
 	 *
@@ -66,27 +54,14 @@ class JobsAjax
 	}
 
 	/**
-	 * Checks the capability of a request, its nonce
-	 * checked first.
-	 *
-	 * @since 1.0.0
-	 */
-	private function authorize()
-	{
-		if (!current_user_can('manage_options')) {
-			wp_send_json_error(null, 403);
-		}
-	}
-
-	/**
 	 * Starts a job on the images of its statuses.
 	 *
 	 * @since 1.0.0
 	 */
 	public function start()
 	{
-		check_ajax_referer(self::NONCE);
-		$this->authorize();
+		check_ajax_referer(Ajax::NONCE);
+		Ajax::authorize();
 		$name = isset($_POST['job']) ? sanitize_key(wp_unslash($_POST['job'])) : '';
 		if (!array_key_exists($name, self::JOBS)) {
 			wp_send_json_error(null, 400);
@@ -110,8 +85,8 @@ class JobsAjax
 	 */
 	public function control()
 	{
-		check_ajax_referer(self::NONCE);
-		$this->authorize();
+		check_ajax_referer(Ajax::NONCE);
+		Ajax::authorize();
 		$command = isset($_POST['command']) ? sanitize_key(wp_unslash($_POST['command'])) : '';
 		$job = Job::instance();
 		if ($command === 'pause') {
@@ -134,8 +109,8 @@ class JobsAjax
 	 */
 	public function status()
 	{
-		check_ajax_referer(self::NONCE);
-		$this->authorize();
+		check_ajax_referer(Ajax::NONCE);
+		Ajax::authorize();
 		// A job its worker left goes on while the page follows it, see Background::settle().
 		Job::instance()->settle();
 		wp_send_json_success([

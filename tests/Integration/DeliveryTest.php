@@ -14,7 +14,7 @@
 
 namespace Octopus\Tests\Integration;
 
-use Octopus\Admin\JobsAjax;
+use Octopus\Admin\Ajax;
 use Octopus\Delivery\Htaccess;
 use Octopus\Delivery\Test;
 use Octopus\Encoders\AVIF;
@@ -284,7 +284,7 @@ class DeliveryTest extends TestCase
 		if (is_multisite()) {
 			grant_super_admin(get_current_user_id());
 		}
-		$_REQUEST['_ajax_nonce'] = wp_create_nonce(JobsAjax::NONCE);
+		$_REQUEST['_ajax_nonce'] = wp_create_nonce(Ajax::NONCE);
 		add_filter('wp_doing_ajax', '__return_true');
 		add_filter('wp_die_ajax_handler', function () {
 			return function () {

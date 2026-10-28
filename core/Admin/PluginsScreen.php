@@ -180,9 +180,7 @@ class PluginsScreen
 	public function info()
 	{
 		check_ajax_referer(self::NONCE);
-		if (!current_user_can('activate_plugins')) {
-			wp_send_json_error(null, 403);
-		}
+		Ajax::authorize('activate_plugins');
 		$dir = Files::backup_dir();
 		wp_send_json_success([
 			'images' => count(Cleaner::ids()),

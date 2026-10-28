@@ -15,7 +15,7 @@
 
 namespace Octopus\Tests\Integration;
 
-use Octopus\Admin\JobsAjax;
+use Octopus\Admin\Ajax;
 use Octopus\Admin\SettingsAjax;
 use Octopus\Delivery\Htaccess;
 use Octopus\Settings;
@@ -94,7 +94,7 @@ class SettingsAjaxTest extends TestCase
 	 * @param string $nonce The nonce action.
 	 * @return array The JSON response.
 	 */
-	private function save($name, $value, $nonce = JobsAjax::NONCE)
+	private function save($name, $value, $nonce = Ajax::NONCE)
 	{
 		wp_set_current_user(self::factory()->user->create(['role' => 'administrator']));
 		if (is_multisite()) {

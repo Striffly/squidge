@@ -137,7 +137,7 @@ class SettingsPage
 		$script = Plugin::enqueue_chain(self::SCRIPTS, 'script');
 		wp_localize_script($script, 'octopusSettings', [
 			'ajaxurl' => admin_url('admin-ajax.php'),
-			'nonce' => wp_create_nonce(JobsAjax::NONCE),
+			'nonce' => wp_create_nonce(Ajax::NONCE),
 		]);
 		add_action('admin_head', [$this, 'preload_font']);
 	}

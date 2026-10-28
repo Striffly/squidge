@@ -286,9 +286,7 @@ class Notices
 	public function dismiss()
 	{
 		check_ajax_referer(self::NONCE);
-		if (!current_user_can('manage_options')) {
-			wp_send_json_error(null, 403);
-		}
+		Ajax::authorize();
 		Errors::clear_recent();
 		wp_send_json_success();
 	}

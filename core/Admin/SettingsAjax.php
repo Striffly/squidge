@@ -47,10 +47,8 @@ class SettingsAjax
 	 */
 	public function save()
 	{
-		check_ajax_referer(JobsAjax::NONCE);
-		if (!current_user_can('manage_options')) {
-			wp_send_json_error(null, 403);
-		}
+		check_ajax_referer(Ajax::NONCE);
+		Ajax::authorize();
 		$name = isset($_POST['name']) ? sanitize_key(wp_unslash($_POST['name'])) : '';
 		if (!array_key_exists($name, Settings::FIELDS)) {
 			wp_send_json_error(null, 400);
