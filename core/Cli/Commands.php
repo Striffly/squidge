@@ -166,9 +166,9 @@ class Commands extends WP_CLI_Command
 		if (isset($settings['avif'], $assoc_args['avif-speed'])) {
 			$settings['avif']['speed'] = $assoc_args['avif-speed'];
 		}
-		$force = isset($assoc_args['force']) && filter_var($assoc_args['force'], FILTER_VALIDATE_BOOLEAN);
-		$thumbnails_only = isset($assoc_args['thumbnails-only']) && filter_var($assoc_args['thumbnails-only'], FILTER_VALIDATE_BOOLEAN);
-		$regenerate = isset($assoc_args['regenerate']) && filter_var($assoc_args['regenerate'], FILTER_VALIDATE_BOOLEAN);
+		$force = self::flag($assoc_args, 'force');
+		$thumbnails_only = self::flag($assoc_args, 'thumbnails-only');
+		$regenerate = self::flag($assoc_args, 'regenerate');
 
 		/* translators: %s: the formats, e.g. jpg, webp. */
 		WP_CLI::log(sprintf(__('Formats: %s', 'octopus-image-optimizer'), empty($settings) ? __('none', 'octopus-image-optimizer') : implode(', ', array_keys($settings))));
@@ -182,8 +182,7 @@ class Commands extends WP_CLI_Command
 				return Optimiser::attachment($id, $metadata, $settings, $force || $regenerate, $thumbnails_only);
 			});
 			if ($done === null) {
-				/* translators: %s: the title of an image. */
-				WP_CLI::warning(sprintf(__('%s: skipped, another request is processing it.', 'octopus-image-optimizer'), get_the_title($id)));
+				self::skipped($id);
 				continue;
 			}
 			$counter++;
@@ -238,8 +237,7 @@ class Commands extends WP_CLI_Command
 			$restored = Cleaner::restore($id);
 			if ($restored === null) {
 				$skipped++;
-				/* translators: %s: the title of an image. */
-				WP_CLI::warning(sprintf(__('%s: skipped, another request is processing it.', 'octopus-image-optimizer'), get_the_title($id)));
+				self::skipped($id);
 			} elseif (!$restored) {
 				$missing++;
 				/* translators: %s: the title of an image. */
@@ -279,7 +277,7 @@ class Commands extends WP_CLI_Command
 	public function stats($args, $assoc_args)
 	{
 		$this->print_welcome();
-		$rebuild = isset($assoc_args['rebuild']) && filter_var($assoc_args['rebuild'], FILTER_VALIDATE_BOOLEAN);
+		$rebuild = self::flag($assoc_args, 'rebuild');
 		$measured = 0;
 		foreach (array_chunk(Cleaner::ids(), 500) as $ids) {
 			_prime_post_caches($ids, false, true);
@@ -292,8 +290,7 @@ class Commands extends WP_CLI_Command
 					return true;
 				});
 				if ($done === null) {
-					/* translators: %s: the title of an image. */
-					WP_CLI::warning(sprintf(__('%s: skipped, another request is processing it.', 'octopus-image-optimizer'), get_the_title($id)));
+					self::skipped($id);
 					continue;
 				}
 				$measured++;
@@ -328,6 +325,33 @@ class Commands extends WP_CLI_Command
 			? sprintf(_n('%1$s saved on %2$d image, %3$s: the site serves the WebP and AVIF.', '%1$s saved on %2$d images, %3$s: the site serves the WebP and AVIF.', $totals['images'], 'octopus-image-optimizer'), $saved, $totals['images'], $reduction)
 			/* translators: 1: a size, e.g. 12.5 MB, 2: the number of images, 3: a reduction, e.g. −48 %. */
 			: sprintf(_n('%1$s saved on %2$d image, %3$s: the site serves the JPG and PNG, not the WebP and AVIF.', '%1$s saved on %2$d images, %3$s: the site serves the JPG and PNG, not the WebP and AVIF.', $totals['images'], 'octopus-image-optimizer'), $saved, $totals['images'], $reduction));
+	}
+
+	/**
+	 * Determines if a flag is on: --force, or
+	 * --force=true.
+	 *
+	 * @param array $assoc_args
+	 * @param string $name
+	 * @return bool
+	 * @since 1.0.0
+	 */
+	private static function flag($assoc_args, $name)
+	{
+		return isset($assoc_args[$name]) && filter_var($assoc_args[$name], FILTER_VALIDATE_BOOLEAN);
+	}
+
+	/**
+	 * Warns that an image was skipped, another request
+	 * processing it.
+	 *
+	 * @param int $id
+	 * @since 1.0.0
+	 */
+	private static function skipped($id)
+	{
+		/* translators: %s: the title of an image. */
+		WP_CLI::warning(sprintf(__('%s: skipped, another request is processing it.', 'octopus-image-optimizer'), get_the_title($id)));
 	}
 
 	/**
