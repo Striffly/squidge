@@ -320,10 +320,10 @@ class Commands extends WP_CLI_Command
 		}
 		\WP_CLI\Utils\format_items('table', $items, ['Files', 'Bytes', 'Size', 'Reduction']);
 
-		$served = Stats::served();
-		$saved = Stats::size(max(0, $totals['original'] - $totals[$served]));
-		$reduction = (string)Stats::reduction($totals, $served);
-		WP_CLI::success($served === 'modern'
+		$savings = Stats::savings();
+		$saved = $savings['saved'];
+		$reduction = $savings['reduction'];
+		WP_CLI::success(Stats::served() === 'modern'
 			/* translators: 1: a size, e.g. 12.5 MB, 2: the number of images, 3: a reduction, e.g. −48 %. */
 			? sprintf(_n('%1$s saved on %2$d image, %3$s: the site serves the WebP and AVIF.', '%1$s saved on %2$d images, %3$s: the site serves the WebP and AVIF.', $totals['images'], 'octopus-image-optimizer'), $saved, $totals['images'], $reduction)
 			/* translators: 1: a size, e.g. 12.5 MB, 2: the number of images, 3: a reduction, e.g. −48 %. */

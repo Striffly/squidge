@@ -180,6 +180,33 @@ class Stats
 	}
 
 	/**
+	 * Returns the bytes saved on the media library, as
+	 * shown on the overview and by WP-CLI: the
+	 * reduction of what the site serves, the one it
+	 * would get with the WebP and AVIF served, and the
+	 * disk used by OIO. Sent again with the progress of
+	 * a job (JobsAjax::status()).
+	 *
+	 * @return array
+	 * @since 1.0.0
+	 */
+	public static function savings()
+	{
+		$totals = self::totals();
+		$served = self::served();
+		return [
+			'images' => $totals['images'],
+			'saved' => self::size(max(0, $totals['original'] - $totals[$served])),
+			'reduction' => (string)self::reduction($totals, $served),
+			'modern' => (string)self::reduction($totals, 'modern'),
+			// Serving the WebP and AVIF would save more.
+			'hint' => $served === 'compressed' && $totals['modern'] < $totals['compressed'],
+			'originals' => self::size($totals['original']),
+			'formats' => self::size($totals['extra']),
+		];
+	}
+
+	/**
 	 * Returns the size the site serves: modern when it
 	 * serves the WebP and AVIF, in <picture> (see
 	 * Display) or from the server (see Delivery),

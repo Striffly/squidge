@@ -19,6 +19,7 @@ namespace Octopus\Admin;
 use Octopus\Media\Cleaner;
 use Octopus\Media\Job;
 use Octopus\Media\Optimiser;
+use Octopus\Media\Stats;
 use Octopus\Media\Status;
 
 if (!defined('ABSPATH')) {
@@ -116,7 +117,7 @@ class JobsAjax
 		wp_send_json_success([
 			'job' => Job::instance()->progress(),
 			'counts' => array_merge(Status::counts(), ['processed' => count(Cleaner::ids())]),
-			'savings' => SettingsPage::savings(),
+			'savings' => Stats::savings(),
 		]);
 	}
 }

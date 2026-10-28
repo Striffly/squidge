@@ -370,7 +370,7 @@ class SettingsPage
 	 */
 	private function render_overview($formats, $counts)
 	{
-		$savings = self::savings();
+		$savings = Stats::savings();
 		?>
 		<?php if (!Libraries::can_execute()) : ?>
 			<div class="notice notice-error inline octopus-alert">
@@ -1047,32 +1047,6 @@ class SettingsPage
 			</div>
 		</details>
 		<?php
-	}
-
-	/**
-	 * Returns the bytes saved on the media library, as
-	 * shown on the overview: the reduction of what the
-	 * site serves, the one it would get with the WebP
-	 * and AVIF served, and the disk used by OIO. Sent
-	 * again with the progress of a job (JobsAjax::status()).
-	 *
-	 * @return array
-	 * @since 1.0.0
-	 */
-	public static function savings()
-	{
-		$totals = Stats::totals();
-		$served = Stats::served();
-		return [
-			'images' => $totals['images'],
-			'saved' => Stats::size(max(0, $totals['original'] - $totals[$served])),
-			'reduction' => (string)Stats::reduction($totals, $served),
-			'modern' => (string)Stats::reduction($totals, 'modern'),
-			// Serving the WebP and AVIF would save more.
-			'hint' => $served === 'compressed' && $totals['modern'] < $totals['compressed'],
-			'originals' => Stats::size($totals['original']),
-			'formats' => Stats::size($totals['extra']),
-		];
 	}
 
 	/**
