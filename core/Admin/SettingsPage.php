@@ -18,10 +18,7 @@
 namespace Octopus\Admin;
 
 use Octopus\Delivery\Htaccess;
-use Octopus\Encoders\AVIF;
-use Octopus\Encoders\JPG;
-use Octopus\Encoders\PNG;
-use Octopus\Encoders\WebP;
+use Octopus\Encoders\Formats;
 use Octopus\Engines\Libraries;
 use Octopus\Media\Cleaner;
 use Octopus\Media\Files;
@@ -336,20 +333,18 @@ class SettingsPage
 	private static function formats($sections)
 	{
 		$formats = [];
-		foreach ($sections as $id => $section) {
-			if (empty($section['service'])) {
-				continue;
-			}
-			$service = $section['service'];
+		foreach (Formats::ENCODERS as $id => $service) {
+			$section = $sections[$id];
+			$section['title'] = $service::TITLE;
 			$section['installed'] = $service::installed();
 			$section['version'] = $service::version_number();
 			$section['enabled'] = Settings::get($id . '_enable');
 			$section['library'] = $service::library();
 			$section['engine'] = $service::engine();
-			$section['upgrade'] = $section['installed'] && isset($section['preferred']) && !$service::installed($section['preferred']);
-			$section['optional'] = isset($section['optional']) ? $section['optional'] : [];
+			$section['preferred'] = $service::PREFERRED;
+			$section['upgrade'] = $section['installed'] && $service::PREFERRED && !$service::installed($service::PREFERRED);
 			$section['extras'] = [];
-			foreach (array_keys($section['optional']) as $name) {
+			foreach ($service::OPTIONAL as $name) {
 				$section['extras'][$name] = $service::installed($name);
 			}
 			$formats[$id] = $section;
@@ -643,7 +638,7 @@ class SettingsPage
 					</p>
 					<span class="octopus-meter" role="img" aria-label="<?php echo esc_attr($percent . ' %'); ?>"><span class="octopus-meter__value" style="width: <?php echo esc_attr($percent); ?>%"></span></span>
 					<ul class="octopus-generate__formats">
-						<?php foreach (['webp', 'avif'] as $id) : ?>
+						<?php foreach (array_keys(Formats::variants()) as $id) : ?>
 							<?php $state = self::state($formats[$id]); ?>
 							<li>
 								<a class="octopus-chip js-octopus-tab-link" href="#settings-<?php echo esc_attr($id); ?>" data-tab="settings" data-target="octopus-settings-<?php echo esc_attr($id); ?>">
@@ -772,14 +767,17 @@ class SettingsPage
 	private static function with_formats()
 	{
 		global $wpdb;
+		$keys = array_values(array_map(function ($encoder) {
+			return $encoder::meta_key();
+		}, Formats::variants()));
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery -- One count over the media library, once per page.
 		return (int)$wpdb->get_var($wpdb->prepare(
 			"SELECT COUNT(DISTINCT m.post_id) FROM {$wpdb->postmeta} m
 			INNER JOIN {$wpdb->posts} p ON p.ID = m.post_id
-			WHERE m.meta_key IN (%s, %s)
+			WHERE m.meta_key IN (" . implode(', ', array_fill(0, count($keys), '%s')) . ")
 			AND p.post_type = 'attachment' AND p.post_status = 'inherit'
 			AND p.post_mime_type IN (" . implode(', ', array_fill(0, count(Files::MIMES), '%s')) . ")",
-			array_merge([WebP::meta_key(), AVIF::meta_key()], Files::MIMES)
+			array_merge($keys, Files::MIMES)
 		));
 	}
 
@@ -857,11 +855,11 @@ class SettingsPage
 							<?php foreach ($fields as $name => $field) : ?>
 								<?php $this->render_field($name, self::availability($field, $format)); ?>
 							<?php endforeach; ?>
-							<?php foreach ($format['optional'] as $name => $use) : ?>
-								<?php if ($format['installed'] && !$format['extras'][$name]) : ?>
+							<?php foreach ($format['extras'] as $name => $installed) : ?>
+								<?php if ($format['installed'] && !$installed) : ?>
 									<?php
 									/* translators: 1: a library, e.g. pngquant, 2: what it is for, e.g. lossy compression. */
-									$this->render_install($id, sprintf(__('How to install %1$s, for the %2$s', 'octopus-image-optimizer'), $name, $use), '', true);
+									$this->render_install($id, sprintf(__('How to install %1$s, for the %2$s', 'octopus-image-optimizer'), $name, $format['uses'][$name]), '', true);
 									?>
 								<?php endif; ?>
 							<?php endforeach; ?>
@@ -1387,8 +1385,6 @@ class SettingsPage
 	{
 		return [
 			'jpg' => [
-				'title' => 'JPG',
-				'service' => JPG::class,
 				'fields' => [
 					'jpg_enable' => [
 						'type' => 'checkbox',
@@ -1404,10 +1400,8 @@ class SettingsPage
 				],
 			],
 			'png' => [
-				'title' => 'PNG',
-				'service' => PNG::class,
-				'optional' => ['pngquant' => __('lossy compression', 'octopus-image-optimizer')],
-				'preferred' => 'oxipng',
+				// What the optional libraries are for, see AbstractEncoder::OPTIONAL.
+				'uses' => ['pngquant' => __('lossy compression', 'octopus-image-optimizer')],
 				'preference' => __('optipng compresses the PNG images for now. Once installed, oxipng replaces it on its own: the files are lighter at the same level, and it is a little faster.', 'octopus-image-optimizer'),
 				'fields' => [
 					'png_enable' => [
@@ -1443,8 +1437,6 @@ class SettingsPage
 				],
 			],
 			'webp' => [
-				'title' => 'WebP',
-				'service' => WebP::class,
 				/* translators: %s: GD or Imagick. */
 				'recommendation' => __('%s makes the WebP files for now, in the PHP process. cwebp runs apart from PHP, and makes the PNG graphics and screenshots much lighter.', 'octopus-image-optimizer'),
 				'fields' => [
@@ -1462,8 +1454,6 @@ class SettingsPage
 				],
 			],
 			'avif' => [
-				'title' => 'AVIF',
-				'service' => AVIF::class,
 				/* translators: %s: GD or Imagick. */
 				'recommendation' => __('%s makes the AVIF files for now, in the PHP process. avifenc runs apart from PHP, on several threads, and keeps the colours of the PNG images sharper.', 'octopus-image-optimizer'),
 				'fields' => [

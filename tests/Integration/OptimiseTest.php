@@ -16,6 +16,7 @@
 namespace Octopus\Tests\Integration;
 
 use Octopus\Encoders\AVIF;
+use Octopus\Encoders\Formats;
 use Octopus\Encoders\JPG;
 use Octopus\Encoders\PNG;
 use Octopus\Encoders\WebP;
@@ -209,7 +210,7 @@ class OptimiseTest extends TestCase
 		$this->assertSame(Status::OPTIMISED, Status::of($id));
 
 		// Done: not made again by the next optimisation.
-		Optimiser::attachment($id, null, Optimiser::settings());
+		Optimiser::attachment($id, null, Formats::settings());
 		$this->assertFileDoesNotExist(Files::variant($file, '.avif'));
 	}
 

@@ -18,8 +18,7 @@
 namespace Octopus\Delivery;
 
 use Octopus\Admin\Ajax;
-use Octopus\Encoders\AVIF;
-use Octopus\Encoders\WebP;
+use Octopus\Encoders\Formats;
 use Octopus\Media\Files;
 use Octopus\Settings;
 
@@ -65,36 +64,39 @@ class Test
 		}
 		$checks = [];
 
-		foreach (['webp' => 'WebP', 'avif' => 'AVIF'] as $format => $name) {
-			if (empty($sample[$format])) {
-				continue;
-			}
-			$type = 'image/' . $format;
-			$response = self::head($sample[$format]);
+		$variants = Formats::variants();
+		foreach ($sample['versions'] as $format => $url) {
+			$type = $variants[$format]::MIME;
+			$extension = ltrim($variants[$format]::extension(), '.');
+			$response = self::head($url);
 			$ok = $response['status'] === 200 && $response['type'] === $type;
 			$checks[] = [
 				'state' => $ok ? 'ok' : 'fail',
 				/* translators: 1: a format, e.g. WebP, 2: a type, e.g. image/webp. */
-				'label' => sprintf(__('The %1$s files are served as %2$s', 'octopus-image-optimizer'), $name, $type),
+				'label' => sprintf(__('The %1$s files are served as %2$s', 'octopus-image-optimizer'), $variants[$format]::TITLE, $type),
 				'detail' => self::describe($response),
 				'advice' => $ok ? '' : sprintf(
 					/* translators: 1: the Apache directive, 2: the nginx line. */
 					esc_html__('The browsers ignore a file sent with another type. Apache: %1$s. nginx: add %2$s to mime.types.', 'octopus-image-optimizer'),
-					'<code>AddType ' . $type . ' .' . $format . '</code>',
-					'<code>' . $type . ' ' . $format . ';</code>'
+					'<code>AddType ' . $type . ' .' . $extension . '</code>',
+					'<code>' . $type . ' ' . $extension . ';</code>'
 				),
 			];
 		}
 
-		// The rewrite answers with the AVIF if it exists, the WebP otherwise.
-		$expected = !empty($sample['avif']) ? 'image/avif' : 'image/webp';
-		$rewrite = self::head($sample['image'], 'image/avif,image/webp,image/*,*/*;q=0.8');
+		// The rewrite answers with the lightest version there, the AVIF if it exists, the WebP otherwise.
+		$best = $variants[array_key_last($sample['versions'])];
+		$expected = $best::MIME;
+		$accept = implode(',', array_map(function ($encoder) {
+			return $encoder::MIME;
+		}, array_reverse(array_values($variants))));
+		$rewrite = self::head($sample['image'], $accept . ',image/*,*/*;q=0.8');
 		$rewritten = $rewrite['type'] === $expected;
 		$wanted = Settings::get('serve_rewrite') || Htaccess::server() === 'nginx';
 		$checks[] = [
 			'state' => $rewritten ? 'ok' : ($wanted || $rewrite['status'] >= 500 ? 'fail' : 'info'),
 			/* translators: %s: AVIF or WebP. */
-			'label' => $rewritten ? sprintf(__('The server answers the image with its %s version', 'octopus-image-optimizer'), $expected === 'image/avif' ? 'AVIF' : 'WebP') : __('The server answers the image with the JPG or PNG', 'octopus-image-optimizer'),
+			'label' => $rewritten ? sprintf(__('The server answers the image with its %s version', 'octopus-image-optimizer'), $best::TITLE) : __('The server answers the image with the JPG or PNG', 'octopus-image-optimizer'),
 			'detail' => self::describe($rewrite),
 			'advice' => $rewritten ? '' : self::rewrite_advice($rewrite, $wanted),
 		];
@@ -191,27 +193,30 @@ class Test
 			'posts_per_page' => 50,
 			'fields' => 'ids',
 			// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query -- On the meta keys of OIO, indexed; the media library is counted and listed once per page.
-			'meta_query' => [
-				'relation' => 'OR',
-				['key' => WebP::meta_key(), 'compare' => 'EXISTS'],
-				['key' => AVIF::meta_key(), 'compare' => 'EXISTS'],
-			],
+			'meta_query' => array_merge(['relation' => 'OR'], array_map(function ($encoder) {
+				return ['key' => $encoder::meta_key(), 'compare' => 'EXISTS'];
+			}, array_values(Formats::variants()))),
 		]);
 		foreach ($ids as $id) {
 			$file = get_attached_file($id);
 			if (!$file) {
 				continue;
 			}
-			$variants = array_filter(Files::variants($file), 'file_exists');
-			if (!$variants) {
+			$versions = [];
+			foreach (Formats::variants() as $format => $encoder) {
+				$variant = Files::variant($file, $encoder::extension());
+				if (file_exists($variant)) {
+					$versions[$format] = Files::url($variant);
+				}
+			}
+			if (!$versions) {
 				continue;
 			}
 			return [
 				'file' => $file,
 				'name' => wp_basename($file),
 				'image' => wp_get_attachment_url($id),
-				'webp' => isset($variants[WebP::extension()]) ? Files::url($variants[WebP::extension()]) : '',
-				'avif' => isset($variants[AVIF::extension()]) ? Files::url($variants[AVIF::extension()]) : '',
+				'versions' => $versions,
 			];
 		}
 		return null;

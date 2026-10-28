@@ -35,6 +35,26 @@ class PNG extends AbstractEncoder
 	const FORMAT = 'png';
 
 	/**
+	 * The name of the format, see AbstractEncoder::TITLE.
+	 */
+	const TITLE = 'PNG';
+
+	/**
+	 * The types read, see AbstractEncoder::SOURCES.
+	 */
+	const SOURCES = [Files::PNG];
+
+	/**
+	 * The libraries run when installed, see AbstractEncoder::OPTIONAL.
+	 */
+	const OPTIONAL = ['pngquant'];
+
+	/**
+	 * The library replacing optipng, see AbstractEncoder::PREFERRED.
+	 */
+	const PREFERRED = 'oxipng';
+
+	/**
 	 * Compresses a PNG file in place with oxipng or
 	 * optipng, after pngquant for the lossy
 	 * compression, from its original kept as a
@@ -51,9 +71,6 @@ class PNG extends AbstractEncoder
 	 */
 	public static function convert($filepath, $mime, $args)
 	{
-		if ($mime != Files::PNG) {
-			return;
-		}
 		// The file is optimised in place from its original, kept as a backup.
 		if (!self::backup($filepath, $args)) {
 			return;
@@ -82,6 +99,23 @@ class PNG extends AbstractEncoder
 		} else {
 			self::put_back($filepath, $args);
 		}
+	}
+
+	/**
+	 * Returns the args of the encoder from the settings:
+	 * its level, and the quality of the lossy
+	 * compression when it is chosen.
+	 *
+	 * @return array
+	 * @since 1.0.0
+	 */
+	public static function args()
+	{
+		return [
+			'lossy' => Settings::get('png_compression') === 'lossy',
+			'optimization' => Settings::get('png_level'),
+			'lossy_quality' => Settings::get('png_lossy_quality'),
+		];
 	}
 
 	/**
@@ -165,7 +199,7 @@ class PNG extends AbstractEncoder
 	 */
 	public static function library()
 	{
-		return parent::installed('oxipng') ? 'oxipng' : 'optipng';
+		return parent::installed(self::PREFERRED) ? self::PREFERRED : self::cmd_name();
 	}
 
 	/**

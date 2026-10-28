@@ -17,6 +17,7 @@
 
 namespace Octopus\Media;
 
+use Octopus\Encoders\Formats;
 use Octopus\Settings;
 
 if (!defined('ABSPATH')) {
@@ -73,7 +74,7 @@ class UploadHooks
 		if (Optimiser::$regenerating || !Settings::get('optimise_uploads')) {
 			return $metadata;
 		}
-		Optimiser::attachment($attachment_id, $metadata, Optimiser::settings());
+		Optimiser::attachment($attachment_id, $metadata, Formats::settings());
 		return Optimiser::file_sizes($metadata);
 	}
 

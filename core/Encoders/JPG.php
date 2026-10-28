@@ -32,6 +32,16 @@ class JPG extends AbstractEncoder
 	const FORMAT = 'jpg';
 
 	/**
+	 * The name of the format, see AbstractEncoder::TITLE.
+	 */
+	const TITLE = 'JPG';
+
+	/**
+	 * The types read, see AbstractEncoder::SOURCES.
+	 */
+	const SOURCES = [Files::JPG];
+
+	/**
 	 * Compresses a JPG file in place with jpegoptim,
 	 * from its original kept as a backup.
 	 *
@@ -46,9 +56,6 @@ class JPG extends AbstractEncoder
 	 */
 	public static function convert($filepath, $mime, $args)
 	{
-		if ($mime != Files::JPG) {
-			return;
-		}
 		// The file is optimised in place, its original is kept as a backup.
 		// Start again from the original, so a JPG is never compressed twice.
 		if (!self::backup($filepath, $args)) {

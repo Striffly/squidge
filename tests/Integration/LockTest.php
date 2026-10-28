@@ -14,6 +14,7 @@
 namespace Octopus\Tests\Integration;
 
 use Exception;
+use Octopus\Encoders\Formats;
 use Octopus\Engines\Libraries;
 use Octopus\Media\Cleaner;
 use Octopus\Media\Files;
@@ -29,7 +30,7 @@ class LockTest extends TestCase
 		$id = $this->upload_unoptimised('photo.jpg');
 		self::lock($id, time());
 
-		$this->assertNull(Optimiser::attachment($id, null, Optimiser::settings()));
+		$this->assertNull(Optimiser::attachment($id, null, Formats::settings()));
 		$this->assertNull(Optimiser::update($id));
 		$this->assertNull(Cleaner::restore($id));
 		$this->assertFileDoesNotExist(Files::variant(get_attached_file($id), '.webp'));
@@ -42,7 +43,7 @@ class LockTest extends TestCase
 		$id = $this->upload_unoptimised('photo.jpg');
 		self::lock($id, time() - Lock::TIMEOUT - 1);
 
-		$this->assertTrue(Optimiser::attachment($id, null, Optimiser::settings()));
+		$this->assertTrue(Optimiser::attachment($id, null, Formats::settings()));
 		$this->assertFileExists(Files::variant(get_attached_file($id), '.webp'));
 		$this->assertFalse(self::locked($id));
 	}

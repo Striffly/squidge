@@ -36,10 +36,20 @@ class AVIF extends AbstractEncoder
 	const FORMAT = 'avif';
 
 	/**
-	 * EDITOR_MIME is the format of the image editor,
-	 * without avifenc (see AbstractEncoder::editor()).
+	 * The name of the format, see AbstractEncoder::TITLE.
 	 */
-	const EDITOR_MIME = 'image/avif';
+	const TITLE = 'AVIF';
+
+	/**
+	 * The type of the files made, see AbstractEncoder::MIME.
+	 */
+	const MIME = 'image/avif';
+
+	/**
+	 * The types read, see AbstractEncoder::SOURCES.
+	 */
+	const SOURCES = Files::MIMES;
+
 
 	/**
 	 * Makes the AVIF version of a JPG or PNG file with
@@ -57,9 +67,6 @@ class AVIF extends AbstractEncoder
 	 */
 	public static function convert($filepath, $mime, $args)
 	{
-		if ($mime != Files::PNG && $mime != Files::JPG) {
-			return;
-		}
 		$quality = self::quality($args);
 		// Without avifenc, GD and Imagick encode at their own speed (6 for GD,
 		// the default of OIO): the speed arg is left out.
@@ -88,6 +95,18 @@ class AVIF extends AbstractEncoder
 			Logger::info("Successfully converted to AVIF file: " . $output);
 			Files::remember(self::id($args), $filepath);
 		}
+	}
+
+	/**
+	 * Returns the args of the encoder from the settings:
+	 * its quality and speed.
+	 *
+	 * @return array
+	 * @since 1.0.0
+	 */
+	public static function args()
+	{
+		return array_merge(parent::args(), ['speed' => Settings::get('avif_speed')]);
 	}
 
 	/**

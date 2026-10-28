@@ -43,13 +43,39 @@ abstract class AbstractEncoder
 	const FORMAT = '';
 
 	/**
-	 * EDITOR_MIME is the mime type of the files the
-	 * WordPress image editor makes when the library is
-	 * missing (see editor()): the WebP and AVIF
-	 * formats. Empty for the compressions, GD and
-	 * Imagick could only encode the images again.
+	 * TITLE is the name of the format, as shown: JPG,
+	 * WebP.
 	 */
-	const EDITOR_MIME = '';
+	const TITLE = '';
+
+	/**
+	 * MIME is the type of the files the encoder makes:
+	 * the WebP and AVIF versions, which the WordPress
+	 * image editor makes too when the library is
+	 * missing (see editor()). Empty for the
+	 * compressions, GD and Imagick could only encode
+	 * the images again.
+	 */
+	const MIME = '';
+
+	/**
+	 * SOURCES are the types of the images the encoder
+	 * reads: the others are left as they are.
+	 */
+	const SOURCES = [];
+
+	/**
+	 * OPTIONAL are the other libraries the encoder runs
+	 * when they are installed, e.g. pngquant for the
+	 * lossy PNG compression.
+	 */
+	const OPTIONAL = [];
+
+	/**
+	 * PREFERRED is the library replacing the one of the
+	 * encoder once installed, e.g. oxipng for optipng.
+	 */
+	const PREFERRED = '';
 
 	/**
 	 * Makes the version of a file in the format of the
@@ -156,8 +182,12 @@ abstract class AbstractEncoder
 	{
 		// Still processing the image as the job starts: its lock does not go stale.
 		Lock::touch($args['id']);
+		$mime = (string)wp_get_image_mime($file);
+		if (!in_array($mime, static::SOURCES, true)) {
+			return;
+		}
 		try {
-			yield from static::convert($file, (string)wp_get_image_mime($file), $args);
+			yield from static::convert($file, $mime, $args);
 		} catch (Exception $e) {
 			self::error($args, $file, $e->getMessage());
 		}
@@ -278,7 +308,7 @@ abstract class AbstractEncoder
 	protected static function convert_with_editor($filepath, $mime, $quality, $args)
 	{
 		$output = Files::variant($filepath, static::extension());
-		$saved = ImageEditor::save(self::original($filepath), $mime, $output, static::EDITOR_MIME, $quality, $filepath);
+		$saved = ImageEditor::save(self::original($filepath), $mime, $output, static::MIME, $quality, $filepath);
 		if (is_wp_error($saved)) {
 			self::error($args, $filepath, static::editor() . ': ' . $saved->get_error_message());
 			return;
@@ -299,7 +329,7 @@ abstract class AbstractEncoder
 	 */
 	public static function editor()
 	{
-		return ImageEditor::name(static::EDITOR_MIME);
+		return ImageEditor::name(static::MIME);
 	}
 
 	/**
@@ -496,6 +526,18 @@ abstract class AbstractEncoder
 	public static function meta_key()
 	{
 		return '_octopus_' . static::FORMAT;
+	}
+
+	/**
+	 * Returns the args of the encoder from the settings
+	 * (see Settings::FIELDS): its quality.
+	 *
+	 * @return array
+	 * @since 1.0.0
+	 */
+	public static function args()
+	{
+		return ['quality' => Settings::get(static::FORMAT . '_quality')];
 	}
 
 	/**

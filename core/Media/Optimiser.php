@@ -17,15 +17,11 @@
 namespace Octopus\Media;
 
 use Exception;
-use Octopus\Encoders\AVIF;
-use Octopus\Encoders\JPG;
-use Octopus\Encoders\PNG;
-use Octopus\Encoders\WebP;
+use Octopus\Encoders\Formats;
 use Octopus\Engines\ImageEditor;
 use Octopus\Engines\Libraries;
 use Octopus\Log\Errors;
 use Octopus\Log\Logger;
-use Octopus\Settings;
 
 if (!defined('ABSPATH')) {
 	exit; // Exit if accessed directly
@@ -33,29 +29,6 @@ if (!defined('ABSPATH')) {
 
 class Optimiser
 {
-	/**
-	 * The libraries by format.
-	 *
-	 * @var array
-	 */
-	const SERVICES = [
-		'webp' => WebP::class,
-		'avif' => AVIF::class,
-		'jpg' => JPG::class,
-		'png' => PNG::class,
-	];
-
-	/**
-	 * The formats made together, on every file of an
-	 * image, in turn: the WebP and AVIF versions are
-	 * made from the originals before the JPG and PNG
-	 * files are compressed in place. AVIF first, the
-	 * slowest.
-	 *
-	 * @var array
-	 */
-	const PHASES = [['avif', 'webp'], ['jpg', 'png']];
-
 	/**
 	 * How to optimise an image: the new images only
 	 * (and the files missing, e.g. of a new size), the
@@ -105,31 +78,18 @@ class Optimiser
 	public static $context = 'upload';
 
 	/**
-	 * Returns the args of each format from the options
-	 * page: the enabled formats only, or all of them.
+	 * Returns the formats made together, on every file
+	 * of an image, in turn: the WebP and AVIF versions
+	 * are made from the originals before the JPG and
+	 * PNG files are compressed in place. The lightest
+	 * version first, the slowest to make: AVIF.
 	 *
-	 * @param bool $enabled_only
-	 * @return array
+	 * @return string[][]
 	 * @since 1.0.0
 	 */
-	public static function settings($enabled_only = true)
+	private static function phases()
 	{
-		$settings = [
-			'webp' => ['quality' => Settings::get('webp_quality')],
-			'avif' => ['quality' => Settings::get('avif_quality'), 'speed' => Settings::get('avif_speed')],
-			'jpg' => ['quality' => Settings::get('jpg_quality')],
-			'png' => [
-				'lossy' => Settings::get('png_compression') === 'lossy',
-				'optimization' => Settings::get('png_level'),
-				'lossy_quality' => Settings::get('png_lossy_quality'),
-			],
-		];
-		foreach (array_keys($settings) as $format) {
-			if ($enabled_only && !Settings::get($format . '_enable')) {
-				unset($settings[$format]);
-			}
-		}
-		return $settings;
+		return [array_reverse(array_keys(Formats::variants())), array_keys(Formats::compressions())];
 	}
 
 	/**
@@ -153,7 +113,7 @@ class Optimiser
 			$mode = isset($modes[$status]) ? $modes[$status] : self::MODE_NEW;
 		}
 		if ($mode === self::MODE_NEW) {
-			return self::attachment($id, null, self::settings());
+			return self::attachment($id, null, Formats::settings());
 		}
 		return self::update($id, $mode === self::MODE_ALL);
 	}
@@ -167,7 +127,7 @@ class Optimiser
 	 *
 	 * @param int $id
 	 * @param array|null $metadata The attachment metadata, when it is not saved yet (on upload).
-	 * @param array $settings Args by format, see settings().
+	 * @param array $settings Args by format, see Formats::settings().
 	 * @param bool $force Optimise again the formats already done.
 	 * @param bool $thumbnails_only
 	 * @return true|null Null if another request is processing the image.
@@ -181,14 +141,14 @@ class Optimiser
 			}
 			$metadata = $metadata ?: wp_get_attachment_metadata($id);
 			try {
-				foreach (self::PHASES as $phase) {
+				foreach (self::phases() as $phase) {
 					$jobs = [];
 					$processed = [];
 					foreach ($phase as $format) {
 						if (!isset($settings[$format])) {
 							continue;
 						}
-						$service = self::SERVICES[$format];
+						$service = Formats::ENCODERS[$format];
 						$args = array_merge($settings[$format], [
 							'id' => (int)$id,
 							'force' => $force,
@@ -350,20 +310,19 @@ class Optimiser
 		$heavier = self::heavier($id);
 		clearstatcache();
 		foreach (Files::of($id, $metadata) as $file) {
-			$variants = Files::variants($file);
-			foreach ($variants as $extension => $variant) {
-				if (!file_exists($variant) || !file_exists($file) || !Files::contained($variant)) {
+			if (!file_exists($file)) {
+				continue;
+			}
+			// Each version is compared to the image and the versions kept before it: the AVIF to the WebP.
+			$limit = filesize($file);
+			foreach (Files::variants($file) as $variant) {
+				if (!file_exists($variant) || !Files::contained($variant)) {
 					continue;
 				}
 				$relative = Files::relative($variant);
-				$limit = filesize($file);
-				// WebP comes first: the AVIF is compared to the WebP kept.
-				$webp = $variants[WebP::extension()];
-				if ($extension === AVIF::extension() && file_exists($webp)) {
-					$limit = min($limit, filesize($webp));
-				}
 				if (filesize($variant) < $limit) {
 					$heavier = array_diff($heavier, [$relative]);
+					$limit = filesize($variant);
 					continue;
 				}
 				Files::delete($variant);
@@ -413,7 +372,7 @@ class Optimiser
 	public static function update($id, $regenerate = false)
 	{
 		return Lock::run($id, function () use ($id, $regenerate) {
-			$settings = self::settings();
+			$settings = Formats::settings();
 			$metadata = wp_get_attachment_metadata($id);
 			$sizes = get_post_meta($id, Status::SIZES_KEY, true);
 			if ($regenerate || !Status::sizes_current($metadata) || ($sizes !== '' && $sizes !== Status::sizes_signature())) {
@@ -425,15 +384,15 @@ class Optimiser
 			}
 			$outdated = [];
 			foreach ($settings as $format => $args) {
-				$service = self::SERVICES[$format];
+				$service = Formats::ENCODERS[$format];
 				if (get_post_meta($id, $service::meta_key(), true) !== $service::signature($args)) {
 					$outdated[$format] = $args;
 				}
 			}
 			// The JPG or PNG changes: the WebP and AVIF deleted as heavier may be lighter now.
-			$compression = get_post_mime_type($id) === Files::PNG ? 'png' : 'jpg';
+			$compression = Formats::compression(get_post_mime_type($id));
 			if (isset($outdated[$compression]) && self::heavier($id)) {
-				$outdated = array_merge($outdated, array_intersect_key($settings, ['webp' => true, 'avif' => true]));
+				$outdated = array_merge($outdated, array_intersect_key($settings, Formats::variants()));
 			}
 			if ($outdated) {
 				self::attachment($id, $metadata, $outdated, true);

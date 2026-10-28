@@ -19,6 +19,7 @@
 
 namespace Octopus\Delivery;
 
+use Octopus\Encoders\Formats;
 use Octopus\Media\Files;
 use WP_HTML_Tag_Processor;
 
@@ -35,17 +36,6 @@ class Picture
 	 * @var string
 	 */
 	const MARKER = 'data-octopus';
-
-	/**
-	 * Modern formats, best first, as offered to the
-	 * browser in <source> elements.
-	 *
-	 * @var array
-	 */
-	const FORMATS = [
-		'.avif' => 'image/avif',
-		'.webp' => 'image/webp',
-	];
 
 	/**
 	 * The candidates of a srcset looked at most: each
@@ -118,10 +108,11 @@ class Picture
 			return [];
 		}
 		$sources = [];
-		foreach (self::FORMATS as $extension => $type) {
-			$format_srcset = self::build_srcset($candidates, $extension);
+		// The lightest first, as offered to the browser in <source> elements.
+		foreach (array_reverse(Formats::variants()) as $encoder) {
+			$format_srcset = self::build_srcset($candidates, $encoder::extension());
 			if ($format_srcset !== '') {
-				$sources[$type] = $format_srcset;
+				$sources[$encoder::MIME] = $format_srcset;
 			}
 		}
 		return $sources;

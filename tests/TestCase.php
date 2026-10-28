@@ -15,9 +15,10 @@
 
 namespace Octopus\Tests;
 
-use Octopus\Media\Files;
+use Octopus\Encoders\Formats;
 use Octopus\Engines\ImageEditor;
 use Octopus\Engines\Libraries;
+use Octopus\Media\Files;
 use Octopus\Media\Optimiser;
 use Octopus\Settings;
 use ReflectionProperty;
@@ -127,7 +128,7 @@ abstract class TestCase extends WP_UnitTestCase
 	 */
 	protected function upload_unoptimised($name)
 	{
-		$settings = Optimiser::SERVICES;
+		$settings = Formats::ENCODERS;
 		foreach (array_keys($settings) as $format) {
 			self::set($format . '_enable', false);
 		}

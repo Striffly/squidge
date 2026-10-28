@@ -15,10 +15,7 @@
 
 namespace Octopus\Cli;
 
-use Octopus\Encoders\AVIF;
-use Octopus\Encoders\JPG;
-use Octopus\Encoders\PNG;
-use Octopus\Encoders\WebP;
+use Octopus\Encoders\Formats;
 use Octopus\Engines\Libraries;
 use Octopus\Media\Cleaner;
 use Octopus\Media\Files;
@@ -68,12 +65,16 @@ class Commands extends WP_CLI_Command
 		if (!Libraries::can_execute()) {
 			WP_CLI::warning(__('PHP cannot run programs: proc_open() and exec() are disabled, the libraries cannot run.', 'octopus-image-optimizer'));
 		}
-		$this->print_health("jpegoptim", JPG::installed());
-		$this->print_health(PNG::library(), PNG::installed());
-		/* translators: %s: pngquant */
-		$this->print_health(sprintf(__('%s (optional)', 'octopus-image-optimizer'), 'pngquant'), PNG::installed('pngquant'));
-		$this->print_converter('WebP', WebP::class);
-		$this->print_converter('AVIF', AVIF::class);
+		foreach (Formats::compressions() as $service) {
+			$this->print_health($service::library(), $service::installed());
+			foreach ($service::OPTIONAL as $name) {
+				/* translators: %s: an optional library, e.g. pngquant. */
+				$this->print_health(sprintf(__('%s (optional)', 'octopus-image-optimizer'), $name), $service::installed($name));
+			}
+		}
+		foreach (Formats::variants() as $service) {
+			$this->print_converter($service);
+		}
 	}
 
 	/**
@@ -138,8 +139,8 @@ class Commands extends WP_CLI_Command
 		$this->print_welcome();
 		Optimiser::$context = 'cli';
 
-		$settings = Optimiser::settings(false);
-		$enabled = Optimiser::settings();
+		$settings = Formats::settings(false);
+		$enabled = Formats::settings();
 		foreach (array_keys($settings) as $format) {
 			$on = isset($assoc_args[$format]) ? filter_var($assoc_args[$format], FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) : isset($enabled[$format]);
 			if ($on === null) {
@@ -387,17 +388,16 @@ class Commands extends WP_CLI_Command
 	 * its library, or by the image editor (GD or
 	 * Imagick) where the library is missing.
 	 *
-	 * @param string $format
 	 * @param string $service
 	 * @since 1.0.0
 	 */
-	private function print_converter($format, $service)
+	private function print_converter($service)
 	{
 		if ($service::installed() || $service::editor() === null) {
 			$this->print_health($service::cmd_name(), $service::installed());
 			return;
 		}
 		/* translators: 1: GD or Imagick, 2: a format, e.g. WebP, 3: a library, e.g. cwebp. */
-		WP_CLI::success(sprintf(__('%1$s active for %2$s: %3$s not installed, recommended.', 'octopus-image-optimizer'), $service::editor(), $format, $service::cmd_name()));
+		WP_CLI::success(sprintf(__('%1$s active for %2$s: %3$s not installed, recommended.', 'octopus-image-optimizer'), $service::editor(), $service::TITLE, $service::cmd_name()));
 	}
 }

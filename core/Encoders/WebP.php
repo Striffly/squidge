@@ -34,17 +34,27 @@ class WebP extends AbstractEncoder
 	const FORMAT = 'webp';
 
 	/**
+	 * The name of the format, see AbstractEncoder::TITLE.
+	 */
+	const TITLE = 'WebP';
+
+	/**
+	 * The type of the files made, see AbstractEncoder::MIME.
+	 */
+	const MIME = 'image/webp';
+
+	/**
+	 * The types read, see AbstractEncoder::SOURCES.
+	 */
+	const SOURCES = Files::MIMES;
+
+	/**
 	 * NEAR_LOSSLESS is the near-lossless level of the
 	 * PNG images (0 to 100, 100 is lossless): the
 	 * pixels change too little to be seen.
 	 */
 	const NEAR_LOSSLESS = 60;
 
-	/**
-	 * EDITOR_MIME is the format of the image editor,
-	 * without cwebp (see AbstractEncoder::editor()).
-	 */
-	const EDITOR_MIME = 'image/webp';
 
 	/**
 	 * Compress all image sizes if they are jpg or png
@@ -61,9 +71,6 @@ class WebP extends AbstractEncoder
 	 */
 	public static function convert($filepath, $mime, $args)
 	{
-		if ($mime != Files::PNG && $mime != Files::JPG) {
-			return;
-		}
 		$quality = self::quality($args);
 		// Without cwebp, GD and Imagick encode with libwebp too, at the same
 		// quality: the files are alike, but the PNGs are not tried in
