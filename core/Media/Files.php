@@ -57,10 +57,13 @@ class Files
 	const KEY_OPTION = 'octopus_originals_key';
 
 	/**
-	 * The meta listing the files OIO made for an image
-	 * (WebP, AVIF and backups), relative to the uploads
-	 * folder: they are deleted with it, even once its
-	 * sizes changed.
+	 * The meta listing the files of an image OIO
+	 * processed, of its current and former sizes,
+	 * relative to the uploads folder: what OIO made
+	 * from them (WebP, AVIF, originals) is found from
+	 * them, and deleted with the image even once its
+	 * sizes changed, wherever the folder of the
+	 * originals is.
 	 */
 	const LIST_KEY = '_octopus_files';
 
@@ -355,8 +358,9 @@ class Files
 	}
 
 	/**
-	 * Adds a file made by OIO to the list of the files
-	 * of an image.
+	 * Adds a file of an image OIO processed (made its
+	 * WebP or AVIF version, or kept its original) to
+	 * the list of the image.
 	 *
 	 * @param int $id
 	 * @param string $path
@@ -377,9 +381,9 @@ class Files
 	}
 
 	/**
-	 * Returns the absolute paths of the files listed for
-	 * an image (WebP, AVIF and backups, of current and
-	 * former sizes).
+	 * Returns the absolute paths of the files of an
+	 * image OIO processed, of current and former
+	 * sizes.
 	 *
 	 * @param int $id
 	 * @return string[]

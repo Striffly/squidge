@@ -191,7 +191,7 @@ abstract class AbstractEncoder
 			return;
 		}
 		Logger::info(sprintf('Successfully converted with %s: %s', static::editor(), $output));
-		Files::remember($id, $output);
+		Files::remember($id, $filepath);
 	}
 
 	/**
@@ -313,7 +313,7 @@ abstract class AbstractEncoder
 			Errors::add(isset($args['id']) ? $args['id'] : 0, static::FORMAT, $filepath, 'cannot write the backup of the original image');
 			return false;
 		}
-		Files::remember(isset($args['id']) ? (int)$args['id'] : 0, $backup);
+		Files::remember(isset($args['id']) ? (int)$args['id'] : 0, $filepath);
 		return true;
 	}
 

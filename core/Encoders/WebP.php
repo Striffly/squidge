@@ -93,7 +93,7 @@ class WebP extends AbstractEncoder
 				self::near_lossless($options, $source, $output, $filepath, $args);
 			}
 			Logger::info("Successfully converted to WebP file: " . $output);
-			Files::remember(isset($args['id']) ? (int)$args['id'] : 0, $output);
+			Files::remember(isset($args['id']) ? (int)$args['id'] : 0, $filepath);
 		}
 		ImageEditor::release($source, $original);
 	}

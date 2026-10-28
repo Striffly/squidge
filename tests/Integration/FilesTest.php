@@ -218,6 +218,26 @@ class FilesTest extends TestCase
 		$this->assertFileDoesNotExist($backup);
 	}
 
+	public function test_the_originals_of_former_sizes_go_with_the_image_wherever_they_are()
+	{
+		$this->require_libraries('jpegoptim');
+		$originals = $this->outside . '/originals';
+		add_filter('octopus_backup_dir', function () use ($originals) {
+			return $originals;
+		});
+		$id = $this->upload('photo.jpg');
+		// A size the theme no longer has: no longer in the metadata.
+		$metadata = wp_get_attachment_metadata($id);
+		$former = dirname(get_attached_file($id)) . '/' . $metadata['sizes']['medium']['file'];
+		unset($metadata['sizes']['medium']);
+		wp_update_attachment_metadata($id, $metadata);
+		$this->assertFileExists(Files::backup_path($former));
+
+		wp_delete_attachment($id, true);
+
+		$this->assertFileDoesNotExist(Files::backup_path($former), 'Its original, with its GPS position, goes too.');
+	}
+
 	public function test_without_its_original_a_compressed_image_stays_listed()
 	{
 		$this->require_libraries('jpegoptim');

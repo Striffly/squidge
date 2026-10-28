@@ -79,18 +79,15 @@ class Cleaner
 	public static function remove_formats($id)
 	{
 		return Lock::run($id, function () use ($id) {
-			foreach (Files::of($id) as $file) {
+			$files = array_unique(array_merge(Files::of($id), Files::listed($id)));
+			foreach ($files as $file) {
 				Files::delete(Files::variant($file, WebP::extension()));
 				Files::delete(Files::variant($file, AVIF::extension()));
 			}
-			$listed = Files::listed($id);
-			foreach ($listed as $index => $path) {
-				if (preg_match('/\.(webp|avif)$/', $path)) {
-					Files::delete($path);
-					unset($listed[$index]);
-				}
-			}
-			Files::save_listed($id, $listed);
+			// Listed while they keep their original.
+			Files::save_listed($id, array_filter(Files::listed($id), function ($file) {
+				return file_exists(Files::backup_path($file));
+			}));
 			delete_post_meta($id, Optimiser::HEAVIER_KEY);
 			foreach ([WebP::class, AVIF::class] as $service) {
 				delete_post_meta($id, $service::meta_key());
@@ -157,9 +154,9 @@ class Cleaner
 	}
 
 	/**
-	 * Deletes the files OIO made for an image: the ones
-	 * listed, and the versions and backups of its
-	 * files.
+	 * Deletes the files OIO made for an image: the
+	 * versions and originals of its files, and of the
+	 * ones listed (e.g. of sizes that no longer exist).
 	 *
 	 * @param int $id
 	 * @param array|null $metadata The metadata, when it is not saved any more.
@@ -167,12 +164,10 @@ class Cleaner
 	 */
 	private static function delete_made($id, $metadata)
 	{
-		$paths = Files::listed($id);
-		foreach (Files::of($id, $metadata) as $file) {
-			array_push($paths, Files::variant($file, WebP::extension()), Files::variant($file, AVIF::extension()), Files::backup_path($file));
-		}
-		foreach (array_unique($paths) as $path) {
-			Files::delete($path);
+		foreach (array_unique(array_merge(Files::of($id, $metadata), Files::listed($id))) as $file) {
+			Files::delete(Files::variant($file, WebP::extension()));
+			Files::delete(Files::variant($file, AVIF::extension()));
+			Files::delete(Files::backup_path($file));
 		}
 	}
 
@@ -206,22 +201,23 @@ class Cleaner
 				Files::delete(Files::variant($file, WebP::extension()));
 				Files::delete(Files::variant($file, AVIF::extension()));
 			}
-			// Without its original, e.g. the folder of the originals moved, the
-			// files kept elsewhere stay listed: they are restored once it is back.
-			$kept = [];
-			foreach (Files::listed($id) as $path) {
-				if (!$restored && !preg_match('/\.(webp|avif)$/', $path)) {
-					$kept[] = $path;
-					continue;
+			// The files of former sizes too. Without its original, e.g. the folder
+			// of the originals moved, the image stays listed: its originals are
+			// restored once the folder is back.
+			$listed = Files::listed($id);
+			foreach ($listed as $file) {
+				Files::delete(Files::variant($file, WebP::extension()));
+				Files::delete(Files::variant($file, AVIF::extension()));
+				if ($restored) {
+					Files::delete(Files::backup_path($file));
 				}
-				Files::delete($path);
 			}
 			foreach (array_keys(get_post_meta($id)) as $key) {
 				if (strpos($key, '_octopus_') === 0) {
 					delete_post_meta($id, $key);
 				}
 			}
-			Files::save_listed($id, $kept);
+			Files::save_listed($id, $restored ? [] : $listed);
 			Optimiser::save_file_sizes($id);
 			return $restored;
 		});

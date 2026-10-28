@@ -92,7 +92,7 @@ class UninstallTest extends TestCase
 			update_option($option, 'kept');
 		}
 		$id = self::factory()->attachment->create_object(['file' => '2026/10/photo.jpg', 'post_mime_type' => 'image/jpeg']);
-		update_post_meta($id, '_octopus_files', ['2026/10/photo.jpg.webp']);
+		update_post_meta($id, '_octopus_files', ['2026/10/photo.jpg']);
 		update_post_meta($id, '_octopus_webp', 'quality:80');
 		update_post_meta($id, 'octopus_other_plugin', 'kept');
 
