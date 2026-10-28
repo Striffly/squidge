@@ -15,6 +15,7 @@
 
 namespace Octopus\Tests\Integration;
 
+use Exception;
 use Octopus\Encoders\AVIF;
 use Octopus\Encoders\Formats;
 use Octopus\Encoders\JPG;
@@ -264,6 +265,26 @@ class OptimiseTest extends TestCase
 		$this->assertFileEquals(get_attached_file($default), get_attached_file($wrong));
 		$this->assertSame('quality:100', JPG::signature(['quality' => 150]));
 		$this->assertSame('level:7', PNG::signature(['optimization' => 'o9']));
+	}
+
+	public function test_a_failed_regeneration_leaves_the_uploads_optimised()
+	{
+		$id = $this->upload('photo.jpg');
+		$fail = function () {
+			throw new Exception('The thumbnails cannot be made.');
+		};
+		add_filter('intermediate_image_sizes_advanced', $fail);
+		try {
+			Optimiser::regenerate($id);
+			$this->fail('The exception goes up.');
+		} catch (Exception $e) {
+			$this->assertSame('The thumbnails cannot be made.', $e->getMessage());
+		}
+		remove_filter('intermediate_image_sizes_advanced', $fail);
+
+		$this->assertFalse(Optimiser::$regenerating);
+		$this->assertFalse(has_filter('wp_update_attachment_metadata'));
+		$this->assertSame(Status::OPTIMISED, Status::of($this->upload('graphic.png')));
 	}
 
 	public function test_a_new_thumbnail_size_is_made_and_optimised()

@@ -456,9 +456,13 @@ class Optimiser
 			};
 			add_filter('wp_update_attachment_metadata', $working);
 			self::$regenerating = true;
-			$metadata = wp_generate_attachment_metadata($id, $source);
-			self::$regenerating = false;
-			remove_filter('wp_update_attachment_metadata', $working);
+			try {
+				$metadata = wp_generate_attachment_metadata($id, $source);
+			} finally {
+				// Even if it throws: the next uploads of the request are optimised again.
+				self::$regenerating = false;
+				remove_filter('wp_update_attachment_metadata', $working);
+			}
 			if (empty($metadata) || is_wp_error($metadata)) {
 				return null;
 			}
