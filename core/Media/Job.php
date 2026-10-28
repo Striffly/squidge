@@ -145,11 +145,11 @@ class Job extends Background
 
 	/**
 	 * Returns the progress of the last job, with its
-	 * state: running, paused, cancelling (its worker
-	 * ending the image it was processing), finished or
-	 * cancelled, and the seconds an image may still wait
-	 * for another request holding it (waiting, 0 if
-	 * none). Null if no job ever ran.
+	 * state: running, pausing or cancelling (its worker
+	 * ending the image it was processing, see ending()),
+	 * paused, finished or cancelled, and the seconds an
+	 * image may still wait for another request holding
+	 * it (waiting, 0 if none). Null if no job ever ran.
 	 *
 	 * @return array|null
 	 * @since 1.0.0
@@ -161,13 +161,11 @@ class Job extends Background
 			return null;
 		}
 		if ($progress['cancelled']) {
-			// The worker ends the image it was processing first, while it refreshes its lock: not one PHP stopped.
-			$age = empty($progress['current']) ? null : Lock::age($progress['current']);
-			$progress['state'] = $age !== null && $age < 2 * Lock::BEAT ? 'cancelling' : 'cancelled';
+			$progress['state'] = self::ending($progress) ? 'cancelling' : 'cancelled';
 		} elseif ($progress['finished']) {
 			$progress['state'] = 'finished';
 		} elseif ($this->is_paused()) {
-			$progress['state'] = 'paused';
+			$progress['state'] = self::ending($progress) ? 'pausing' : 'paused';
 		} else {
 			$progress['state'] = 'running';
 		}
@@ -175,6 +173,22 @@ class Job extends Background
 		$waiting = isset($progress['waiting']['until']) && in_array($progress['state'], ['running', 'paused'], true);
 		$progress['waiting'] = $waiting ? max(0, $progress['waiting']['until'] - time()) : 0;
 		return $progress;
+	}
+
+	/**
+	 * Determines if the worker still ends the image it
+	 * was processing as the job was cancelled or paused:
+	 * while it refreshes the lock of the image, not a
+	 * worker PHP stopped.
+	 *
+	 * @param array $progress
+	 * @return bool
+	 * @since 1.0.0
+	 */
+	private static function ending($progress)
+	{
+		$age = empty($progress['current']) ? null : Lock::age($progress['current']);
+		return $age !== null && $age < 2 * Lock::BEAT;
 	}
 
 	/**

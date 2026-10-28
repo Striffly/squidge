@@ -263,6 +263,28 @@ class JobTest extends TestCase
 		$this->assertSame([Status::TO_OPTIMISE, Status::TO_OPTIMISE], [Status::of($ids[1]), Status::of($ids[2])]);
 	}
 
+	public function test_a_worker_ends_its_image_then_waits_once_the_job_is_paused()
+	{
+		$ids = [$this->upload_unoptimised('photo.jpg'), $this->upload_unoptimised('photo.jpg')];
+		$this->job->start(Job::OPTIMISE, $ids);
+		// Paused by another request while the worker encodes the first image.
+		$told = null;
+		add_action('octopus_working', function () use (&$told) {
+			if ($told === null) {
+				(new Job())->pause();
+				$told = (new Job())->progress()['state'];
+			}
+		});
+
+		$this->handle();
+
+		$this->assertSame('pausing', $told, 'Its image in progress, the page waits for its count.');
+		$progress = $this->job->progress();
+		$this->assertSame(['paused', 1], [$progress['state'], $progress['done']]);
+		$this->assertSame([$ids[1]], array_values($this->job->get_batches()[0]->data), 'The rest waits for the resume.');
+		$this->job->delete_all();
+	}
+
 	public function test_a_cancel_waits_for_no_image_of_a_worker_php_stopped()
 	{
 		$id = $this->upload_unoptimised('photo.jpg');

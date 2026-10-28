@@ -21,10 +21,10 @@
 
 	class Job extends Component {
 		/** The refresh, by state of the job: none once it ended. */
-		static DELAYS = {running: 500, paused: 5000, cancelling: 500};
+		static DELAYS = {running: 500, paused: 5000, pausing: 500, cancelling: 500};
 
 		/** The states of a job that is not over: its progress shown. */
-		static BUSY = ['running', 'paused', 'cancelling'];
+		static BUSY = ['running', 'pausing', 'paused', 'cancelling'];
 
 		/**
 		 * The final count stays on the bar this long before
@@ -118,7 +118,8 @@
 		}
 
 		async refresh() {
-			const light = ['running', 'cancelling'].includes(this.state) && Date.now() - this.counted < Job.COUNTS_DELAY;
+			// Paused, nothing moves: its counts with it.
+			const light = Job.BUSY.includes(this.state) && this.state !== 'paused' && Date.now() - this.counted < Job.COUNTS_DELAY;
 			const sent = performance.now();
 			const response = await this.view.api.post('octopus_job_status', light ? {light: '1'} : {});
 			if (!response.success) {
@@ -290,7 +291,7 @@
 				progress = sprintf(_n('%1$s · an image waits for another request, %2$s second at most', '%1$s · an image waits for another request, %2$s seconds at most', job.waiting, 'octopus-image-optimizer'), progress, job.waiting.toLocaleString());
 			}
 			const cancelling = __('Cancelling…', 'octopus-image-optimizer');
-			const doing = {paused: __('Paused:', 'octopus-image-optimizer'), cancelling, cancelled: cancelling}[job.state]
+			const doing = {pausing: __('Pausing…', 'octopus-image-optimizer'), paused: __('Paused:', 'octopus-image-optimizer'), cancelling, cancelled: cancelling}[job.state]
 				?? `${Job.TEXTS[job.action]?.label ?? __('Processing', 'octopus-image-optimizer')}…`;
 			this.label.textContent = `${doing} ${progress}`;
 			this.dismiss();
