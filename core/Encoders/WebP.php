@@ -21,7 +21,6 @@ namespace Octopus\Encoders;
 use Octopus\Engines\ImageEditor;
 use Octopus\Log\Logger;
 use Octopus\Media\Files;
-use Octopus\Media\Optimiser;
 
 if (!defined('ABSPATH')) {
 	exit; // Exit if accessed directly
@@ -63,7 +62,7 @@ class WebP extends AbstractEncoder
 	 * @param $filepath
 	 * @param $mime
 	 * @param $args
-	 * @return void
+	 * @return \Generator
 	 * @since 1.0.0
 	 */
 	public static function convert($filepath, $mime, $args)
@@ -84,13 +83,11 @@ class WebP extends AbstractEncoder
 		$original = self::original($filepath);
 		$source = ImageEditor::readable($original, $mime);
 		$output = Files::variant($filepath, self::extension());
+		// One thread: -mt makes cwebp no faster, in lossy or near-lossless mode.
 		$options = ['-q', (int)$args['quality']];
-		if (self::multithreading()) {
-			$options[] = '-mt';
-		}
-		if (self::run(array_merge($options, [$source, '-o', $output]), $filepath, $args)) {
+		if (yield from self::run(array_merge($options, [$source, '-o', $output]), $filepath, $args)) {
 			if ($mime == Files::PNG) {
-				self::near_lossless($options, $source, $output, $filepath, $args);
+				yield from self::near_lossless($options, $source, $output, $filepath, $args);
 			}
 			Logger::info("Successfully converted to WebP file: " . $output);
 			Files::remember(isset($args['id']) ? (int)$args['id'] : 0, $filepath);
@@ -110,6 +107,7 @@ class WebP extends AbstractEncoder
 	 * @param string $output
 	 * @param string $filepath
 	 * @param array $args
+	 * @return \Generator
 	 * @since 1.0.0
 	 */
 	private static function near_lossless($options, $source, $output, $filepath, $args)
@@ -123,27 +121,12 @@ class WebP extends AbstractEncoder
 		if ($temp === null) {
 			return;
 		}
-		if (self::run(array_merge($options, ['-near_lossless', self::NEAR_LOSSLESS, $source, '-o', $temp]), $filepath, $args) && filesize($temp) < $lossy) {
+		if ((yield from self::run(array_merge($options, ['-near_lossless', self::NEAR_LOSSLESS, $source, '-o', $temp]), $filepath, $args)) && filesize($temp) < $lossy) {
 			// phpcs:ignore WordPress.WP.AlternativeFunctions.rename_rename -- Replaces the WebP the site may be serving at once, never half written.
 			rename($temp, $output);
 		} elseif (file_exists($temp)) {
 			wp_delete_file($temp);
 		}
-	}
-
-	/**
-	 * Determines if cwebp uses a second thread: on
-	 * upload and in the CLI, not in background jobs,
-	 * where the requests of the site go first. The
-	 * octopus_webp_mt filter sets it by context (see
-	 * Optimiser::$context).
-	 *
-	 * @return bool
-	 * @since 1.0.0
-	 */
-	private static function multithreading()
-	{
-		return (bool)apply_filters('octopus_webp_mt', Optimiser::$context !== 'background', Optimiser::$context);
 	}
 
 	/**

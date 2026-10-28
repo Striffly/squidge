@@ -22,6 +22,7 @@ use Octopus\Encoders\JPG;
 use Octopus\Encoders\PNG;
 use Octopus\Encoders\WebP;
 use Octopus\Engines\ImageEditor;
+use Octopus\Engines\Libraries;
 use Octopus\Log\Errors;
 use Octopus\Log\Logger;
 use Octopus\Settings;
@@ -33,9 +34,7 @@ if (!defined('ABSPATH')) {
 class Optimiser
 {
 	/**
-	 * The libraries by format, in the order they run:
-	 * WebP and AVIF are made from the original before
-	 * the JPG and PNG files are compressed in place.
+	 * The libraries by format.
 	 *
 	 * @var array
 	 */
@@ -45,6 +44,17 @@ class Optimiser
 		'jpg' => JPG::class,
 		'png' => PNG::class,
 	];
+
+	/**
+	 * The formats made together, on every file of an
+	 * image, in turn: the WebP and AVIF versions are
+	 * made from the originals before the JPG and PNG
+	 * files are compressed in place. AVIF first, the
+	 * slowest.
+	 *
+	 * @var array
+	 */
+	const PHASES = [['avif', 'webp'], ['jpg', 'png']];
 
 	/**
 	 * How to optimise an image: the new images only
@@ -87,8 +97,8 @@ class Optimiser
 	 * Where the images are optimised: "upload" during a
 	 * request of the admin (upload, media library
 	 * action), "background" in a background job, "cli"
-	 * in WP-CLI. Passed to the octopus_nice, octopus_avif_jobs
-	 * and octopus_webp_mt filters.
+	 * in WP-CLI. Passed to the octopus_nice and
+	 * octopus_threads filters.
 	 *
 	 * @var string
 	 */
@@ -150,7 +160,10 @@ class Optimiser
 
 	/**
 	 * Optimises an attachment with each format of the
-	 * settings, then measures the bytes saved.
+	 * settings, then measures the bytes saved. The
+	 * libraries run on several files at once, within
+	 * the threads of the context (see
+	 * Libraries::budget()).
 	 *
 	 * @param int $id
 	 * @param array|null $metadata The attachment metadata, when it is not saved yet (on upload).
@@ -168,18 +181,33 @@ class Optimiser
 			}
 			$metadata = $metadata ?: wp_get_attachment_metadata($id);
 			try {
-				foreach (self::SERVICES as $format => $service) {
-					if (!isset($settings[$format])) {
-						continue;
-					}
-					try {
-						$service::process($metadata, array_merge($settings[$format], [
+				foreach (self::PHASES as $phase) {
+					$jobs = [];
+					$processed = [];
+					foreach ($phase as $format) {
+						if (!isset($settings[$format])) {
+							continue;
+						}
+						$service = self::SERVICES[$format];
+						$args = array_merge($settings[$format], [
 							'id' => (int)$id,
 							'force' => $force,
 							'thumbnailsOnly' => $thumbnails_only,
-						]));
-					} catch (Exception $e) {
-						Logger::error($e->getMessage());
+						]);
+						try {
+							$format_jobs = $service::jobs($metadata, $args);
+						} catch (Exception $e) {
+							Logger::error($e->getMessage());
+							continue;
+						}
+						if ($format_jobs !== null) {
+							$jobs = array_merge($jobs, $format_jobs);
+							$processed[$service] = $args;
+						}
+					}
+					Libraries::run_all(self::biggest_first($jobs), Libraries::budget(self::$context));
+					foreach ($processed as $service => $args) {
+						$service::processed($args);
 					}
 				}
 			} finally {
@@ -201,6 +229,30 @@ class Optimiser
 			Stats::save($id, $metadata);
 			return true;
 		});
+	}
+
+	/**
+	 * Returns the jobs of the formats (see
+	 * AbstractEncoder::jobs()), those of the biggest
+	 * files first: the longest start at once, instead
+	 * of running alone at the end. A file keeps the
+	 * order of its formats.
+	 *
+	 * @param array $jobs [file, job] pairs.
+	 * @return \Generator[]
+	 * @since 1.0.0
+	 */
+	private static function biggest_first($jobs)
+	{
+		$sizes = [];
+		foreach ($jobs as $key => $job) {
+			$sizes[$key] = (int)@filesize($job[0]);
+		}
+		// Stable since PHP 8.0: the formats of a file keep their order.
+		uksort($jobs, function ($a, $b) use ($sizes) {
+			return $sizes[$b] <=> $sizes[$a];
+		});
+		return array_column($jobs, 1);
 	}
 
 	/**

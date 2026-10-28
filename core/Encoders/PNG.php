@@ -60,7 +60,7 @@ class PNG extends AbstractEncoder
 	 * @param $filepath
 	 * @param $mime
 	 * @param $args
-	 * @return void
+	 * @return \Generator
 	 * @since 1.0.0
 	 */
 	public static function convert($filepath, $mime, $args)
@@ -73,23 +73,21 @@ class PNG extends AbstractEncoder
 			return;
 		}
 		$original = Files::backup_path($filepath);
-		$quantized = self::quantize($original, $args);
+		$quantized = yield from self::quantize($original, $args);
 		$source = $quantized ?: $original;
 		// optipng keeps a .bak of an output file it overwrites: remove it first.
 		wp_delete_file($filepath);
 		$level = self::optimization_level($args);
+		// optipng runs on one thread.
+		$threads = 1;
 		if (self::library() === 'oxipng') {
 			// oxipng goes up to -o 6. --force writes the file even if not lighter, as optipng.
-			$arguments = ['-o', min(6, $level), '--strip', 'safe', '--force'];
-			$threads = self::threads();
-			if ($threads !== 'all') {
-				array_push($arguments, '--threads', $threads);
-			}
-			$arguments = array_merge($arguments, ['--out', $filepath, $source]);
+			$threads = Libraries::threads();
+			$arguments = ['-o', min(6, $level), '--strip', 'safe', '--force', '--threads', $threads, '--out', $filepath, $source];
 		} else {
 			$arguments = ['-clobber', '-strip', 'all', '-o', $level, '-out', $filepath, $source];
 		}
-		$compressed = self::run($arguments, $filepath, $args);
+		$compressed = yield from self::run($arguments, $filepath, $args, $threads);
 		if ($quantized) {
 			wp_delete_file($quantized);
 		}
@@ -128,7 +126,7 @@ class PNG extends AbstractEncoder
 	 *
 	 * @param string $original
 	 * @param array $args
-	 * @return string|null
+	 * @return \Generator Returning the file, or null.
 	 * @since 1.0.0
 	 */
 	private static function quantize($original, $args)
@@ -140,7 +138,7 @@ class PNG extends AbstractEncoder
 		require_once ABSPATH . 'wp-admin/includes/file.php';
 		$temp = wp_tempnam('octopus.png');
 		$range = max(0, $quality - 15) . '-' . $quality;
-		list($code, $output) = Libraries::execute(array_merge(Libraries::nice(Optimiser::$context), [Libraries::binary('pngquant'), '--quality=' . $range, '--strip', '--skip-if-larger', '--force', '--output', $temp, '--', $original]));
+		list($code, $output) = yield ['command' => array_merge(Libraries::nice(Optimiser::$context), [Libraries::binary('pngquant'), '--quality=' . $range, '--strip', '--skip-if-larger', '--force', '--output', $temp, '--', $original]), 'threads' => 1];
 		clearstatcache();
 		if ($code === 0 && filesize($temp) > 0) {
 			return $temp;
@@ -196,20 +194,6 @@ class PNG extends AbstractEncoder
 	public static function installed($name = null)
 	{
 		return parent::installed($name === null ? self::library() : $name);
-	}
-
-	/**
-	 * Returns the number of threads of oxipng: 4 on
-	 * upload, 2 in background jobs, all in the CLI, as
-	 * avifenc. The octopus_oxipng_threads filter sets it
-	 * by context (see Optimiser::$context).
-	 *
-	 * @return string A number, or "all".
-	 * @since 1.0.0
-	 */
-	private static function threads()
-	{
-		return Libraries::threads('octopus_oxipng_threads', Optimiser::$context);
 	}
 
 	/**

@@ -6,9 +6,10 @@
  * The libraries of the server making the formats
  * (cwebp, avifenc, jpegoptim, optipng, oxipng,
  * pngquant): finds them, runs them without shell,
- * with a lower priority and their number of threads,
- * and reads their versions. ImageEditor makes the
- * WebP and AVIF files without them.
+ * with a lower priority, several at once within a
+ * number of threads, and reads their versions.
+ * ImageEditor makes the WebP and AVIF files without
+ * them.
  *
  * @package     OIO
  * @author      Clément Gayot
@@ -19,6 +20,7 @@
 
 namespace Octopus\Engines;
 
+use Exception;
 use Octopus\Log\Logger;
 
 if (!defined('ABSPATH')) {
@@ -71,6 +73,14 @@ class Libraries
 	private static $binaries = [];
 
 	/**
+	 * The threads the next command of run_all() may
+	 * take, see threads().
+	 *
+	 * @var int
+	 */
+	private static $grant = 1;
+
+	/**
 	 * Executes a command without shell: each argument
 	 * reaches the program as given, nothing is
 	 * interpreted. Stopped after TIMEOUT, with the code
@@ -87,68 +97,180 @@ class Libraries
 	 */
 	public static function execute($command)
 	{
+		$runs = [self::start($command)];
+		while (!isset($runs[0]['code'])) {
+			self::poll($runs);
+		}
+		return [$runs[0]['code'], $runs[0]['output']];
+	}
+
+	/**
+	 * Runs jobs at once within a number of threads, e.g.
+	 * the WebP and AVIF versions of the files of an
+	 * image: a library takes one thread, or a few, and
+	 * one after the other most threads of the number
+	 * would wait. A job is a generator yielding the
+	 * commands it runs in turn, each ['command' =>
+	 * string[], 'threads' => int], and getting back
+	 * their exit code and output, as execute(): its PHP
+	 * runs between them. The jobs start in their order
+	 * while threads are free, a job under way first,
+	 * and its command takes the threads given by
+	 * threads(). A job throwing an exception stops,
+	 * logged.
+	 *
+	 * @param \Generator[] $jobs
+	 * @param int $threads
+	 * @since 1.0.0
+	 */
+	public static function run_all($jobs, $threads)
+	{
+		// The jobs to start or go on with, with the result of their last command.
+		$ready = [];
+		foreach ($jobs as $job) {
+			$ready[] = [$job, null];
+		}
+		$running = [];
+		$used = 0;
+		try {
+			while ($ready || $running) {
+				while ($ready && $used < $threads) {
+					list($job, $result) = array_shift($ready);
+					// The threads free, shared with the jobs waiting: the last ones get more.
+					self::$grant = max(1, intdiv($threads - $used, count($ready) + 1));
+					$step = self::step($job, $result);
+					if ($step === null) {
+						continue;
+					}
+					$run = self::start($step['command']);
+					$run['job'] = $job;
+					$run['threads'] = isset($step['threads']) ? max(1, (int)$step['threads']) : 1;
+					$running[] = $run;
+					$used += $run['threads'];
+				}
+				self::poll($running);
+				foreach ($running as $key => $run) {
+					if (isset($run['code'])) {
+						$used -= $run['threads'];
+						array_unshift($ready, [$run['job'], [$run['code'], $run['output']]]);
+						unset($running[$key]);
+					}
+				}
+			}
+		} finally {
+			// An error stopped the jobs: their libraries do not run on.
+			foreach ($running as $run) {
+				if (!isset($run['code'])) {
+					proc_terminate($run['process'], 9);
+					fclose($run['pipe']); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fclose -- The output pipe of the library, not a file.
+					proc_close($run['process']);
+				}
+			}
+			self::$grant = 1;
+		}
+	}
+
+	/**
+	 * Starts a job, or goes on with it with the result
+	 * of its last command: its next command, or null
+	 * once it is over.
+	 *
+	 * @param \Generator $job
+	 * @param array|null $result
+	 * @return array|null
+	 * @since 1.0.0
+	 */
+	private static function step($job, $result)
+	{
+		try {
+			$step = $result === null ? $job->current() : $job->send($result);
+		} catch (Exception $e) {
+			Logger::error($e->getMessage());
+			return null;
+		}
+		return $job->valid() ? $step : null;
+	}
+
+	/**
+	 * Starts a command, see execute(): its process, to
+	 * poll(), or with its code and output at once
+	 * through exec(), or when it cannot run.
+	 *
+	 * @param string[] $command
+	 * @return array
+	 * @since 1.0.0
+	 */
+	private static function start($command)
+	{
 		$command = array_map('strval', $command);
 		if (function_exists('proc_open')) {
 			$null = self::is_windows() ? 'NUL' : '/dev/null';
 			// phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.system_calls_proc_open, Generic.PHP.ForbiddenFunctions.Found -- Running the libraries (cwebp, avifenc...) is what OIO does: each argument apart, without shell.
 			$process = @proc_open($command, [0 => ['file', $null, 'r'], 1 => ['pipe', 'w'], 2 => ['redirect', 1]], $pipes);
 			if (is_resource($process)) {
-				return self::wait($process, $pipes[1], $command[0]);
+				stream_set_blocking($pipes[1], false);
+				$timeout = max(1, (int)apply_filters('octopus_timeout', self::TIMEOUT));
+				return ['process' => $process, 'pipe' => $pipes[1], 'program' => $command[0], 'timeout' => $timeout, 'end' => microtime(true) + $timeout, 'output' => ''];
 			}
 		}
 		if (function_exists('exec')) {
 			// phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.system_calls_exec -- Where proc_open() is disabled, each argument escaped.
 			exec(implode(' ', array_map('escapeshellarg', $command)) . ' 2>&1', $lines, $code);
-			return [$code, implode("\n", $lines)];
+			return ['code' => $code, 'output' => implode("\n", $lines)];
 		}
-		return [127, 'cannot run ' . basename($command[0])];
+		return ['code' => 127, 'output' => 'cannot run ' . basename($command[0])];
 	}
 
 	/**
-	 * Reads the output of a process until it ends, or
-	 * stops it once it took longer than TIMEOUT.
+	 * Reads the output of the processes started, waiting
+	 * until one writes, 200 ms at most. A process that
+	 * ended, or took longer than TIMEOUT and is stopped,
+	 * gets its exit code.
 	 *
-	 * @param resource $process
-	 * @param resource $pipe Its output.
-	 * @param string $program
-	 * @return array The exit code and the output.
+	 * @param array $runs See start().
 	 * @since 1.0.0
 	 */
-	private static function wait($process, $pipe, $program)
+	private static function poll(&$runs)
 	{
-		$timeout = max(1, (int)apply_filters('octopus_timeout', self::TIMEOUT));
-		$end = microtime(true) + $timeout;
-		$output = '';
-		stream_set_blocking($pipe, false);
-		$code = null;
-		while (true) {
-			$read = [$pipe];
-			$write = $except = null;
-			// Wakes up as soon as the library writes, at least every 200 ms.
-			@stream_select($read, $write, $except, 0, 200000);
-			$chunk = (string)stream_get_contents($pipe);
-			$output .= $chunk;
-			$status = proc_get_status($process);
+		$read = [];
+		foreach ($runs as $run) {
+			if (!isset($run['code'])) {
+				$read[] = $run['pipe'];
+			}
+		}
+		if (!$read) {
+			return;
+		}
+		$write = $except = null;
+		@stream_select($read, $write, $except, 0, 200000);
+		$written = false;
+		foreach ($runs as $key => $run) {
+			if (isset($run['code'])) {
+				continue;
+			}
+			$chunk = (string)stream_get_contents($run['pipe']);
+			$written = $written || $chunk !== '';
+			$runs[$key]['output'] .= $chunk;
+			$status = proc_get_status($run['process']);
 			if (!$status['running']) {
 				// Given once only: proc_close() would then return -1.
 				$code = $status['exitcode'];
-				break;
-			}
-			if ($chunk === '') {
-				// On Windows, stream_select() does not wait on a pipe.
-				usleep(10000);
-			}
-			if (microtime(true) > $end) {
-				proc_terminate($process, 9);
-				$output .= sprintf("\n%s took longer than %d s, stopped", basename($program), $timeout);
+			} elseif (microtime(true) > $run['end']) {
+				proc_terminate($run['process'], 9);
+				$runs[$key]['output'] .= sprintf("\n%s took longer than %d s, stopped", basename($run['program']), $run['timeout']);
 				$code = 124;
-				break;
+			} else {
+				continue;
 			}
+			$runs[$key]['output'] .= (string)stream_get_contents($run['pipe']);
+			fclose($run['pipe']); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fclose -- The output pipe of the library, not a file.
+			proc_close($run['process']);
+			$runs[$key]['code'] = $code;
 		}
-		$output .= (string)stream_get_contents($pipe);
-		fclose($pipe); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fclose -- The output pipe of the library, not a file.
-		proc_close($process);
-		return [$code, $output];
+		if (!$written) {
+			// On Windows, stream_select() does not wait on a pipe.
+			usleep(10000);
+		}
 	}
 
 	/**
@@ -367,23 +489,57 @@ class Libraries
 	}
 
 	/**
-	 * Returns the threads of a library, by context: 4
-	 * on upload, 2 in background jobs, all of them in
-	 * WP-CLI, unless the filter sets another number,
-	 * or "all".
+	 * Returns the threads the libraries take at most, all
+	 * together, by context: 4 on upload, 2 in background
+	 * jobs (the requests of the site go first), all of
+	 * them in WP-CLI. The octopus_threads filter sets
+	 * another number, or "all".
 	 *
-	 * @param string $filter octopus_avif_jobs or octopus_oxipng_threads.
 	 * @param string $context See Optimiser::$context.
-	 * @return string
+	 * @return int
 	 * @since 1.0.0
 	 */
-	public static function threads($filter, $context)
+	public static function budget($context)
 	{
 		$defaults = ['upload' => 4, 'background' => 2, 'cli' => 'all'];
 		$default = isset($defaults[$context]) ? $defaults[$context] : 4;
-		// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.DynamicHooknameFound -- octopus_avif_jobs or octopus_oxipng_threads.
-		$threads = apply_filters($filter, $default, $context);
-		return $threads === 'all' ? 'all' : (string)max(1, (int)$threads);
+		$threads = apply_filters('octopus_threads', $default, $context);
+		return $threads === 'all' ? self::cores() : max(1, (int)$threads);
+	}
+
+	/**
+	 * Returns the threads the next command of run_all()
+	 * may take: avifenc and oxipng run on them, the other
+	 * libraries on one.
+	 *
+	 * @return int
+	 * @since 1.0.0
+	 */
+	public static function threads()
+	{
+		return self::$grant;
+	}
+
+	/**
+	 * Returns the number of processors of the server, 4
+	 * if it cannot be read (e.g. /proc out of
+	 * open_basedir).
+	 *
+	 * @return int
+	 * @since 1.0.0
+	 */
+	private static function cores()
+	{
+		if (self::is_windows()) {
+			$cores = (int)getenv('NUMBER_OF_PROCESSORS');
+		} elseif (PHP_OS_FAMILY === 'Darwin') {
+			list($code, $output) = self::execute(['/usr/sbin/sysctl', '-n', 'hw.ncpu']);
+			$cores = $code === 0 ? (int)$output : 0;
+		} else {
+			$cpuinfo = (string)@file_get_contents('/proc/cpuinfo');
+			$cores = preg_match_all('/^processor\s*:/m', $cpuinfo);
+		}
+		return $cores > 0 ? $cores : 4;
 	}
 
 	/**

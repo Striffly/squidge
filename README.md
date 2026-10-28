@@ -177,16 +177,17 @@ Every optimisation starts from the original image:
 ```bash
 jpegoptim --strip-all --all-progressive --overwrite --max={quality} photo.jpg
 optipng -clobber -strip all -o {level} -out photo.png octopus/originals-{key}/photo.png
-oxipng -o {level} --strip safe --force --out photo.png octopus/originals-{key}/photo.png
+oxipng -o {level} --strip safe --force --threads {threads} --out photo.png octopus/originals-{key}/photo.png
 pngquant --quality={quality - 15}-{quality} --strip --skip-if-larger --force --output tmp.png -- octopus/originals-{key}/photo.png
-cwebp -q {quality} -mt photo.jpg -o octopus/formats/photo.jpg.webp
-avifenc -q {quality} --speed 6 --ignore-exif --ignore-xmp photo.jpg octopus/formats/photo.jpg.avif
+cwebp -q {quality} photo.jpg -o octopus/formats/photo.jpg.webp
+avifenc -q {quality} --ignore-exif --ignore-xmp --speed 6 --jobs {threads} photo.jpg octopus/formats/photo.jpg.avif
 ```
 
 `avifenc` older than 1.0 gets the quality as `cq-level` instead of `-q`. `oxipng` runs instead of `optipng` when
-installed, after `pngquant` when the PNG compression is lossy (it then compresses `tmp.png`). In background jobs, `cwebp`
-runs without `-mt`, `avifenc` with `--jobs 2` and `oxipng` with `--threads 2`. A PNG is also encoded with `cwebp -near_lossless 60`, kept if lighter: graphics
-and screenshots get much lighter and sharper, photos are left lossy.
+installed, after `pngquant` when the PNG compression is lossy (it then compresses `tmp.png`). The libraries run on
+several files of an image at once, within `octopus_threads` (4 on upload, 2 in background jobs): `avifenc` and `oxipng`
+get the threads left, `{threads}`. A PNG is also encoded with `cwebp -near_lossless 60`, kept if lighter: graphics and
+screenshots get much lighter and sharper, photos are left lossy.
 
 Without `cwebp` or `avifenc`, the WordPress image editor (GD or Imagick) makes the WebP at the same quality, and the
 AVIF at the quality + 5 (up to 89, from 90 as is), for files close to the ones of `avifenc`. The PNG images are not
@@ -288,17 +289,16 @@ nothing is encoded again.
 |---------------------------------------|------------------------------------------------|--------------------------------------------------------|
 | `octopus_backup_dir`                  | `uploads/octopus/originals-{key}`              | The folder of the original images.                     |
 | `octopus_nice`                        | `19` in background jobs, `0` otherwise         | The priority of the libraries, `0` (normal) to `19`.   |
-| `octopus_avif_jobs`                   | `4` on upload, `2` in background, `all` in CLI | The threads of `avifenc`.                              |
-| `octopus_webp_mt`                     | `false` in background jobs, `true` otherwise   | A second thread for `cwebp` (`-mt`).                   |
-| `octopus_oxipng_threads`              | `4` on upload, `2` in background, `all` in CLI | The threads of `oxipng`.                               |
+| `octopus_threads`                     | `4` on upload, `2` in background, `all` in CLI | The threads of the libraries at once, all together.    |
 | `octopus_timeout`                     | `120`                                          | Seconds a library may take on a file, then stopped.    |
 | `octopus_job_seconds_between_batches` | `0`                                            | A pause after each image of a background job, seconds. |
 | `octopus_job_default_time_limit`      | `20`                                           | The duration of a batch of a background job, seconds.  |
 | `octopus_binary_path`                 | Found in the `PATH`, then `/usr/bin`...        | The path of a library, or `false` to turn it off.      |
 
-`octopus_nice`, `octopus_avif_jobs`, `octopus_webp_mt` and `octopus_oxipng_threads` receive the context as second argument: `upload`,
-`background` or `cli`. On multisite, the two job filters carry the ID of the site: `octopus_2_job_default_time_limit` on
-the site 2.
+`octopus_nice` and `octopus_threads` receive the context as second argument: `upload`, `background` or `cli`. Within
+`octopus_threads`, OIO runs the libraries on several files of an image at once: `cwebp`, `jpegoptim`, `optipng` and
+`pngquant` take one thread each, `avifenc` and `oxipng` the threads left. On multisite, the two job filters carry the
+ID of the site: `octopus_2_job_default_time_limit` on the site 2.
 
 `octopus_binary_path` receives the name of the library as second argument (`jpegoptim`, `optipng`, `cwebp`, `avifenc`,
 or `nice`); without `cwebp` or `avifenc`, GD or Imagick make the format. OIO looks the libraries up in the folders of
@@ -307,8 +307,8 @@ passes an empty `PATH`.
 
 ```php
 // In a mu-plugin: lighter background jobs on a small server.
-add_filter('octopus_avif_jobs', function ($jobs, $context) {
-	return $context === 'background' ? 1 : $jobs;
+add_filter('octopus_threads', function ($threads, $context) {
+	return $context === 'background' ? 1 : $threads;
 }, 10, 2);
 
 // A library installed out of the usual folders.

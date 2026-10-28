@@ -196,6 +196,63 @@ class LibrariesTest extends TestCase
 		$this->assertSame('', get_post_meta($id, JPG::meta_key(), true));
 	}
 
+	public function test_the_jobs_run_at_once_within_the_threads()
+	{
+		$running = dirname($this->uploads) . '/running';
+		wp_mkdir_p($running);
+		// Each command marks itself as running, then tells how many run with it.
+		$code = '$mark = $argv[1] . "/" . getmypid(); touch($mark); usleep(300000); echo count(glob($argv[1] . "/*")); unlink($mark);';
+		$seen = [];
+		$job = function () use ($code, $running, &$seen) {
+			list(, $output) = yield ['command' => [PHP_BINARY, '-r', $code, '--', $running], 'threads' => 1];
+			$seen[] = (int)$output;
+		};
+
+		Libraries::run_all([$job(), $job(), $job(), $job(), $job()], 2);
+
+		$this->assertCount(5, $seen);
+		$this->assertSame(2, max($seen), 'Two at once, never more.');
+	}
+
+	public function test_a_job_gets_the_result_of_each_command_and_the_threads_left()
+	{
+		$results = [];
+		$job = (function () use (&$results) {
+			$results[] = Libraries::threads();
+			$results[] = yield ['command' => [PHP_BINARY, '-r', 'echo "first"; exit(3);'], 'threads' => 3];
+			$results[] = yield ['command' => [PHP_BINARY, '-r', 'echo "second";']];
+		})();
+		$failing = (function () {
+			yield ['command' => [PHP_BINARY, '-r', '']];
+			throw new \Exception('A job failing stops alone.');
+		})();
+
+		Libraries::run_all([$failing, $job], 4);
+
+		// The failing job runs on one thread: the job gets the 3 left.
+		$this->assertSame([3, [3, 'first'], [0, 'second']], $results);
+	}
+
+	public function test_the_libraries_of_an_image_run_at_once_within_the_threads()
+	{
+		$running = dirname($this->uploads) . '/running';
+		$log = dirname($this->uploads) . '/at-once.log';
+		wp_mkdir_p($running);
+		$script = 'touch "' . $running . '/$$"; sleep 0.2; ls "' . $running . '" | wc -l >> "' . $log . '"; rm "' . $running . '/$$"';
+		$this->fake_library('cwebp', $script);
+		$this->fake_library('avifenc', $script);
+		add_filter('octopus_threads', function () {
+			return 2;
+		});
+
+		$this->upload('photo.jpg');
+
+		$counts = array_map('intval', file($log));
+		// The WebP and AVIF versions of the 3 files, and the versions avifenc tells.
+		$this->assertGreaterThanOrEqual(6, count($counts));
+		$this->assertSame(2, max($counts), 'Two libraries at once, never more.');
+	}
+
 	/**
 	 * Replaces a library with a shell script, run with
 	 * the arguments of the library.

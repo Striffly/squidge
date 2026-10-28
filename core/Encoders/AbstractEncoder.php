@@ -52,11 +52,14 @@ abstract class AbstractEncoder
 
 	/**
 	 * Makes the version of a file in the format of the
-	 * encoder, or compresses it in place.
+	 * encoder, or compresses it in place: a job of
+	 * Libraries::run_all(), yielding the commands of its
+	 * library (see run()).
 	 *
 	 * @param string $filepath
 	 * @param string $mime
 	 * @param array $args
+	 * @return \Generator
 	 * @since 1.0.0
 	 */
 	abstract public static function convert($filepath, $mime, $args);
@@ -81,21 +84,23 @@ abstract class AbstractEncoder
 	abstract public static function extension();
 
 	/**
-	 * Processes the file attachment.
+	 * Returns the jobs making the format of the files of
+	 * an image, each with its file, for
+	 * Libraries::run_all(): then processed() saves the
+	 * settings used. Null if the format cannot be made.
 	 *
-	 * @param $attachment
-	 * @param $args
-	 * @return void
+	 * @param array $metadata
+	 * @param array $args
+	 * @return array|null [file, job] pairs.
 	 * @throws Exception
 	 * @since 1.0.0
 	 */
-	public static function process($attachment, $args)
+	public static function jobs($metadata, $args)
 	{
-		// Return if neither the library nor the image editor can make the format.
+		// Neither the library nor the image editor can make the format.
 		if (!static::available()) {
-			return;
+			return null;
 		}
-		$metadata = is_int($attachment) ? wp_get_attachment_metadata($attachment) : $attachment;
 		if (empty($metadata['file'])) {
 			throw new Exception("File attachment is not set.");
 		}
@@ -103,18 +108,19 @@ abstract class AbstractEncoder
 		$files = Files::of($id, $metadata);
 		// The main file is there, and in the uploads folder: not a link out of it.
 		if (!file_exists($files[0]) || !Files::contained($files[0])) {
-			return;
+			return null;
 		}
 
 		// An attachment already processed is only completed: the files not done
 		// yet (e.g. a new thumbnail size), unless forced.
-		$complete = self::has_compressed($id) && empty($args['force']);
+		$complete = self::complete($id, $args);
 		$args['id'] = $id;
 		Errors::clear_attachment($id, static::FORMAT);
 
 		if (!empty($args['thumbnailsOnly'])) {
 			array_shift($files);
 		}
+		$jobs = [];
 		foreach ($files as $file) {
 			if (!file_exists($file) || ($complete && static::is_done($file, $id))) {
 				continue;
@@ -130,34 +136,81 @@ abstract class AbstractEncoder
 				Errors::add($id, static::FORMAT, $file, 'cannot make the folder of the ' . static::FORMAT . ' version');
 				continue;
 			}
-			// Still processing it: the lock of the image does not go stale.
-			Lock::touch($id);
-			static::convert($file, (string)wp_get_image_mime($file), $args);
+			$jobs[] = [$file, self::job($file, $args)];
 		}
+		return $jobs;
+	}
 
-		// Save the settings used, unless a file failed so that it is processed
-		// again next time. A completed attachment keeps the settings it was
-		// processed with.
-		if (!$complete && !Errors::has($id, static::FORMAT)) {
+	/**
+	 * Returns the job converting a file, see convert().
+	 * An exception is an error of the file: the image
+	 * is processed again next time.
+	 *
+	 * @param string $file
+	 * @param array $args
+	 * @return \Generator
+	 * @since 1.0.0
+	 */
+	private static function job($file, $args)
+	{
+		// Still processing the image as the job starts: its lock does not go stale.
+		Lock::touch($args['id']);
+		try {
+			yield from static::convert($file, (string)wp_get_image_mime($file), $args);
+		} catch (Exception $e) {
+			Errors::add($args['id'], static::FORMAT, $file, $e->getMessage());
+		}
+	}
+
+	/**
+	 * Saves the settings an image was processed with,
+	 * once the jobs of jobs() ran, unless a file failed
+	 * so that it is processed again next time. A
+	 * completed image keeps the settings it was
+	 * processed with.
+	 *
+	 * @param array $args The args given to jobs().
+	 * @since 1.0.0
+	 */
+	public static function processed($args)
+	{
+		$id = isset($args['id']) ? (int)$args['id'] : 0;
+		if (!self::complete($id, $args) && !Errors::has($id, static::FORMAT)) {
 			self::update_meta($id, $args);
 		}
 	}
 
 	/**
-	 * Runs the library on a file with the arguments
-	 * given, and records an error if it exits with a
-	 * non zero code.
+	 * Determines if an image processed already is only
+	 * completed: the files not done yet (e.g. a new
+	 * thumbnail size), unless forced.
 	 *
-	 * @param string[] $arguments
-	 * @param string $filepath
+	 * @param int $id
 	 * @param array $args
 	 * @return bool
 	 * @since 1.0.0
 	 */
-	protected static function run($arguments, $filepath, $args)
+	private static function complete($id, $args)
+	{
+		return self::has_compressed($id) && empty($args['force']);
+	}
+
+	/**
+	 * Runs the library on a file with the arguments
+	 * given, from a job (see convert()), and records an
+	 * error if it exits with a non zero code.
+	 *
+	 * @param string[] $arguments
+	 * @param string $filepath
+	 * @param array $args
+	 * @param int $threads The threads the library takes, see Libraries::threads().
+	 * @return \Generator Returning whether it succeeded.
+	 * @since 1.0.0
+	 */
+	protected static function run($arguments, $filepath, $args, $threads = 1)
 	{
 		$command = array_merge(Libraries::nice(Optimiser::$context), [Libraries::binary(static::library())], $arguments);
-		list($code, $output) = Libraries::execute($command);
+		list($code, $output) = yield ['command' => $command, 'threads' => $threads];
 		if ($code === 0) {
 			return true;
 		}

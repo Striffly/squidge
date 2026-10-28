@@ -22,7 +22,6 @@ use Octopus\Engines\ImageEditor;
 use Octopus\Engines\Libraries;
 use Octopus\Log\Logger;
 use Octopus\Media\Files;
-use Octopus\Media\Optimiser;
 
 if (!defined('ABSPATH')) {
 	exit; // Exit if accessed directly
@@ -67,7 +66,7 @@ class AVIF extends AbstractEncoder
 	 * @param $filepath
 	 * @param $mime
 	 * @param $args
-	 * @return void
+	 * @return \Generator
 	 * @since 1.0.0
 	 */
 	public static function convert($filepath, $mime, $args)
@@ -83,7 +82,7 @@ class AVIF extends AbstractEncoder
 			return;
 		}
 		$speed = self::int_arg($args, 'speed', 0, 10, self::DEFAULT_SPEED);
-		$jobs = self::jobs();
+		$jobs = Libraries::threads();
 
 		// libavif 1.0 replaced --min/--max with -q, older
 		// versions only take the aom cq-level (0 best, 63 worst),
@@ -99,7 +98,7 @@ class AVIF extends AbstractEncoder
 		$original = self::original($filepath);
 		$source = ImageEditor::readable($original, $mime);
 		$output = Files::variant($filepath, self::extension());
-		if (self::run(array_merge($options, ['--speed', $speed, '--jobs', $jobs, $source, $output]), $filepath, $args)) {
+		if (yield from self::run(array_merge($options, ['--speed', $speed, '--jobs', $jobs, $source, $output]), $filepath, $args, $jobs)) {
 			Logger::info("Successfully converted to AVIF file: " . $output);
 			Files::remember(isset($args['id']) ? (int)$args['id'] : 0, $filepath);
 		}
@@ -138,21 +137,6 @@ class AVIF extends AbstractEncoder
 	private static function editor_quality($quality)
 	{
 		return $quality < 90 ? min(89, $quality + 5) : $quality;
-	}
-
-	/**
-	 * Returns the number of threads of avifenc: 4 on
-	 * upload (about as fast as all cores on a photo), 2
-	 * in background jobs, all in the CLI. The
-	 * octopus_avif_jobs filter sets it by context (see
-	 * Optimiser::$context).
-	 *
-	 * @return string A number, or "all".
-	 * @since 1.0.0
-	 */
-	private static function jobs()
-	{
-		return Libraries::threads('octopus_avif_jobs', Optimiser::$context);
 	}
 
 	/**
