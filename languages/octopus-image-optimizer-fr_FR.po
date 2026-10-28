@@ -780,34 +780,34 @@ msgid "%s (optional)"
 msgstr "%s (facultatif)"
 
 #. translators: %s: a format, e.g. webp.
-#: core/Cli/Commands.php:148
+#: core/Cli/Commands.php:147
 #, php-format
 msgid "--%1$s is on or off: use --%1$s or --no-%1$s."
 msgstr "--%1$s s’active ou se désactive : utilisez --%1$s ou --no-%1$s."
 
 #. translators: %s: the formats, e.g. jpg, webp.
-#: core/Cli/Commands.php:175
+#: core/Cli/Commands.php:174
 #, php-format
 msgid "Formats: %s"
 msgstr "Formats : %s"
 
 #. translators: %s: the formats, e.g. jpg, webp.
-#: core/Cli/Commands.php:175
+#: core/Cli/Commands.php:174
 msgid "none"
 msgstr "aucun"
 
-#: core/Cli/Commands.php:180
+#: core/Cli/Commands.php:179
 msgid "Processing image:"
 msgstr "Traitement de l’image :"
 
 #. translators: %s: the title of an image.
-#: core/Cli/Commands.php:355
+#: core/Cli/Commands.php:352
 #, php-format
 msgid "%s: skipped, another request is processing it."
 msgstr "%s : ignorée, une autre requête la traite."
 
 #. translators: 1: the number of images, 2: the number of images with errors.
-#: core/Cli/Commands.php:197
+#: core/Cli/Commands.php:196
 #, php-format
 msgid "Processed %1$d image, %2$d with errors: see them in the Media library."
 msgid_plural "Processed %1$d images, %2$d with errors: see them in the Media library."
@@ -815,7 +815,7 @@ msgstr[0] "%1$d image traitée, %2$d en erreur : voyez-les dans la médiathèqu
 msgstr[1] "%1$d images traitées, %2$d en erreur : voyez-les dans la médiathèque."
 
 #. translators: %d: the number of images.
-#: core/Cli/Commands.php:200
+#: core/Cli/Commands.php:199
 #, php-format
 msgid "Successfully processed %d image."
 msgid_plural "Successfully processed %d images."
@@ -823,7 +823,7 @@ msgstr[0] "%d image traitée avec succès."
 msgstr[1] "%d images traitées avec succès."
 
 #. translators: %d: the number of images.
-#: core/Cli/Commands.php:219
+#: core/Cli/Commands.php:217
 #, php-format
 msgid "Removed the WebP and AVIF files of %d image."
 msgid_plural "Removed the WebP and AVIF files of %d images."
@@ -831,13 +831,13 @@ msgstr[0] "Fichiers WebP et AVIF supprimés pour %d image."
 msgstr[1] "Fichiers WebP et AVIF supprimés pour %d images."
 
 #. translators: %s: the title of an image.
-#: core/Cli/Commands.php:245
+#: core/Cli/Commands.php:242
 #, php-format
 msgid "%s: no original to restore, it stays compressed."
 msgstr "%s : pas d’original à restaurer, elle reste compressée."
 
 #. translators: %d: the number of images.
-#: core/Cli/Commands.php:250
+#: core/Cli/Commands.php:247
 #, php-format
 msgid "Restored %d image."
 msgid_plural "Restored %d images."
@@ -845,7 +845,7 @@ msgstr[0] "%d image restaurée."
 msgstr[1] "%d images restaurées."
 
 #. translators: %d: the number of images.
-#: core/Cli/Commands.php:253
+#: core/Cli/Commands.php:250
 #, php-format
 msgid "%d had no original."
 msgid_plural "%d had no original."
@@ -853,7 +853,7 @@ msgstr[0] "%d n’avait pas d’original."
 msgstr[1] "%d n’avaient pas d’original."
 
 #. translators: %d: the number of images.
-#: core/Cli/Commands.php:257
+#: core/Cli/Commands.php:254
 #, php-format
 msgid "%d skipped."
 msgid_plural "%d skipped."
@@ -861,31 +861,31 @@ msgstr[0] "%d ignorée."
 msgstr[1] "%d ignorées."
 
 #. translators: %d: the number of images.
-#: core/Cli/Commands.php:301
+#: core/Cli/Commands.php:298
 #, php-format
 msgid "Measured %d image."
 msgid_plural "Measured %d images."
 msgstr[0] "%d image mesurée."
 msgstr[1] "%d images mesurées."
 
-#: core/Cli/Commands.php:305
+#: core/Cli/Commands.php:302
 msgid "Originals"
 msgstr "Originaux"
 
-#: core/Cli/Commands.php:306
+#: core/Cli/Commands.php:303
 msgid "Compressed JPG and PNG"
 msgstr "JPG et PNG compressés"
 
-#: core/Cli/Commands.php:307
+#: core/Cli/Commands.php:304
 msgid "With WebP and AVIF served"
 msgstr "En servant les WebP et AVIF"
 
-#: core/Cli/Commands.php:308
+#: core/Cli/Commands.php:305
 msgid "WebP and AVIF files"
 msgstr "Fichiers WebP et AVIF"
 
 #. translators: 1: a size, e.g. 12.5 MB, 2: the number of images, 3: a reduction, e.g. −48 %.
-#: core/Cli/Commands.php:326
+#: core/Cli/Commands.php:323
 #, php-format
 msgid "%1$s saved on %2$d image, %3$s: the site serves the WebP and AVIF."
 msgid_plural "%1$s saved on %2$d images, %3$s: the site serves the WebP and AVIF."
@@ -893,36 +893,36 @@ msgstr[0] "%1$s économisés sur %2$d image, %3$s : le site sert les WebP et AV
 msgstr[1] "%1$s économisés sur %2$d images, %3$s : le site sert les WebP et AVIF."
 
 #. translators: 1: a size, e.g. 12.5 MB, 2: the number of images, 3: a reduction, e.g. −48 %.
-#: core/Cli/Commands.php:328
+#: core/Cli/Commands.php:325
 #, php-format
 msgid "%1$s saved on %2$d image, %3$s: the site serves the JPG and PNG, not the WebP and AVIF."
 msgid_plural "%1$s saved on %2$d images, %3$s: the site serves the JPG and PNG, not the WebP and AVIF."
 msgstr[0] "%1$s économisés sur %2$d image, %3$s : le site sert les JPG et PNG, pas les WebP et AVIF."
 msgstr[1] "%1$s économisés sur %2$d images, %3$s : le site sert les JPG et PNG, pas les WebP et AVIF."
 
-#: core/Cli/Commands.php:365
+#: core/Cli/Commands.php:362
 msgid "Welcome to the OIO CLI..."
 msgstr "Bienvenue dans le CLI d’OIO..."
 
 #. translators: %s: a library, e.g. cwebp.
-#: core/Cli/Commands.php:379
+#: core/Cli/Commands.php:376
 #, php-format
 msgid "%s active."
 msgstr "%s actif."
 
 #. translators: %s: a library, e.g. cwebp.
-#: core/Cli/Commands.php:383
+#: core/Cli/Commands.php:380
 msgid "Error:"
 msgstr "Erreur :"
 
 #. translators: %s: a library, e.g. cwebp.
-#: core/Cli/Commands.php:383
+#: core/Cli/Commands.php:380
 #, php-format
 msgid "%s not installed, see the settings page of OIO."
 msgstr "%s non installé, voir la page de réglages d’OIO."
 
 #. translators: 1: GD or Imagick, 2: a format, e.g. WebP, 3: a library, e.g. cwebp.
-#: core/Cli/Commands.php:401
+#: core/Cli/Commands.php:398
 #, php-format
 msgid "%1$s active for %2$s: %3$s not installed, recommended."
 msgstr "%1$s actif pour %2$s : %3$s non installé, recommandé."
@@ -1009,10 +1009,6 @@ msgstr "Le site n’a pas pu être joint : %s"
 #, php-format
 msgid "its dependencies are missing, run %s in the plugin folder."
 msgstr "ses dépendances manquent, lancez %s dans le dossier de l’extension."
-
-#: templates/install.php:55
-msgid "Depending on your distribution, you may need to build it from source."
-msgstr "Selon votre distribution, vous devrez peut-être le compiler depuis les sources."
 
 #: templates/install.php:24
 msgid "More information"

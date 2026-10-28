@@ -25,7 +25,7 @@ $octopus_more = __('More information', 'octopus-image-optimizer');
 $octopus_windows = __('Download for Windows', 'octopus-image-optimizer');
 $octopus_steps = [
 	'jpg' => [
-		['os' => 'Linux', 'command' => 'sudo apt-get install jpegoptim', 'link' => ['https://vitux.com/optimize-jpeg-jpg-images-in-ubuntu-with-jpegoptim/', $octopus_more]],
+		['os' => 'Linux', 'command' => 'sudo apt install jpegoptim', 'link' => ['https://vitux.com/optimize-jpeg-jpg-images-in-ubuntu-with-jpegoptim/', $octopus_more]],
 		['os' => 'Mac', 'command' => 'brew install jpegoptim', 'link' => ['https://formulae.brew.sh/formula/jpegoptim', $octopus_more]],
 		['os' => 'Windows', 'link' => ['https://github.com/XhmikosR/jpegoptim-windows', $octopus_windows]],
 	],
@@ -47,12 +47,12 @@ $octopus_steps = [
 		['os' => 'Mac', 'command' => 'brew install oxipng', 'link' => ['https://formulae.brew.sh/formula/oxipng', $octopus_more]],
 	],
 	'webp' => [
-		['os' => 'Linux', 'command' => 'sudo apt-get install webp', 'link' => ['https://www.interserver.net/tips/kb/install-and-serve-webp-images-on-ubuntu/', $octopus_more]],
+		['os' => 'Linux', 'command' => 'sudo apt install webp', 'link' => ['https://www.interserver.net/tips/kb/install-and-serve-webp-images-on-ubuntu/', $octopus_more]],
 		['os' => 'Mac', 'command' => 'brew install webp', 'link' => ['https://formulae.brew.sh/formula/webp', $octopus_more]],
 		['os' => 'Windows', 'link' => ['https://developers.google.com/speed/webp/download', $octopus_windows]],
 	],
 	'avif' => [
-		['os' => 'Linux', 'text' => __('Depending on your distribution, you may need to build it from source.', 'octopus-image-optimizer'), 'link' => ['https://aomediacodec.github.io/av1-avif/', $octopus_more]],
+		['os' => 'Linux', 'command' => 'sudo apt install libavif-bin', 'link' => ['https://packages.debian.org/search?keywords=libavif-bin', $octopus_more]],
 		['os' => 'Mac', 'command' => 'brew install libavif', 'link' => ['https://formulae.brew.sh/formula/libavif', $octopus_more]],
 		['os' => 'Windows', 'link' => ['https://github.com/AOMediaCodec/libavif/releases', $octopus_windows]],
 	],
@@ -65,9 +65,6 @@ $octopus_steps = [
 			<span class="octopus-install__os"><?php echo esc_html($octopus_step['os']); ?></span>
 			<?php if (isset($octopus_step['command'])) : ?>
 				<?php $this->render_command($octopus_step['command']); ?>
-			<?php endif; ?>
-			<?php if (isset($octopus_step['text'])) : ?>
-				<?php echo esc_html($octopus_step['text']); ?>
 			<?php endif; ?>
 			<?php if (isset($octopus_step['html'])) : ?>
 				<span><?php echo wp_kses($octopus_step['html'], ['a' => ['href' => true, 'target' => true, 'rel' => true]]); ?></span>
