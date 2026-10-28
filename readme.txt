@@ -2,7 +2,7 @@
 Contributors: striffly
 Donate link: https://github.com/Striffly/octopus-image-optimizer#support
 Tags: webp, avif, image optimization, compress images, performance
-Requires at least: 6.0
+Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 8.2
 Stable tag: 0.1.4
@@ -112,7 +112,7 @@ OIO sends nothing out of your server: no API, no tracking, no external request. 
 * Clean up: remove the WebP and AVIF files, or restore the original images.
 * Status column in the media library and readable error notices.
 * CMYK JPG images, AVIF quality settings, CPU limits adjustable by filters.
-* Requires WordPress 6.0 and PHP 8.2.
+* Requires WordPress 6.2 and PHP 8.2.
 
 The versions of Squidge, before OIO, are in the [full changelog](https://github.com/Striffly/octopus-image-optimizer/blob/main/CHANGELOG.md).
 

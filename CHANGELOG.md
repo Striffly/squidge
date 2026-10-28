@@ -15,7 +15,7 @@ The versions of OIO – Octopus Image Optimizer, newest first. Before 1.0.0, it 
 - Clean up: remove the WebP and AVIF files, or restore the original images.
 - Status column in the media library and readable error notices.
 - CMYK JPG images, AVIF quality settings, CPU limits adjustable by filters.
-- Requires WordPress 6.0 and PHP 8.2.
+- Requires WordPress 6.2 and PHP 8.2.
 
 ## 0.1.4 – 2021-12-21
 

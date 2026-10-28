@@ -89,6 +89,35 @@ class PictureTest extends TestCase
 		$this->assertSame('<img data-octopus src="' . $this->url . '/2026/10/other.jpg" alt="">', Picture::render($img));
 	}
 
+	public function test_an_attribute_is_never_read_inside_another_one()
+	{
+		// E.g. written by a contributor in the alternative text.
+		$img = '<img alt=" srcset=\'' . $this->url . '/2026/10/photo-300x200.jpg 1x\' > here" src="' . $this->url . '/2026/10/photo.jpg">';
+
+		$html = Picture::render($img);
+
+		$this->assertSame(
+			'<picture class="octopus-picture">'
+			. '<source type="image/avif" srcset="' . $this->url . '/octopus/formats/2026/10/photo.jpg.avif">'
+			. '<source type="image/webp" srcset="' . $this->url . '/octopus/formats/2026/10/photo.jpg.webp">'
+			. '<img data-octopus alt=" srcset=\'' . $this->url . '/2026/10/photo-300x200.jpg 1x\' > here" src="' . $this->url . '/2026/10/photo.jpg">'
+			. '</picture>',
+			$html,
+			'Its srcset is the one of the src, and its > does not end the tag.'
+		);
+	}
+
+	public function test_an_endless_srcset_is_left_alone()
+	{
+		$srcset = implode(', ', array_map(function ($width) {
+			return $this->url . '/2026/10/photo.jpg ' . $width . 'w';
+		}, range(1, Picture::MAX_CANDIDATES + 1)));
+		$img = '<img src="' . $this->url . '/2026/10/photo.jpg" srcset="' . $srcset . '" alt="">';
+
+		$this->assertSame($img, Picture::render($img));
+		$this->assertSame([], octopus_image_sources($srcset));
+	}
+
 	public function test_the_files_of_oio_are_left_alone()
 	{
 		$img = '<img src="' . $this->url . '/octopus/formats/2026/10/photo.jpg.webp" alt="">';

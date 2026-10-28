@@ -20,6 +20,7 @@
 namespace Octopus\Delivery;
 
 use Octopus\Media\Files;
+use WP_HTML_Tag_Processor;
 
 if (!defined('ABSPATH')) {
 	exit; // Exit if accessed directly
@@ -47,6 +48,17 @@ class Picture
 	];
 
 	/**
+	 * The candidates of a srcset looked at most: each
+	 * costs two lookups on the disk, on every view of
+	 * the page. WordPress writes one by size of the
+	 * image, a dozen at most; more, the image is left
+	 * as it is.
+	 *
+	 * @var int
+	 */
+	const MAX_CANDIDATES = 100;
+
+	/**
 	 * Wraps the first <img> of the HTML in a <picture>
 	 * with AVIF and WebP sources.
 	 *
@@ -57,30 +69,36 @@ class Picture
 	 */
 	public static function render($html, $picture_class = null)
 	{
-		if (strpos($html, self::MARKER) !== false || !preg_match('/<img\s[^>]*>/i', $html, $match)) {
+		// Read as the browser does: an attribute is never found inside another one.
+		$tags = new WP_HTML_Tag_Processor($html);
+		if (!$tags->next_tag('img') || $tags->get_attribute(self::MARKER) !== null) {
 			return $html;
 		}
-		$img = $match[0];
-		$src = self::attr($img, 'src');
-		if (!$src || self::relative($src) === null) {
+		$src = self::attribute($tags, 'src');
+		if ($src === '' || self::relative($src) === null) {
 			return $html;
 		}
-		$srcset = self::attr($img, 'srcset');
-
-		$new_img = preg_replace('/^<img\s/i', '<img ' . self::MARKER . ' ', $img);
+		$srcset = self::attribute($tags, 'srcset');
+		$sizes = self::attribute($tags, 'sizes');
+		if (count(self::parse_srcset($srcset ?: $src)) > self::MAX_CANDIDATES) {
+			return $html;
+		}
+		// Added right after the name of the tag, where it is found again.
+		$tags->set_attribute(self::MARKER, true);
+		$html = $tags->get_updated_html();
 
 		$sources = '';
-		$sizes = self::attr($img, 'sizes');
 		foreach (self::sources($srcset ?: $src) as $type => $format_srcset) {
 			$sources .= sprintf('<source type="%s" srcset="%s"%s>', $type, esc_attr($format_srcset), $sizes ? sprintf(' sizes="%s"', esc_attr($sizes)) : '');
 		}
-
-		if ($sources !== '' || $picture_class !== null) {
-			$class = trim('octopus-picture ' . $picture_class);
-			$new_img = sprintf('<picture class="%s">%s%s</picture>', esc_attr($class), $sources, $new_img);
+		$start = stripos($html, '<img ' . self::MARKER);
+		// The tag, to its >: a > in a quoted attribute does not end it.
+		if ($start === false || ($sources === '' && $picture_class === null) || !preg_match('/\G<img\b(?:[^>"\']|"[^"]*"|\'[^\']*\')*>/i', $html, $match, 0, $start)) {
+			return $html;
 		}
-
-		return str_replace($img, $new_img, $html);
+		$class = trim('octopus-picture ' . $picture_class);
+		$picture = sprintf('<picture class="%s">%s%s</picture>', esc_attr($class), $sources, $match[0]);
+		return substr_replace($html, $picture, $start, strlen($match[0]));
 	}
 
 	/**
@@ -96,6 +114,9 @@ class Picture
 	public static function sources($srcset)
 	{
 		$candidates = self::parse_srcset((string)$srcset);
+		if (count($candidates) > self::MAX_CANDIDATES) {
+			return [];
+		}
 		$sources = [];
 		foreach (self::FORMATS as $extension => $type) {
 			$format_srcset = self::build_srcset($candidates, $extension);
@@ -196,15 +217,17 @@ class Picture
 	}
 
 	/**
-	 * Returns the value of an attribute of a tag.
+	 * Returns the value of an attribute of the current
+	 * tag, empty if it has none or no value.
 	 *
-	 * @param string $tag
+	 * @param WP_HTML_Tag_Processor $tags
 	 * @param string $name
 	 * @return string
 	 * @since 1.0.0
 	 */
-	private static function attr($tag, $name)
+	private static function attribute($tags, $name)
 	{
-		return preg_match('/\s' . $name . '\s*=\s*(["\'])(.*?)\1/i', $tag, $match) ? $match[2] : '';
+		$value = $tags->get_attribute($name);
+		return is_string($value) ? $value : '';
 	}
 }
