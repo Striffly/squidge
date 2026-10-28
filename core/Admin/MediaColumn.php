@@ -126,6 +126,19 @@ class MediaColumn
 	}
 
 	/**
+	 * Determines if the user may optimise or restore an
+	 * image: OIO optimises it, and the user may edit it.
+	 *
+	 * @param int $id
+	 * @return bool
+	 * @since 1.0.0
+	 */
+	private function editable($id)
+	{
+		return $id && $this->is_image($id) && current_user_can('edit_post', $id);
+	}
+
+	/**
 	 * Adds the Optimisation column.
 	 *
 	 * @param array $columns
@@ -261,7 +274,7 @@ class MediaColumn
 	 */
 	public function row_actions($actions, $post)
 	{
-		if (!$this->is_image($post->ID) || !current_user_can('edit_post', $post->ID)) {
+		if (!$this->editable($post->ID)) {
 			return $actions;
 		}
 		$actions['octopus'] = $this->actions($post->ID);
@@ -358,7 +371,7 @@ class MediaColumn
 	{
 		check_ajax_referer(self::NONCE);
 		$id = isset($_POST['id']) ? (int)$_POST['id'] : 0;
-		if (!$id || !$this->is_image($id) || !current_user_can('edit_post', $id)) {
+		if (!$this->editable($id)) {
 			wp_send_json_error(null, 403);
 		}
 		return $id;
@@ -375,14 +388,27 @@ class MediaColumn
 	public function ajax_optimise()
 	{
 		$id = $this->requested();
+		$this->optimise_image($id);
+		wp_send_json_success($this->state($id));
+	}
+
+	/**
+	 * Adds an image to the queue of the media library,
+	 * or optimises it at once without the queue.
+	 *
+	 * @param int $id
+	 * @return string queued, optimised, or busy if another request is processing the image.
+	 * @since 1.0.0
+	 */
+	private function optimise_image($id)
+	{
 		$queue = self::queue();
 		if ($queue) {
 			$queue->add($id);
 			$this->queued = null;
-		} else {
-			Optimiser::optimise($id);
+			return 'queued';
 		}
-		wp_send_json_success($this->state($id));
+		return Optimiser::optimise($id) === null ? 'busy' : 'optimised';
 	}
 
 	/**
@@ -422,7 +448,7 @@ class MediaColumn
 		$ids = isset($_POST['ids']) ? array_slice(array_map('intval', explode(',', sanitize_text_field(wp_unslash($_POST['ids'])))), 0, 100) : [];
 		$states = [];
 		foreach (array_unique($ids) as $id) {
-			if ($id && $this->is_image($id) && current_user_can('edit_post', $id)) {
+			if ($this->editable($id)) {
 				$states[] = $this->state($id);
 			}
 		}
@@ -443,19 +469,10 @@ class MediaColumn
 	{
 		$id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 		check_admin_referer(self::ACTION . '_' . $id);
-		if (!$id || !$this->is_image($id) || !current_user_can('edit_post', $id)) {
+		if (!$this->editable($id)) {
 			wp_die(esc_html__('You cannot optimise this image.', 'octopus-image-optimizer'), 403);
 		}
-		$redirect = remove_query_arg(self::NOTICES, wp_get_referer() ?: admin_url('upload.php?mode=list'));
-		$queue = self::queue();
-		if ($queue) {
-			$queue->add($id);
-			$notice = 'octopus_queued';
-		} else {
-			$notice = Optimiser::optimise($id) === null ? 'octopus_busy' : 'octopus_optimised';
-		}
-		wp_safe_redirect(add_query_arg($notice, $id, $redirect));
-		exit;
+		$this->back('octopus_' . $this->optimise_image($id), $id);
 	}
 
 	/**
@@ -468,18 +485,28 @@ class MediaColumn
 	{
 		$id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 		check_admin_referer(self::RESTORE . '_' . $id);
-		if (!$id || !$this->is_image($id) || !current_user_can('edit_post', $id)) {
+		if (!$this->editable($id)) {
 			wp_die(esc_html__('You cannot restore this image.', 'octopus-image-optimizer'), 403);
 		}
 		$restored = Cleaner::restore($id);
-
-		$redirect = remove_query_arg(self::NOTICES, wp_get_referer() ?: admin_url('upload.php?mode=list'));
 		if ($restored === null) {
-			$redirect = add_query_arg('octopus_busy', $id, $redirect);
-		} else {
-			$redirect = add_query_arg('octopus_restored', $restored ? $id : -$id, $redirect);
+			$this->back('octopus_busy', $id);
 		}
-		wp_safe_redirect($redirect);
+		$this->back('octopus_restored', $restored ? $id : -$id);
+	}
+
+	/**
+	 * Goes back to the media library after an action
+	 * without JS, with the notice telling how it went.
+	 *
+	 * @param string $notice One of NOTICES.
+	 * @param int $id The image, negative for a failure.
+	 * @since 1.0.0
+	 */
+	private function back($notice, $id)
+	{
+		$redirect = remove_query_arg(self::NOTICES, wp_get_referer() ?: admin_url('upload.php?mode=list'));
+		wp_safe_redirect(add_query_arg($notice, $id, $redirect));
 		exit;
 	}
 
