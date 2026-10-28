@@ -17,6 +17,7 @@
 
 namespace Octopus\Admin;
 
+use Octopus\Encoders\Formats;
 use Octopus\Log\Errors;
 use Octopus\Media\Optimiser;
 use Octopus\Plugin;
@@ -81,13 +82,15 @@ class Notices
 	 */
 	private static function actions()
 	{
-		return [
-			Optimiser::READER => __('Optimisation', 'octopus-image-optimizer'),
-			'jpg' => __('JPG compression', 'octopus-image-optimizer'),
-			'png' => __('PNG compression', 'octopus-image-optimizer'),
-			'webp' => __('WebP conversion', 'octopus-image-optimizer'),
-			'avif' => __('AVIF conversion', 'octopus-image-optimizer'),
-		];
+		$actions = [Optimiser::READER => __('Optimisation', 'octopus-image-optimizer')];
+		foreach (Formats::ENCODERS as $format => $encoder) {
+			$actions[$format] = $encoder::extension() === ''
+				/* translators: %s: a format, e.g. JPG. */
+				? sprintf(__('%s compression', 'octopus-image-optimizer'), $encoder::TITLE)
+				/* translators: %s: a format, e.g. WebP. */
+				: sprintf(__('%s conversion', 'octopus-image-optimizer'), $encoder::TITLE);
+		}
+		return $actions;
 	}
 
 	/**

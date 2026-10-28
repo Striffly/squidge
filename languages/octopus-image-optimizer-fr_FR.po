@@ -140,65 +140,49 @@ msgstr "Octopus Image Optimizer a supprimé ses fichiers de %s, mais son origina
 msgid "Octopus Image Optimizer optimised %s."
 msgstr "Octopus Image Optimizer a optimisé %s."
 
-#: core/Admin/Notices.php:86
-msgid "JPG compression"
-msgstr "Compression JPG"
-
-#: core/Admin/Notices.php:87
-msgid "PNG compression"
-msgstr "Compression PNG"
-
-#: core/Admin/Notices.php:88
-msgid "WebP conversion"
-msgstr "Conversion WebP"
-
-#: core/Admin/Notices.php:89
-msgid "AVIF conversion"
-msgstr "Conversion AVIF"
-
-#: core/Admin/Notices.php:106
+#: core/Admin/Notices.php:109
 msgid "the image uses CMYK colours (a print format) that the library cannot read."
 msgstr "l’image utilise des couleurs CMJN (un format d’impression) que la bibliothèque ne sait pas lire."
 
-#: core/Admin/Notices.php:107
+#: core/Admin/Notices.php:110
 msgid "the server disk is full."
 msgstr "le disque du serveur est plein."
 
-#: core/Admin/Notices.php:108
+#: core/Admin/Notices.php:111
 msgid "the image is too big for the PHP memory: install the library, or lower the maximum image size."
 msgstr "l’image est trop grande pour la mémoire de PHP : installez la bibliothèque, ou réduisez la taille maximale des images."
 
-#: core/Admin/Notices.php:109
+#: core/Admin/Notices.php:112
 msgid "the file could not be written, check the permissions of the uploads folder."
 msgstr "le fichier n’a pas pu être écrit, vérifiez les droits du dossier uploads."
 
-#: core/Admin/Notices.php:110
+#: core/Admin/Notices.php:113
 msgid "the image file is damaged or incomplete, WordPress cannot read it."
 msgstr "le fichier de l’image est endommagé ou incomplet, WordPress ne peut pas le lire."
 
-#: core/Admin/Notices.php:111
+#: core/Admin/Notices.php:114
 msgid "the image file seems damaged or incomplete."
 msgstr "le fichier de l’image semble endommagé ou incomplet."
 
-#: core/Admin/Notices.php:113
+#: core/Admin/Notices.php:116
 msgid "the library does not work on the server, check its installation."
 msgstr "la bibliothèque ne fonctionne pas sur le serveur, vérifiez son installation."
 
-#: core/Admin/Notices.php:182
+#: core/Admin/Notices.php:185
 msgid "Octopus Image Optimizer could not fully optimise some images:"
 msgstr "Octopus Image Optimizer n’a pas pu optimiser entièrement certaines images :"
 
 #. translators: 1: what failed, e.g. WebP conversion and AVIF conversion, 2: why.
-#: core/Admin/Notices.php:215
+#: core/Admin/Notices.php:218
 #, php-format
 msgid "%1$s failed: %2$s"
 msgstr "%1$s en échec : %2$s"
 
-#: core/Admin/Notices.php:216
+#: core/Admin/Notices.php:219
 msgid "Technical details"
 msgstr "Détails techniques"
 
-#: core/Admin/Notices.php:237
+#: core/Admin/Notices.php:240
 msgid "an unexpected error occurred, see the technical details."
 msgstr "une erreur inattendue s’est produite, voir les détails techniques."
 
@@ -1283,7 +1267,7 @@ msgstr "OIO n’a pas pu retirer ses règles de uploads/.htaccess : retirez-les 
 msgid "Not applied"
 msgstr "Non appliqué"
 
-#: core/Admin/Notices.php:112
+#: core/Admin/Notices.php:115
 msgid "the library took too long on this image and was stopped: optimise it again, or lower the maximum image size."
 msgstr "la bibliothèque a mis trop de temps sur cette image et a été arrêtée : optimisez-la à nouveau, ou baissez la taille maximale des images."
 
@@ -1386,3 +1370,15 @@ msgstr "De %1$d à %2$d (la plus rapide, fichiers plus lourds), %3$d par défaut
 #, php-format
 msgid "WordPress scales the bigger images down on upload, and keeps them as their original. Longest side, %3$d by default. <strong>0 means no limit: huge images can exhaust the server.</strong>"
 msgstr "WordPress réduit les grandes images au téléversement, et les garde comme original. Plus grand côté, %3$d par défaut. <strong>0 signifie sans limite : des images énormes peuvent épuiser le serveur.</strong>"
+
+#. translators: %s: a format, e.g. JPG.
+#: core/Admin/Notices.php:89
+#, php-format
+msgid "%s compression"
+msgstr "Compression %s"
+
+#. translators: %s: a format, e.g. WebP.
+#: core/Admin/Notices.php:91
+#, php-format
+msgid "%s conversion"
+msgstr "Conversion %s"
