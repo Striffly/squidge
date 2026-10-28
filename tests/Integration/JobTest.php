@@ -246,6 +246,8 @@ class JobTest extends TestCase
 				$cancelled = true;
 				(new Job())->cancel();
 				$told = (new Job())->progress()['state'];
+				// As if the click was long before the image ended.
+				update_option(Job::PROGRESS, array_merge(get_option(Job::PROGRESS), ['finished' => time() - 100]), false);
 			}
 		});
 
@@ -255,6 +257,7 @@ class JobTest extends TestCase
 		$progress = $this->job->progress();
 		$this->assertSame('cancelled', $progress['state'], 'Not finished: the worker kept its own copy of the progress.');
 		$this->assertSame(1, $progress['done'], 'Its image is ended, and counted.');
+		$this->assertGreaterThan(time() - 10, $progress['finished'], 'The job ends with the image, not at the click.');
 		$this->assertSame([], $this->job->get_batches(), 'Its batch is not saved back.');
 		$this->assertSame(Status::OPTIMISED, Status::of($ids[0]));
 		$this->assertSame([Status::TO_OPTIMISE, Status::TO_OPTIMISE], [Status::of($ids[1]), Status::of($ids[2])]);

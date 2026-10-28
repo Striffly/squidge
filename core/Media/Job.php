@@ -218,8 +218,8 @@ class Job extends Background
 	/**
 	 * Adds counts to the progress of a job, and sets
 	 * fields of it, read again first: cancelled
-	 * meanwhile, it stays so, and another job keeps its
-	 * own progress.
+	 * meanwhile, it stays so, ending with the image
+	 * counted, and another job keeps its own progress.
 	 *
 	 * @param array $progress The progress the worker read.
 	 * @param int[] $counts By name, e.g. done.
@@ -234,6 +234,10 @@ class Job extends Background
 		}
 		foreach ($counts as $name => $count) {
 			$stored[$name] += $count;
+		}
+		// Cancelled while the image was processed: it was the last one, the job ends with it, not at the click.
+		if (!empty($stored['cancelled']) && !empty($counts['done'])) {
+			$stored['finished'] = time();
 		}
 		update_option(self::PROGRESS, array_merge($stored, $fields), false);
 	}
