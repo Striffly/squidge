@@ -43,6 +43,18 @@ class JobsAjax
 	];
 
 	/**
+	 * The commands of a job, by the method of Job they
+	 * call, and the states they apply to, see control().
+	 *
+	 * @var array
+	 */
+	const COMMANDS = [
+		'pause' => ['running'],
+		'resume' => ['paused'],
+		'cancel' => ['running', 'paused'],
+	];
+
+	/**
 	 * Adds the AJAX requests.
 	 *
 	 * @since 1.0.0
@@ -80,7 +92,11 @@ class JobsAjax
 	}
 
 	/**
-	 * Pauses, resumes or cancels the job.
+	 * Pauses, resumes or cancels the job the page shows,
+	 * in a state the command applies to. Once it changed,
+	 * e.g. from the page of another user, or as it ended,
+	 * the command is refused, told, and the job sent as
+	 * it is, for the page to show it.
 	 *
 	 * @since 1.0.0
 	 */
@@ -89,17 +105,18 @@ class JobsAjax
 		check_ajax_referer(Ajax::NONCE);
 		Ajax::authorize();
 		$command = isset($_POST['command']) ? sanitize_key(wp_unslash($_POST['command'])) : '';
-		$job = Job::instance();
-		if ($command === 'pause') {
-			$job->pause();
-		} elseif ($command === 'resume') {
-			$job->resume();
-		} elseif ($command === 'cancel') {
-			$job->cancel();
-		} else {
+		if (!array_key_exists($command, self::COMMANDS)) {
 			wp_send_json_error(null, 400);
 		}
-		$this->status();
+		// Its key, see Job::start(), empty for a job started without one.
+		$key = isset($_POST['key']) ? sanitize_text_field(wp_unslash($_POST['key'])) : '';
+		$job = Job::instance();
+		$progress = $job->progress();
+		if (!is_array($progress) || (isset($progress['key']) ? $progress['key'] : '') !== $key || !in_array($progress['state'], self::COMMANDS[$command], true)) {
+			wp_send_json_error(['message' => __('The job changed meanwhile: your click was not applied. The page now shows it as it is.', 'octopus-image-optimizer')] + self::report(), 409);
+		}
+		$job->$command();
+		wp_send_json_success(self::report());
 	}
 
 	/**
@@ -118,10 +135,22 @@ class JobsAjax
 		if (!empty($_POST['light'])) {
 			wp_send_json_success(['job' => Job::instance()->progress()]);
 		}
-		wp_send_json_success([
+		wp_send_json_success(self::report());
+	}
+
+	/**
+	 * Returns the progress of the job, the number of
+	 * images by status and the bytes saved.
+	 *
+	 * @return array
+	 * @since 1.0.0
+	 */
+	private static function report()
+	{
+		return [
 			'job' => Job::instance()->progress(),
 			'counts' => array_merge(Status::counts(), ['processed' => count(Cleaner::ids())]),
 			'savings' => Stats::savings(),
-		]);
+		];
 	}
 }

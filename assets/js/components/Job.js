@@ -20,17 +20,22 @@
 	const {Component, Confetti} = window.octopus;
 
 	class Job extends Component {
-		/** The refresh, by state of the job: none once it ended. */
-		static DELAYS = {running: 500, paused: 5000, pausing: 500, cancelling: 500};
+		/**
+		 * The refresh, by state of the job: slower while
+		 * nothing moves, e.g. to see a job another user
+		 * started, paused, resumed or cancelled, and none
+		 * without a job while the page is hidden.
+		 */
+		static DELAYS = {idle: 5000, running: 500, paused: 5000, pausing: 500, cancelling: 500};
+
+		/** The states where nothing moves: the progress alone is asked, the counts with it once it moves. */
+		static STILL = ['idle', 'paused'];
 
 		/** The states of a job that is not over: its progress shown. */
 		static BUSY = ['running', 'pausing', 'paused', 'cancelling'];
 
 		/** The control a state tells at work, its busy label shown (data-label-busy), the controls off. */
 		static CLICKED = {pausing: 'pause', cancelling: 'cancel'};
-
-		/** The commands of each state shown: none else is sent, e.g. a second click on its way. */
-		static COMMANDS = {running: ['pause', 'cancel'], paused: ['resume', 'cancel']};
 
 		/**
 		 * The final count stays on the bar this long before
@@ -94,6 +99,8 @@
 			// Settled once the job started, or could not: a click meanwhile waits for it, see control().
 			this.started = Promise.resolve();
 			this.settleStart = () => {};
+			// The job shown, told from the next one, see follow(), and sent with a control, see control().
+			this.key = null;
 		}
 
 		getElems() {
@@ -121,7 +128,9 @@
 			this.addEvent({target: this.view, name: 'job:started', callback: this.onStarted});
 			this.addEvent({target: this.view, name: 'job:start-failed', callback: this.onStartFailed});
 			// A quality changed, and images are optimised with older settings.
-			this.addEvent({target: this.view, name: 'settings:saved', callback: this.refresh});
+			this.addEvent({target: this.view, name: 'settings:saved', callback: this.recount});
+			// Shown again, see refresh().
+			this.addEvent({target: document, name: 'visibilitychange', callback: this.recount});
 		}
 
 		init() {
@@ -135,8 +144,11 @@
 				this.schedule();
 				return;
 			}
-			// Paused, nothing moves: its counts with it.
-			const light = Job.BUSY.includes(this.state) && this.state !== 'paused' && Date.now() - this.counted < Job.COUNTS_DELAY;
+			// No job, the page hidden: asked again once shown.
+			if (document.hidden && this.state === 'idle' && this.counted) {
+				return;
+			}
+			const light = this.counted && (Job.STILL.includes(this.state) || Date.now() - this.counted < Job.COUNTS_DELAY);
 			const sent = performance.now();
 			const response = await this.view.api.post('octopus_job_status', light ? {light: '1'} : {});
 			// Asked before a click whose answer is on its way: dropped, as out of date.
@@ -187,19 +199,29 @@
 		}
 
 		/**
+		 * Asks the job with the counts, at once.
+		 */
+		recount() {
+			this.counted = 0;
+			this.refresh();
+		}
+
+		/**
 		 * Shows the progress of the job while it runs, from
 		 * a light refresh; asks the counts with it at once
-		 * if it paused or ended meanwhile.
+		 * if it paused, resumed or ended meanwhile, or if
+		 * another job started, e.g. by another user.
 		 *
 		 * @param {?Object} job
 		 */
 		follow(job) {
-			if (job?.state !== this.state) {
-				this.counted = 0;
-				this.refresh();
+			if (Job.stateOf(job) !== this.state || (job?.key ?? null) !== this.key) {
+				this.recount();
 				return;
 			}
-			this.showProgress(job);
+			if (this.state !== 'idle') {
+				this.showProgress(job);
+			}
 			this.schedule();
 		}
 
@@ -250,7 +272,7 @@
 				this.dismiss();
 				return;
 			}
-			if (this.controlling || !Job.COMMANDS[this.el.dataset.state]?.includes(command)) {
+			if (this.controlling) {
 				return;
 			}
 			// Never sent twice, nor another one meanwhile. A pause or a cancel, applied once the image in progress is ended,
@@ -263,9 +285,14 @@
 			await this.started;
 			// At once, without asking: the job goes on while a dialog waits, and the images processed stay so.
 			const sent = performance.now();
-			const response = await this.view.api.post('octopus_job_control', {command});
+			// For the job shown, in the state shown, see JobsAjax::control().
+			const response = await this.view.api.post('octopus_job_control', {command, key: this.key ?? ''});
 			this.controlling = false;
-			if (response.success) {
+			// Applied, or refused as the job changed meanwhile, e.g. from the page of another user: told, then shown as it is.
+			if (response.data?.counts) {
+				if (!response.success) {
+					window.alert(response.data.message);
+				}
 				this.latest(sent);
 				this.render(response.data);
 				return;
@@ -280,7 +307,8 @@
 		 */
 		render({job, counts, savings}) {
 			this.counted = Date.now();
-			this.state = Job.BUSY.includes(job?.state) ? job.state : 'idle';
+			this.state = Job.stateOf(job);
+			this.key = job?.key ?? null;
 			const busy = this.state !== 'idle';
 			this.seen ||= busy;
 			this.counts = {...counts, new: counts['to-optimise'] + counts.error};
@@ -415,6 +443,14 @@
 
 		allOptimised() {
 			return this.counts.total > 0 && this.counts.optimised === this.counts.total;
+		}
+
+		/**
+		 * @param {?Object} job
+		 * @returns {string} The state shown: the one of a job not over, idle once it ended.
+		 */
+		static stateOf(job) {
+			return Job.BUSY.includes(job?.state) ? job.state : 'idle';
 		}
 
 		/**

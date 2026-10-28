@@ -38,7 +38,7 @@ msgstr "Clément Gayot"
 msgid "https://github.com/Striffly"
 msgstr "https://github.com/Striffly"
 
-#: core/Admin/JobsAjax.php:77
+#: core/Admin/JobsAjax.php:89
 msgid "A job is already running, or there is no image to process."
 msgstr "Une tâche est déjà en cours, ou il n’y a aucune image à traiter."
 
@@ -235,7 +235,7 @@ msgid "Deactivate anyway"
 msgstr "Désactiver quand même"
 
 #: core/Admin/PluginsScreen.php:164
-#: core/Admin/SettingsPage.php:339
+#: core/Admin/SettingsPage.php:341
 msgid "Cancel"
 msgstr "Annuler"
 
@@ -255,7 +255,7 @@ msgstr "Maintenance"
 msgid "A format has no library"
 msgstr "Un format n’a pas de bibliothèque"
 
-#: core/Admin/SettingsPage.php:313
+#: core/Admin/SettingsPage.php:315
 msgid "QR code of the Bitcoin address"
 msgstr "QR code de l’adresse Bitcoin"
 
@@ -321,32 +321,32 @@ msgstr "Optimiser la médiathèque"
 msgid "Formats"
 msgstr "Formats"
 
-#: core/Admin/View.php:153
-#: core/Admin/View.php:176
+#: core/Admin/View.php:155
+#: core/Admin/View.php:178
 msgid "installed"
 msgstr "installé"
 
 #. translators: %s: a library, e.g. cwebp.
 #. translators: %s: a library, e.g. pngquant.
-#: core/Admin/View.php:158
-#: core/Admin/View.php:247
+#: core/Admin/View.php:160
+#: core/Admin/View.php:249
 #, php-format
 msgid "%s not installed"
 msgstr "%s non installé"
 
 #. translators: %s: a library, e.g. cwebp.
-#: core/Admin/View.php:160
+#: core/Admin/View.php:162
 #, php-format
 msgid "%s cannot run"
 msgstr "%s ne peut pas tourner"
 
-#: core/Admin/View.php:163
-#: core/Admin/View.php:176
+#: core/Admin/View.php:165
+#: core/Admin/View.php:178
 msgid "not installed"
 msgstr "non installé"
 
-#: core/Admin/View.php:163
-#: core/Admin/View.php:176
+#: core/Admin/View.php:165
+#: core/Admin/View.php:178
 msgid "cannot run"
 msgstr "ne peut pas tourner"
 
@@ -556,24 +556,24 @@ msgid "I understand the images will no longer be optimised, and their WebP and A
 msgstr "Je comprends que les images ne seront plus optimisées, et que leurs fichiers WebP et AVIF seront supprimés."
 
 #. translators: 1: composer install, 2: wp octopus run
-#: core/Admin/View.php:134
+#: core/Admin/View.php:136
 #, php-format
 msgid "The background jobs need the dependencies of OIO: run %1$s in its folder. WP-CLI (%2$s) works without them."
 msgstr "Les tâches en arrière-plan ont besoin des dépendances d’OIO : lancez %1$s dans son dossier. WP-CLI (%2$s) fonctionne sans elles."
 
-#: core/Admin/SettingsPage.php:337
+#: core/Admin/SettingsPage.php:339
 msgid "Pause"
 msgstr "Pause"
 
-#: core/Admin/SettingsPage.php:338
+#: core/Admin/SettingsPage.php:340
 msgid "Resume"
 msgstr "Reprendre"
 
-#: core/Admin/SettingsPage.php:353
+#: core/Admin/SettingsPage.php:355
 msgid "see the errors in the Media library"
 msgstr "voir les erreurs dans la médiathèque"
 
-#: core/Admin/SettingsPage.php:360
+#: core/Admin/SettingsPage.php:362
 msgid "Dismiss"
 msgstr "Ignorer"
 
@@ -615,26 +615,26 @@ msgctxt "images"
 msgid "Error"
 msgstr "En erreur"
 
-#: core/Admin/View.php:339
+#: core/Admin/View.php:341
 msgid "Active"
 msgstr "Actif"
 
-#: core/Admin/View.php:340
+#: core/Admin/View.php:342
 msgid "Library unavailable"
 msgstr "Bibliothèque indisponible"
 
-#: core/Admin/View.php:341
+#: core/Admin/View.php:343
 msgid "Disabled"
 msgstr "Désactivé"
 
 #: core/Admin/View.php:55
-#: core/Admin/View.php:76
+#: core/Admin/View.php:78
 #: assets/js/components/CopyButton.js:47
 msgid "Copy"
 msgstr "Copier"
 
 #. translators: %s: the label of a setting.
-#: core/Admin/View.php:266
+#: core/Admin/View.php:268
 #, php-format
 msgid "More about: %s"
 msgstr "En savoir plus : %s"
@@ -1070,60 +1070,60 @@ msgstr[1] "Les %s vérifications ont réussi."
 msgid "Tested on %s."
 msgstr "Testé sur %s."
 
-#: assets/js/components/Job.js:55
+#: assets/js/components/Job.js:60
 msgid "Optimising"
 msgstr "Optimisation"
 
-#: assets/js/components/Job.js:56
+#: assets/js/components/Job.js:61
 msgid "Optimisation complete"
 msgstr "Optimisation terminée"
 
-#: assets/js/components/Job.js:57
+#: assets/js/components/Job.js:62
 msgid "Optimisation cancelled"
 msgstr "Optimisation annulée"
 
 #. translators: %s: the number of images.
-#: assets/js/components/Job.js:59
+#: assets/js/components/Job.js:64
 #, js-format
 msgid "%s image optimised"
 msgid_plural "%s images optimised"
 msgstr[0] "%s image optimisée"
 msgstr[1] "%s images optimisées"
 
-#: assets/js/components/Job.js:62
+#: assets/js/components/Job.js:67
 msgid "Removing WebP and AVIF"
 msgstr "Suppression des WebP et AVIF"
 
-#: assets/js/components/Job.js:63
+#: assets/js/components/Job.js:68
 msgid "WebP and AVIF files removed"
 msgstr "Fichiers WebP et AVIF supprimés"
 
-#: assets/js/components/Job.js:64
+#: assets/js/components/Job.js:69
 msgid "Removal cancelled"
 msgstr "Suppression annulée"
 
 #. translators: %s: the number of images.
-#: assets/js/components/Job.js:66
+#: assets/js/components/Job.js:71
 #, js-format
 msgid "%s image cleaned up"
 msgid_plural "%s images cleaned up"
 msgstr[0] "%s image nettoyée"
 msgstr[1] "%s images nettoyées"
 
-#: assets/js/components/Job.js:69
+#: assets/js/components/Job.js:74
 msgid "Restoring the originals"
 msgstr "Restauration des originaux"
 
-#: assets/js/components/Job.js:70
+#: assets/js/components/Job.js:75
 msgid "Original images restored"
 msgstr "Images originales restaurées"
 
-#: assets/js/components/Job.js:71
+#: assets/js/components/Job.js:76
 msgid "Restore cancelled"
 msgstr "Restauration annulée"
 
 #. translators: %s: the number of images.
-#: assets/js/components/Job.js:73
+#: assets/js/components/Job.js:78
 #, js-format
 msgid "%s image restored"
 msgid_plural "%s images restored"
@@ -1131,7 +1131,7 @@ msgstr[0] "%s image restaurée"
 msgstr[1] "%s images restaurées"
 
 #. translators: 1: the number of images processed, 2: the number of images.
-#: assets/js/components/Job.js:311
+#: assets/js/components/Job.js:342
 #, js-format
 msgid "%1$s / %2$s image"
 msgid_plural "%1$s / %2$s images"
@@ -1139,23 +1139,23 @@ msgstr[0] "%1$s / %2$s image"
 msgstr[1] "%1$s / %2$s images"
 
 #. translators: 1: the progress, e.g. 3 / 12 images, 2: the number of images with errors.
-#: assets/js/components/Job.js:314
+#: assets/js/components/Job.js:345
 #, js-format
 msgid "%1$s, %2$s with errors"
 msgid_plural "%1$s, %2$s with errors"
 msgstr[0] "%1$s, %2$s en erreur"
 msgstr[1] "%1$s, %2$s en erreur"
 
-#: assets/js/components/Job.js:323
+#: assets/js/components/Job.js:354
 msgid "Paused:"
 msgstr "En pause :"
 
-#: assets/js/components/Job.js:324
+#: assets/js/components/Job.js:355
 msgid "Processing"
 msgstr "Traitement"
 
 #. translators: %s: the number of images.
-#: assets/js/components/Job.js:388
+#: assets/js/components/Job.js:428
 #, js-format
 msgid "%s could not be optimised:"
 msgid_plural "%s could not be optimised:"
@@ -1163,7 +1163,7 @@ msgstr[0] "%s n’a pas pu être optimisée :"
 msgstr[1] "%s n’ont pas pu être optimisées :"
 
 #. translators: %s: the number of images.
-#: assets/js/components/Job.js:391
+#: assets/js/components/Job.js:431
 #, js-format
 msgid "%s had no original to restore, it stays compressed."
 msgid_plural "%s had no original to restore, they stay compressed."
@@ -1171,37 +1171,37 @@ msgstr[0] "%s n’avait pas d’original à restaurer, elle reste compressée."
 msgstr[1] "%s n’avaient pas d’original à restaurer, elles restent compressées."
 
 #. translators: 1: the number of images processed, 2: the number of images.
-#: assets/js/components/Job.js:414
+#: assets/js/components/Job.js:462
 #, js-format
 msgid "Stopped after %1$s of %2$s image"
 msgid_plural "Stopped after %1$s of %2$s images"
 msgstr[0] "Arrêtée après %1$s sur %2$s image"
 msgstr[1] "Arrêtée après %1$s sur %2$s images"
 
-#: assets/js/components/Job.js:415
+#: assets/js/components/Job.js:463
 msgid "The images already processed stay processed."
 msgstr "Les images déjà traitées le restent."
 
 #. translators: 1: what was done, e.g. 12 images optimised, 2: a duration, e.g. 2 min 5 s.
-#: assets/js/components/Job.js:430
+#: assets/js/components/Job.js:478
 #, js-format
 msgid "%1$s in %2$s"
 msgstr "%1$s en %2$s"
 
 #. translators: 1: hours, 2: minutes.
-#: assets/js/components/Job.js:468
+#: assets/js/components/Job.js:516
 #, js-format
 msgid "%1$d h %2$d min"
 msgstr "%1$d h %2$d min"
 
 #. translators: 1: minutes, 2: seconds.
-#: assets/js/components/Job.js:472
+#: assets/js/components/Job.js:520
 #, js-format
 msgid "%1$d min %2$d s"
 msgstr "%1$d min %2$d s"
 
 #. translators: %d: seconds.
-#: assets/js/components/Job.js:475
+#: assets/js/components/Job.js:523
 #, js-format
 msgid "%d s"
 msgstr "%d s"
@@ -1322,12 +1322,12 @@ msgstr "optipng compresse les images PNG pour l’instant. Une fois installé, o
 msgid "Speed"
 msgstr "Vitesse"
 
-#: assets/js/components/Job.js:272
+#: assets/js/components/Job.js:302
 msgid "The site did not answer: try again."
 msgstr "Le site n’a pas répondu : réessayez."
 
 #. translators: 1: the progress, e.g. 3 / 12 images, 2: a number of seconds.
-#: assets/js/components/Job.js:319
+#: assets/js/components/Job.js:350
 #, js-format
 msgid "%1$s · an image waits for another request, %2$s second at most"
 msgid_plural "%1$s · an image waits for another request, %2$s seconds at most"
@@ -1389,10 +1389,14 @@ msgstr "Conversion %s"
 msgid "--%1$s=%2$s: not a value of this option, see wp help octopus run."
 msgstr "--%1$s=%2$s : pas une valeur de cette option, voir wp help octopus run."
 
-#: core/Admin/SettingsPage.php:339
+#: core/Admin/SettingsPage.php:341
 msgid "Cancelling…"
 msgstr "Annulation…"
 
-#: core/Admin/SettingsPage.php:337
+#: core/Admin/SettingsPage.php:339
 msgid "Pausing…"
 msgstr "Mise en pause…"
+
+#: core/Admin/JobsAjax.php:116
+msgid "The job changed meanwhile: your click was not applied. The page now shows it as it is."
+msgstr "La tâche a changé entre-temps : votre clic n’a pas été appliqué. La page l’affiche maintenant telle qu’elle est."

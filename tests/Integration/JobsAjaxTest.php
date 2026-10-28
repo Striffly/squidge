@@ -27,7 +27,7 @@ class JobsAjaxTest extends TestCase
 	public function tear_down()
 	{
 		Job::instance()->delete_all();
-		unset($_REQUEST['_ajax_nonce'], $_REQUEST['action'], $_POST['job'], $_POST['light']);
+		unset($_REQUEST['_ajax_nonce'], $_REQUEST['action'], $_POST['job'], $_POST['light'], $_POST['command'], $_POST['key']);
 		parent::tear_down();
 	}
 
@@ -44,6 +44,28 @@ class JobsAjaxTest extends TestCase
 
 		$this->assertTrue($response['success'], 'The library checked its own nonce in this request.');
 		$this->assertSame([$id], $job->get_batches()[0]->data);
+	}
+
+	public function test_a_control_is_refused_once_the_job_changed()
+	{
+		$job = Job::instance();
+		$property = new ReflectionProperty($job, 'identifier');
+		$property->setAccessible(true);
+		add_filter($property->getValue($job) . '_pre_dispatch', '__return_true');
+		$job->start(Job::REMOVE_FORMATS, [1, 2]);
+
+		$key = $job->progress()['key'];
+
+		// Pages out of date: another user started this job meanwhile, or resumed it.
+		$other = $this->request('octopus_job_control', ['command' => 'pause', 'key' => 'another-job']);
+		$running = $this->request('octopus_job_control', ['command' => 'resume', 'key' => $key]);
+		$this->assertFalse($job->is_paused());
+		$this->assertFalse($other['success']);
+		$this->assertNotEmpty($other['data']['message'], 'Told: the click was not applied.');
+		$this->assertSame(['running', 'running'], [$other['data']['job']['state'], $running['data']['job']['state']], 'Sent as it is, for the page to show it.');
+
+		$this->assertTrue($this->request('octopus_job_control', ['command' => 'pause', 'key' => $key])['success']);
+		$this->assertTrue($job->is_paused());
 	}
 
 	public function test_the_progress_is_asked_alone_while_a_job_runs()
@@ -85,7 +107,7 @@ class JobsAjaxTest extends TestCase
 		});
 		ob_start();
 		try {
-			// octopus_job_start runs start(), octopus_job_status status().
+			// octopus_job_start runs start(), octopus_job_status status(), octopus_job_control control().
 			$method = substr($action, strlen('octopus_job_'));
 			(new JobsAjax())->$method();
 		} catch (WPAjaxDieContinueException $e) {
