@@ -3,7 +3,9 @@
  *
  * The Optimisation column of the media library: the
  * status of each image, a dot of its colour, and the
- * bytes saved.
+ * bytes saved. An image in the queue waits with a grey
+ * dot, then pulses while it is optimised, as from the
+ * click on its action (MediaQueue.js).
  */
 
 .column-octopus {
@@ -38,4 +40,50 @@
 
 .octopus-status-label--error {
 	--octopus-status: #d63638;
+}
+
+.octopus-status-label--waiting {
+	--octopus-status: #a7aaad;
+}
+
+.octopus-status-label--processing,
+.octopus-media-cell[data-busy] .octopus-status-label {
+	--octopus-status: #2271b1;
+
+	&::before {
+		animation: octopus-media-pulse 1s ease-in-out infinite alternate;
+
+		@media (prefers-reduced-motion: reduce) {
+			animation: none;
+		}
+	}
+}
+
+@keyframes octopus-media-pulse {
+	to {
+		opacity: .3;
+	}
+}
+
+/* After an action that could not be done, e.g. the original missing. */
+.octopus-media-cell__message {
+	display: block;
+	margin-top: 2px;
+	color: #d63638;
+}
+
+/* The actions of OIO in the row: greyed while one runs, the one done in green for a moment (MediaQueue.js). */
+.octopus-media-actions {
+	&[data-busy] a {
+		opacity: .6;
+		pointer-events: none;
+	}
+
+	&[data-done] a {
+		pointer-events: none;
+	}
+
+	a[data-done] {
+		color: #00a32a;
+	}
 }

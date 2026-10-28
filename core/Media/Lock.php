@@ -109,6 +109,22 @@ class Lock
 	}
 
 	/**
+	 * Determines if a request is processing an image:
+	 * its lock is there, and not stale.
+	 *
+	 * @param int $id
+	 * @return bool
+	 * @since 1.0.0
+	 */
+	public static function locked($id)
+	{
+		global $wpdb;
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery -- See acquire().
+		$value = $wpdb->get_var($wpdb->prepare("SELECT option_value FROM {$wpdb->options} WHERE option_name = %s", self::PREFIX . (int)$id));
+		return $value !== null && (float)$value >= time() - self::TIMEOUT;
+	}
+
+	/**
 	 * Refreshes the lock of an image this request
 	 * holds, so that it does not go stale while the
 	 * request processes it.

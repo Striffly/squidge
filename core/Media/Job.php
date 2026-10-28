@@ -17,13 +17,11 @@
 
 namespace Octopus\Media;
 
-use Octopus_Vendor_WP_Background_Process;
-
 if (!defined('ABSPATH')) {
 	exit; // Exit if accessed directly
 }
 
-class Job extends Octopus_Vendor_WP_Background_Process
+class Job extends Background
 {
 	/**
 	 * Optimises the images.
@@ -50,11 +48,6 @@ class Job extends Octopus_Vendor_WP_Background_Process
 	/**
 	 * @var string
 	 */
-	protected $prefix = 'octopus';
-
-	/**
-	 * @var string
-	 */
 	protected $action = 'job';
 
 	/**
@@ -64,42 +57,6 @@ class Job extends Octopus_Vendor_WP_Background_Process
 	 * @var Job|null
 	 */
 	private static $instance = null;
-
-	/**
-	 * Sets the prefix of the job: the library keeps
-	 * its queue, status and lock in the site options,
-	 * shared by the sites of a network. Each site has
-	 * its own (octopus_2_job), or a job started on a site
-	 * would be run on another, with its image IDs.
-	 *
-	 * @since 1.0.0
-	 */
-	public function __construct()
-	{
-		if (is_multisite()) {
-			$this->prefix = 'octopus_' . get_current_blog_id();
-		}
-		// The queue holds image IDs only: read back without any object, so that
-		// a queue written by someone else in the database creates none.
-		parent::__construct(false);
-	}
-
-	/**
-	 * The request that runs the job in the background:
-	 * as WordPress spawns its cron (spawn_cron()), it
-	 * does not wait for an answer, which only comes once
-	 * a batch is done. With the 5 seconds of the library,
-	 * starting a job kept the page waiting as long; the
-	 * cron of the library starts a job whose request was
-	 * lost.
-	 *
-	 * @return array
-	 * @since 1.0.0
-	 */
-	protected function get_post_args()
-	{
-		return array_merge(parent::get_post_args(), ['timeout' => 0.01]);
-	}
 
 	/**
 	 * Returns the instance.
@@ -265,9 +222,7 @@ class Job extends Octopus_Vendor_WP_Background_Process
 	 */
 	public function stop()
 	{
-		$this->delete_all();
-		$this->clear_scheduled_event();
-		$this->unlock_process();
+		parent::stop();
 		$this->cancelled_progress();
 	}
 

@@ -25,6 +25,7 @@ use Octopus\Delivery\Display;
 use Octopus\Delivery\Htaccess;
 use Octopus\Delivery\Test;
 use Octopus\Media\Job;
+use Octopus\Media\Queue;
 use Octopus\Media\UploadHooks;
 
 if (!defined('ABSPATH')) {
@@ -83,6 +84,7 @@ final class Plugin
 		// The background jobs need the dependencies of composer install.
 		if (class_exists('Octopus_Vendor_WP_Background_Process')) {
 			Job::instance();
+			Queue::instance();
 			new JobsAjax();
 		}
 		new Display();
