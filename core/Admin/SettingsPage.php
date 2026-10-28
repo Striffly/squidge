@@ -334,9 +334,9 @@ class SettingsPage extends View
 					<p class="octopus-job__label js-octopus-job-label" aria-live="polite"></p>
 					<span class="octopus-job__percent js-octopus-job-percent"></span>
 					<div class="octopus-job__controls">
-						<button type="button" class="button js-octopus-job-control" data-control="pause"><?php esc_html_e('Pause', 'octopus-image-optimizer'); ?></button>
+						<button type="button" class="button js-octopus-job-control" data-control="pause" data-label-busy="<?php esc_attr_e('Pausing…', 'octopus-image-optimizer'); ?>"><?php esc_html_e('Pause', 'octopus-image-optimizer'); ?></button>
 						<button type="button" class="button js-octopus-job-control" data-control="resume"><?php esc_html_e('Resume', 'octopus-image-optimizer'); ?></button>
-						<button type="button" class="button-link button-link-delete js-octopus-job-control" data-control="cancel"><?php esc_html_e('Cancel', 'octopus-image-optimizer'); ?></button>
+						<button type="button" class="button-link button-link-delete js-octopus-job-control" data-control="cancel" data-label-busy="<?php esc_attr_e('Cancelling…', 'octopus-image-optimizer'); ?>"><?php esc_html_e('Cancel', 'octopus-image-optimizer'); ?></button>
 					</div>
 				</div>
 				<progress class="octopus-job__bar js-octopus-job-bar" max="100" value="0"></progress>

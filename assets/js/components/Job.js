@@ -26,6 +26,12 @@
 		/** The states of a job that is not over: its progress shown. */
 		static BUSY = ['running', 'pausing', 'paused', 'cancelling'];
 
+		/** The control a state tells at work, its busy label shown (data-label-busy), the controls off. */
+		static CLICKED = {pausing: 'pause', cancelling: 'cancel'};
+
+		/** The commands of each state shown: none else is sent, e.g. a second click on its way. */
+		static COMMANDS = {running: ['pause', 'cancel'], paused: ['resume', 'cancel']};
+
 		/**
 		 * The final count stays on the bar this long before
 		 * the result: the one it tells is the one seen last.
@@ -83,6 +89,8 @@
 			// When the request of the answer shown was sent, see latest(); and the one starting the job.
 			this.shown = 0;
 			this.starting = 0;
+			// A pause, resume or cancel sent, until its answer, see control().
+			this.controlling = false;
 			// Settled once the job started, or could not: a click meanwhile waits for it, see control().
 			this.started = Promise.resolve();
 			this.settleStart = () => {};
@@ -94,6 +102,10 @@
 			this.percent = this.el.querySelector('.js-octopus-job-percent');
 			this.bar = this.el.querySelector('.js-octopus-job-bar');
 			this.controls = this.el.querySelectorAll('.js-octopus-job-control');
+			// Their labels, back once the job paused or ended.
+			this.controls.forEach((control) => {
+				control.dataset.label = control.textContent;
+			});
 			this.result = this.el.querySelector('.js-octopus-job-result');
 			this.title = this.el.querySelector('.js-octopus-job-title');
 			this.detail = this.el.querySelector('.js-octopus-job-detail');
@@ -118,10 +130,19 @@
 		}
 
 		async refresh() {
+			// A pause, resume or cancel on its way: its answer tells the job, a status asked meanwhile could tell it as before.
+			if (this.controlling) {
+				this.schedule();
+				return;
+			}
 			// Paused, nothing moves: its counts with it.
 			const light = Job.BUSY.includes(this.state) && this.state !== 'paused' && Date.now() - this.counted < Job.COUNTS_DELAY;
 			const sent = performance.now();
 			const response = await this.view.api.post('octopus_job_status', light ? {light: '1'} : {});
+			// Asked before a click whose answer is on its way: dropped, as out of date.
+			if (this.controlling) {
+				return;
+			}
 			if (!response.success) {
 				// Not answered, e.g. PHP restarting: asked again, the page goes on following the job.
 				this.schedule(Job.DELAYS[this.state] ?? Job.DELAYS.running);
@@ -196,7 +217,7 @@
 				this.settleStart = resolve;
 			});
 			this.el.hidden = false;
-			this.el.dataset.state = 'running';
+			this.setState('running');
 			this.showProgress({action, total, state: 'running', done: 0, failed: 0});
 		}
 
@@ -229,17 +250,24 @@
 				this.dismiss();
 				return;
 			}
+			if (this.controlling || !Job.COMMANDS[this.el.dataset.state]?.includes(command)) {
+				return;
+			}
+			// Off at the click, the one clicked telling it: never sent twice, nor another one meanwhile.
+			this.showControls(command, true);
+			this.controlling = true;
 			// Clicked as the job starts: sent once it is there, e.g. while the images of a big media library are listed.
 			await this.started;
 			// At once, without asking: the job goes on while a dialog waits, and the images processed stay so.
 			const sent = performance.now();
 			const response = await this.view.api.post('octopus_job_control', {command});
+			this.controlling = false;
 			if (response.success) {
-				if (this.latest(sent)) {
-					this.render(response.data);
-				}
+				this.latest(sent);
+				this.render(response.data);
 				return;
 			}
+			this.setState(this.el.dataset.state);
 			// Never lost without a word: the job goes on until the click reaches the site.
 			window.alert(response.data?.message ?? __('The site did not answer: try again.', 'octopus-image-optimizer'));
 		}
@@ -257,14 +285,14 @@
 			this.el.hidden = false;
 			if (busy) {
 				clearTimeout(this.ending);
-				this.el.dataset.state = this.state;
+				this.setState(this.state);
 				this.following = true;
 				this.showProgress(job);
 			} else if (this.following && ['finished', 'cancelled'].includes(job?.state)) {
 				this.following = false;
 				this.end(job);
 			} else {
-				this.el.dataset.state = this.state;
+				this.setState(this.state);
 			}
 
 			this.view.emit('job:status', {counts: this.counts, savings, busy, seen: this.seen, allOptimised: this.allOptimised()});
@@ -290,11 +318,42 @@
 				/* translators: 1: the progress, e.g. 3 / 12 images, 2: a number of seconds. */
 				progress = sprintf(_n('%1$s · an image waits for another request, %2$s second at most', '%1$s · an image waits for another request, %2$s seconds at most', job.waiting, 'octopus-image-optimizer'), progress, job.waiting.toLocaleString());
 			}
-			const cancelling = __('Cancelling…', 'octopus-image-optimizer');
-			const doing = {pausing: __('Pausing…', 'octopus-image-optimizer'), paused: __('Paused:', 'octopus-image-optimizer'), cancelling, cancelled: cancelling}[job.state]
-				?? `${Job.TEXTS[job.action]?.label ?? __('Processing', 'octopus-image-optimizer')}…`;
+			// Pausing or cancelling, the control clicked tells it (setState()).
+			const doing = job.state === 'paused'
+				? __('Paused:', 'octopus-image-optimizer')
+				: `${Job.TEXTS[job.action]?.label ?? __('Processing', 'octopus-image-optimizer')}…`;
 			this.label.textContent = `${doing} ${progress}`;
 			this.dismiss();
+		}
+
+		/**
+		 * Shows the box in a state of the job: pausing or
+		 * cancelling, the control clicked tells it, the
+		 * controls off until the image in progress is ended;
+		 * off too on the final count of a job that ended.
+		 *
+		 * @param {string} state
+		 */
+		setState(state) {
+			this.el.dataset.state = state;
+			const clicked = Job.CLICKED[state];
+			this.showControls(clicked, Boolean(clicked) || state === 'ending');
+		}
+
+		/**
+		 * Shows the controls: the one at work with its busy
+		 * label (data-label-busy), the others with theirs.
+		 *
+		 * @param {?string} clicked
+		 * @param {boolean} off All of them off but the close of the result.
+		 */
+		showControls(clicked, off) {
+			this.controls.forEach((control) => {
+				if (control.dataset.labelBusy) {
+					control.textContent = control.dataset.control === clicked ? control.dataset.labelBusy : control.dataset.label;
+				}
+				control.disabled = off && control.dataset.control !== 'dismiss';
+			});
 		}
 
 		/**
@@ -305,11 +364,11 @@
 		 * @param {Object} job
 		 */
 		end(job) {
-			this.el.dataset.state = job.state === 'cancelled' ? 'cancelling' : 'ending';
+			this.setState(job.state === 'cancelled' ? 'cancelling' : 'ending');
 			this.showProgress(job);
 			clearTimeout(this.ending);
 			this.ending = setTimeout(() => {
-				this.el.dataset.state = 'idle';
+				this.setState('idle');
 				this.showResult(job);
 			}, Job.END_DELAY);
 		}

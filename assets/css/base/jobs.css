@@ -194,9 +194,8 @@
 
 	&:not([data-state="running"], [data-state="pausing"], [data-state="paused"], [data-state="cancelling"], [data-state="ending"]) .octopus-job__progress,
 	&:not([data-result]) .octopus-result,
-	&[data-state="running"] [data-control="resume"],
-	&[data-state="paused"] [data-control="pause"],
-	&:is([data-state="pausing"], [data-state="cancelling"], [data-state="ending"]) .octopus-job__controls {
+	&:not([data-state="paused"]) [data-control="resume"],
+	&[data-state="paused"] [data-control="pause"] {
 		display: none;
 	}
 }
