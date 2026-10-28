@@ -22,6 +22,14 @@
                 "deliciousbrains/wp-background-processing"
             ],
             "delete_vendor_packages": true
+        },
+        "patches": {
+            "deliciousbrains/wp-background-processing": [
+                {
+                    "description": "Let the cron of WordPress go on while a job runs (pull request 144 of the library)",
+                    "url": "patches/wp-background-processing-cron-healthcheck.patch"
+                }
+            ]
         }
     },
     "scripts": {
@@ -57,14 +65,16 @@
         "wp-phpunit/wp-phpunit": "^7.1",
         "roots/wordpress-no-content": "^7.1",
         "wp-coding-standards/wpcs": "^3.1",
-        "phpcompatibility/phpcompatibility-wp": "^2.1"
+        "phpcompatibility/phpcompatibility-wp": "^2.1",
+        "cweagans/composer-patches": "^2"
     },
     "config": {
         "platform": {
             "php": "8.2"
         },
         "allow-plugins": {
-            "dealerdirect/phpcodesniffer-composer-installer": true
+            "dealerdirect/phpcodesniffer-composer-installer": true,
+            "cweagans/composer-patches": true
         }
     }
 }

@@ -1,0 +1,3 @@
+# The patches apply to the files of the libraries as they are: no line ending
+# converted on checkout, e.g. by Windows.
+*.patch -text

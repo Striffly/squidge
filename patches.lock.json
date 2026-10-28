@@ -1,0 +1,17 @@
+{
+    "_hash": "3cebcabf71001e38a66072432989bab8f117101187b0925d70e06d02ffa1c6db",
+    "patches": {
+        "deliciousbrains/wp-background-processing": [
+            {
+                "package": "deliciousbrains/wp-background-processing",
+                "description": "Let the cron of WordPress go on while a job runs (pull request 144 of the library)",
+                "url": "patches/wp-background-processing-cron-healthcheck.patch",
+                "sha256": "8171aab16a0933428a1cc40ad443f218744a1634b974b660ae69f5ecabcc8396",
+                "depth": 1,
+                "extra": {
+                    "provenance": "root"
+                }
+            }
+        ]
+    }
+}

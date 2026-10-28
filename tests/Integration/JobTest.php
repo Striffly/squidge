@@ -134,6 +134,23 @@ class JobTest extends TestCase
 		$this->job->delete_all();
 	}
 
+	public function test_the_cron_goes_on_while_a_job_runs()
+	{
+		$this->job->start(Job::REMOVE_FORMATS, [1, 2]);
+		set_site_transient(self::identifier($this->job) . '_process_lock', microtime(), 60);
+		$ran = false;
+		add_action('octopus_test_next_event', function () use (&$ran) {
+			$ran = true;
+		});
+
+		// As wp-cron.php runs the events due, one after the other.
+		$this->job->handle_cron_healthcheck();
+		do_action('octopus_test_next_event');
+
+		$this->assertTrue($ran, 'The library ended the request: the next events waited.');
+		$this->job->delete_all();
+	}
+
 	public function test_a_queue_written_with_objects_creates_none()
 	{
 		// E.g. written in the database through a flaw of another plugin.

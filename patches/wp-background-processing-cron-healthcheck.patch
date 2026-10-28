@@ -1,0 +1,23 @@
+Let the cron of WordPress go on while a job runs: handle_cron_healthcheck()
+returns instead of ending the request with exit, which left the other events
+due in the same run of the cron for the next one. As the pull request 144 of
+the library proposes: https://github.com/deliciousbrains/wp-background-processing/pull/144
+
+--- a/classes/wp-background-process.php
++++ b/classes/wp-background-process.php
+@@ -797,13 +797,13 @@
+ 	public function handle_cron_healthcheck() {
+ 		if ( $this->is_processing() ) {
+ 			// Background process already running.
+-			exit;
++			return;
+ 		}
+ 
+ 		if ( $this->is_queue_empty() ) {
+ 			// No data to process.
+ 			$this->clear_scheduled_event();
+-			exit;
++			return;
+ 		}
+ 
+ 		$this->dispatch();
