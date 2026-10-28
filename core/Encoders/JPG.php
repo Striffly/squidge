@@ -74,11 +74,45 @@ class JPG extends AbstractEncoder
 			$strip[] = '--strip-icc';
 		}
 		// Progressive: the browser shows the whole image blurred first, then sharpens it.
-		if (yield from self::run(array_merge($strip, ['--all-progressive', '--overwrite', '--max=' . self::quality($args), $filepath]), $filepath, $args)) {
+		$compressed = yield from self::run(array_merge($strip, ['--all-progressive', '--overwrite', '--max=' . self::quality($args), $filepath]), $filepath, $args);
+		if ($compressed && self::keep_orientation($filepath, ImageHeader::orientation($original), $args)) {
 			Logger::info("Successfully compressed image JPG file: " . $filepath);
 		} else {
 			self::put_back($filepath, $args);
 		}
+	}
+
+	/**
+	 * Writes back the orientation of a sideways JPG,
+	 * which the browsers turn by it, once jpegoptim
+	 * stripped its Exif data: alone, without the GPS
+	 * position and the camera (see
+	 * ImageHeader::with_orientation()). Written next to
+	 * the file, then moved in place at once, as the site
+	 * may be serving it.
+	 *
+	 * @param string $filepath
+	 * @param int $orientation See ImageHeader::orientation().
+	 * @param array $args
+	 * @return bool Whether the file has its orientation.
+	 * @since 1.0.0
+	 */
+	private static function keep_orientation($filepath, $orientation, $args)
+	{
+		if ($orientation === 1) {
+			return true;
+		}
+		$jpeg = file_get_contents($filepath);
+		$temp = Files::temp_file('.jpg');
+		// phpcs:ignore WordPress.WP.AlternativeFunctions.rename_rename -- Replaces the JPG the site may be serving at once, never half written.
+		if (is_string($jpeg) && $temp !== null && file_put_contents($temp, ImageHeader::with_orientation($jpeg, $orientation)) !== false && rename($temp, $filepath)) {
+			return true;
+		}
+		if ($temp !== null && file_exists($temp)) {
+			wp_delete_file($temp);
+		}
+		self::error($args, $filepath, 'cannot write the orientation of the image');
+		return false;
 	}
 
 	/**

@@ -16,6 +16,7 @@ The versions of OIO – Octopus Image Optimizer, newest first. Before 1.0.0, it 
 - Status column in the media library and readable error notices.
 - CMYK JPG images, AVIF quality settings, CPU limits adjustable by filters.
 - Colour profiles kept in every format when the colours need them (Display P3, Adobe RGB).
+- WebP and AVIF versions of the photos stored sideways turned the right way up, even where WordPress did not turn them.
 - Requires WordPress 6.2 and PHP 8.2.
 
 ## 0.1.4 – 2021-12-21

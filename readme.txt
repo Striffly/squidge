@@ -22,7 +22,7 @@ OIO optimises the images of your media library with the libraries of your own se
 * Compresses JPG and PNG images in place, and creates their WebP and AVIF versions in `uploads/octopus/formats/` (`photo.jpg.webp`), kept only when lighter.
 * Keeps the original images: every optimisation starts again from them, and they can be restored at any time.
 * Strips the metadata (camera, date, GPS position) from every optimised file, but the colour profile the colours need, e.g. the Display P3 of a phone: an sRGB one goes, the colours of an image without one.
-* Handles CMYK JPGs, which the WebP and AVIF encoders cannot read.
+* Handles CMYK JPGs, which the WebP and AVIF encoders cannot read, and the photos stored sideways, which they would leave sideways: the browsers turn the JPG from its Exif data.
 
 = Media library =
 
@@ -114,6 +114,7 @@ OIO sends nothing out of your server: no API, no tracking, no external request. 
 * Status column in the media library and readable error notices.
 * CMYK JPG images, AVIF quality settings, CPU limits adjustable by filters.
 * Colour profiles kept in every format when the colours need them (Display P3, Adobe RGB).
+* WebP and AVIF versions of the photos stored sideways turned the right way up, even where WordPress did not turn them.
 * Requires WordPress 6.2 and PHP 8.2.
 
 The versions of Squidge, before OIO, are in the [full changelog](https://github.com/Striffly/octopus-image-optimizer/blob/main/CHANGELOG.md).

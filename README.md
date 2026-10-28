@@ -27,7 +27,8 @@ unlimited, no API key, no quota: your images never leave your server.
 - Keeps the original images: every optimisation starts again from them, and they can be restored at any time.
 - Strips the metadata (camera, date, GPS position) from every optimised file, but the colour profile the colours
   need, e.g. the Display P3 of a phone: an sRGB one goes, the colours of an image without one.
-- Handles CMYK JPGs, which the WebP and AVIF encoders cannot read.
+- Handles CMYK JPGs, which the WebP and AVIF encoders cannot read, and the photos stored sideways, which they would
+  leave sideways: the browsers turn the JPG from its Exif data.
 
 **Media library**
 

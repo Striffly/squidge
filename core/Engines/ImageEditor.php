@@ -5,8 +5,9 @@
  *
  * The WordPress image editor (GD or Imagick) making
  * the WebP and AVIF files where cwebp or avifenc is
- * missing, and the RGB copies of the CMYK JPGs the
- * libraries cannot read.
+ * missing, and the copies of the JPGs the libraries
+ * cannot read as the browsers show them: CMYK, or
+ * sideways.
  *
  * @package     OIO
  * @author      Clément Gayot
@@ -60,13 +61,14 @@ class ImageEditor
 	private static $copies = [];
 
 	/**
-	 * Returns a file the converters can read: the file
-	 * itself or, for a CMYK JPG that cwebp and avifenc
-	 * cannot read, a temporary RGB copy made with the
-	 * WordPress image editor (as for the thumbnails),
-	 * once for both. The copy is a PNG: lossless, and
-	 * always RGB. Remove it with release(), or all of
-	 * them with release_all().
+	 * Returns a file the converters can read as the
+	 * browsers show it: the file itself or, for a JPG
+	 * that cwebp and avifenc cannot read (CMYK) or
+	 * would leave sideways (see orient()), a temporary
+	 * copy made with the WordPress image editor (as for
+	 * the thumbnails), once for both. The copy is a
+	 * PNG: lossless, and always RGB. Remove it with
+	 * release(), or all of them with release_all().
 	 *
 	 * @param string $filepath
 	 * @param string $mime
@@ -82,13 +84,16 @@ class ImageEditor
 			return self::$copies[$filepath];
 		}
 		$info = @getimagesize($filepath);
-		if (!$info || !isset($info['channels']) || $info['channels'] != 4) {
+		$cmyk = $info && isset($info['channels']) && $info['channels'] == 4;
+		$orientation = ImageHeader::orientation($filepath);
+		if (!$cmyk && $orientation === 1) {
 			return $filepath;
 		}
 		$editor = wp_get_image_editor($filepath);
 		if (is_wp_error($editor)) {
 			return $filepath;
 		}
+		self::orient($editor, $orientation);
 		// Private, unlike the temporary folder of the server (see Files::temp_file()).
 		$temp = Files::temp_file('.png');
 		if ($temp === null) {
@@ -99,7 +104,7 @@ class ImageEditor
 			wp_delete_file($temp);
 			return $filepath;
 		}
-		Logger::info("Converted CMYK image to RGB before conversion: " . $filepath);
+		Logger::info("Copied the image in RGB, the right way up, before conversion: " . $filepath);
 		self::$copies[$filepath] = $saved['path'];
 		return $saved['path'];
 	}
@@ -135,7 +140,8 @@ class ImageEditor
 
 	/**
 	 * Saves an image in another format with the image
-	 * editor: true, or the error. The editor
+	 * editor, the right way up (see orient()): true, or
+	 * the error. The editor
 	 * works in the PHP memory: the limit is raised as
 	 * WordPress does, and an image too big for it gets
 	 * an error instead of stopping PHP, with the whole
@@ -173,6 +179,7 @@ class ImageEditor
 			$saved = wp_get_image_editor($source, ['mime_type' => $mime]);
 			if (!is_wp_error($saved)) {
 				$editor = $saved;
+				self::orient($editor, ImageHeader::orientation($source));
 				self::strip_metadata($editor);
 				$saved = $editor->save($output, $format);
 			}
@@ -219,6 +226,39 @@ class ImageEditor
 		}
 		$bytes = isset(self::BYTES_PER_PIXEL[$mime]) ? self::BYTES_PER_PIXEL[$mime] : max(self::BYTES_PER_PIXEL);
 		return memory_get_usage() + $size[0] * $size[1] * $bytes < $limit;
+	}
+
+	/**
+	 * Turns the image loaded by an editor the right way
+	 * up: the browsers turn a JPG from the orientation
+	 * of its Exif data, which the WebP and AVIF files
+	 * lose. WordPress turns the files it makes on
+	 * upload, but not always: images uploaded before
+	 * WordPress 5.3, PHP without its exif extension, or
+	 * a filter of wp_image_maybe_exif_rotate. The
+	 * orientation read by OIO is given to
+	 * WP_Image_Editor::maybe_exif_rotate(), for the
+	 * same turns. If they fail, the image stays as
+	 * stored.
+	 *
+	 * @param object $editor A WP_Image_Editor.
+	 * @param int $orientation See ImageHeader::orientation().
+	 * @since 1.0.0
+	 */
+	private static function orient($editor, $orientation)
+	{
+		if ($orientation === 1) {
+			return;
+		}
+		$given = function () use ($orientation) {
+			return $orientation;
+		};
+		add_filter('wp_image_maybe_exif_rotate', $given, PHP_INT_MAX);
+		try {
+			$editor->maybe_exif_rotate();
+		} finally {
+			remove_filter('wp_image_maybe_exif_rotate', $given, PHP_INT_MAX);
+		}
 	}
 
 	/**

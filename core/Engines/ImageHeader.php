@@ -5,7 +5,8 @@
  *
  * Reads what the header of a JPG or PNG file tells
  * about its pixels, without decoding them: its colour
- * profile.
+ * profile and its orientation, which it writes back
+ * alone in a stripped JPG.
  *
  * @package     OIO
  * @author      Clément Gayot
@@ -68,14 +69,103 @@ class ImageHeader
 	 */
 	public static function profile($path)
 	{
-		// The file may have just been written, e.g. copied from its original.
-		clearstatcache(true, $path);
 		$icc = self::icc($path);
 		if ($icc === null || strlen($icc) < 132) {
 			return null;
 		}
 		$space = rtrim(substr($icc, 16, 4));
 		return $space === 'RGB' && self::is_srgb($icc) ? null : $space;
+	}
+
+	/**
+	 * Returns the orientation of a JPG file, from its
+	 * Exif data: 1 to 8, as WordPress reads it (see
+	 * WP_Image_Editor::maybe_exif_rotate()), 1 without
+	 * one, the pixels the right way up. Read without
+	 * the exif extension of PHP, which some servers
+	 * lack.
+	 *
+	 * @param string $path
+	 * @return int
+	 * @since 1.0.0
+	 */
+	public static function orientation($path)
+	{
+		if (self::type($path) !== 'jpg') {
+			return 1;
+		}
+		foreach (self::jpeg_segments($path, 0xE1) as $segment) {
+			if (strncmp($segment, "Exif\0\0", 6) !== 0) {
+				continue;
+			}
+			// A TIFF structure, little (II) or big endian (MM): the first directory
+			// (IFD0) holds the orientation, tag 0x0112.
+			$tiff = substr($segment, 6);
+			$order = substr($tiff, 0, 2);
+			if (strlen($tiff) < 8 || !in_array($order, ['II', 'MM'], true)) {
+				return 1;
+			}
+			list($short, $long) = $order === 'II' ? ['v', 'V'] : ['n', 'N'];
+			$ifd = unpack($long, substr($tiff, 4, 4))[1];
+			$count = $ifd + 2 <= strlen($tiff) ? unpack($short, substr($tiff, $ifd, 2))[1] : 0;
+			for ($i = 0; $i < $count && $ifd + 14 + 12 * $i <= strlen($tiff); $i++) {
+				$entry = substr($tiff, $ifd + 2 + 12 * $i, 12);
+				if (unpack($short, substr($entry, 0, 2))[1] === 0x0112) {
+					$orientation = unpack($short, substr($entry, 8, 2))[1];
+					return $orientation >= 1 && $orientation <= 8 ? $orientation : 1;
+				}
+			}
+			return 1;
+		}
+		return 1;
+	}
+
+	/**
+	 * Returns the bytes of a JPG file without Exif data
+	 * with an Exif segment holding its orientation only
+	 * (see orientation()): the one tag the browsers need
+	 * to turn it, without the GPS position and the
+	 * camera of the whole Exif data. After the JFIF
+	 * segment, which comes first, if any.
+	 *
+	 * @param string $jpeg
+	 * @param int $orientation 2 to 8.
+	 * @return string
+	 * @since 1.0.0
+	 */
+	public static function with_orientation($jpeg, $orientation)
+	{
+		// A big endian TIFF structure: one directory (IFD0) of two entries, each
+		// one SHORT padded to 4 bytes, then no other. The orientation (tag
+		// 0x0112), and the position of the chroma (0x0213, centred), which the
+		// Exif standard requires.
+		$entries = pack('nnNnn', 0x0112, 3, 1, $orientation, 0) . pack('nnNnn', 0x0213, 3, 1, 1, 0);
+		$tiff = 'MM' . pack('nN', 42, 8) . pack('n', 2) . $entries . pack('N', 0);
+		$exif = "Exif\0\0" . $tiff;
+		$offset = 2;
+		if (substr($jpeg, 2, 2) === "\xFF\xE0" && strlen($jpeg) >= 6) {
+			$offset += 2 + unpack('n', substr($jpeg, 4, 2))[1];
+		}
+		return substr($jpeg, 0, $offset) . "\xFF\xE1" . pack('n', strlen($exif) + 2) . $exif . substr($jpeg, $offset);
+	}
+
+	/**
+	 * Returns the type of an image file from its first
+	 * bytes: jpg, png, or null for another one.
+	 *
+	 * @param string $path
+	 * @return string|null
+	 * @since 1.0.0
+	 */
+	private static function type($path)
+	{
+		// Read first: the file may have just been written, e.g. copied from its original.
+		clearstatcache(true, $path);
+		$signature = (string)self::read($path, 0, 8);
+		if ($signature === "\x89PNG\r\n\x1a\n") {
+			return 'png';
+		}
+		return strncmp($signature, "\xFF\xD8", 2) === 0 ? 'jpg' : null;
 	}
 
 	/**
@@ -88,15 +178,15 @@ class ImageHeader
 	 */
 	private static function icc($path)
 	{
-		$signature = self::read($path, 0, 8);
-		if ($signature === "\x89PNG\r\n\x1a\n") {
+		$type = self::type($path);
+		if ($type === 'png') {
 			$chunk = self::png_chunk($path, 'iCCP');
 			// The name of the profile, then the compression method, then the profile.
 			$start = $chunk === null ? false : strpos($chunk, "\0");
 			$icc = $start === false ? false : @gzuncompress(substr($chunk, $start + 2));
 			return $icc === false ? null : $icc;
 		}
-		if ($signature === null || strncmp($signature, "\xFF\xD8", 2) !== 0) {
+		if ($type !== 'jpg') {
 			return null;
 		}
 		// A profile can be cut in several APP2 segments, numbered.

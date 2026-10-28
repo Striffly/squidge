@@ -298,8 +298,8 @@ abstract class AbstractEncoder
 	 * missing (see editor()): from the original, at the
 	 * same path, remembered as with the library. The
 	 * editor reads the CMYK JPGs, as for the
-	 * thumbnails: no RGB copy is needed (see
-	 * ImageEditor::readable()).
+	 * thumbnails, and turns the sideways ones itself:
+	 * no copy is needed (see ImageEditor::readable()).
 	 *
 	 * @param string $filepath
 	 * @param string $mime
