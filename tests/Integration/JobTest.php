@@ -276,6 +276,18 @@ class JobTest extends TestCase
 		$this->assertSame(['finished', 1, 1], [$progress['state'], $progress['total'], $progress['done']], 'The image ended by the worker counts for the job cancelled.');
 	}
 
+	public function test_the_stale_locks_of_the_images_go_once_a_job_ends()
+	{
+		global $wpdb;
+		// Left by a worker PHP stopped, on an image the job never processes again.
+		$wpdb->insert($wpdb->options, ['option_name' => Lock::PREFIX . 999, 'option_value' => time() - Lock::TIMEOUT - 1, 'autoload' => 'no']);
+		$this->job->start(Job::OPTIMISE, [$this->upload_unoptimised('photo.jpg')]);
+
+		$this->run_job();
+
+		$this->assertSame('0', $wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM {$wpdb->options} WHERE option_name = %s", Lock::PREFIX . 999)));
+	}
+
 	public function test_an_image_another_request_processes_waits_instead_of_being_skipped()
 	{
 		$id = $this->upload_unoptimised('photo.jpg');
@@ -288,12 +300,21 @@ class JobTest extends TestCase
 
 		$this->handle();
 
-		$this->assertSame(0, $this->job->progress()['done']);
+		$progress = $this->job->progress();
+		$this->assertSame(0, $progress['done']);
 		$this->assertSame([$id], $this->job->get_batches()[0]->data, 'Kept in the queue.');
+		$this->assertGreaterThan(Lock::TIMEOUT - 10, $progress['waiting'], 'The page tells how long it may still wait.');
+		$this->assertLessThanOrEqual(Lock::TIMEOUT, $progress['waiting']);
 
 		Lock::free(Lock::PREFIX . $id, $lock);
+		$told = [];
+		add_action('octopus_working', function () use (&$told) {
+			$told[] = $this->job->progress()['waiting'];
+		});
 		$this->run_job();
-		$this->assertSame(1, $this->job->progress()['done']);
+		$progress = $this->job->progress();
+		$this->assertSame([1, 0], [$progress['done'], $progress['waiting']]);
+		$this->assertSame([0], array_values(array_unique($told)), 'Not told while the worker processes it.');
 		$this->assertSame(Status::OPTIMISED, Status::of($id));
 	}
 

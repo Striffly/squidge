@@ -111,6 +111,44 @@ class Lock
 	}
 
 	/**
+	 * Returns the seconds the lock of an image may still
+	 * hold it, at most: once stale, unless the request
+	 * holding it releases it before. 0 if it is free.
+	 *
+	 * @param int $id
+	 * @return int
+	 * @since 1.0.0
+	 */
+	public static function left($id)
+	{
+		global $wpdb;
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery -- See take().
+		$value = $wpdb->get_var($wpdb->prepare("SELECT option_value FROM {$wpdb->options} WHERE option_name = %s", self::PREFIX . (int)$id));
+		return $value === null ? 0 : max(0, (int)ceil((float)$value + self::TIMEOUT - microtime(true)));
+	}
+
+	/**
+	 * Deletes the locks of the images gone stale, e.g.
+	 * of a worker PHP stopped: they hold nothing, and
+	 * would stay until the image is processed again.
+	 * Not the locks of the workers, with their own
+	 * timeout (see Background).
+	 *
+	 * @since 1.0.0
+	 */
+	public static function sweep()
+	{
+		global $wpdb;
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery -- See take().
+		$wpdb->query($wpdb->prepare(
+			"DELETE FROM {$wpdb->options} WHERE option_name LIKE %s AND option_name NOT LIKE %s AND option_value < %d",
+			$wpdb->esc_like(self::PREFIX) . '%',
+			$wpdb->esc_like(self::PREFIX . 'worker_') . '%',
+			time() - self::TIMEOUT
+		));
+	}
+
+	/**
 	 * Refreshes the lock of an image this request
 	 * holds, so that it does not go stale while the
 	 * request processes it.

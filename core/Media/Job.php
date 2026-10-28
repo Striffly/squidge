@@ -152,11 +152,14 @@ class Job extends Background
 		$this->clear_scheduled_event();
 		$this->cancelled_progress();
 		$this->free_worker();
+		Lock::sweep();
 	}
 
 	/**
 	 * Returns the progress of the last job, with its
-	 * state: running, paused, finished or cancelled.
+	 * state: running, paused, finished or cancelled,
+	 * and the seconds an image may still wait for
+	 * another request holding it (waiting, 0 if none).
 	 * Null if no job ever ran.
 	 *
 	 * @return array|null
@@ -177,6 +180,9 @@ class Job extends Background
 		} else {
 			$progress['state'] = 'running';
 		}
+		// Until the lock it met goes stale, written again at each try that met it.
+		$waiting = isset($progress['waiting']['until']) && in_array($progress['state'], ['running', 'paused'], true);
+		$progress['waiting'] = $waiting ? max(0, $progress['waiting']['until'] - time()) : 0;
 		return $progress;
 	}
 
@@ -197,8 +203,14 @@ class Job extends Background
 		$counts = ['done' => 1, 'failed' => 0, 'missing' => 0];
 		if (get_post($id)) {
 			if ($progress['action'] === self::OPTIMISE) {
+				// Tried again: told as waiting only if still held.
+				if (isset($progress['waiting']['id']) && $progress['waiting']['id'] === $id) {
+					self::save_progress($progress, [], ['waiting' => null]);
+				}
 				if (Optimiser::optimise($id, $progress['mode']) === null) {
-					// Another request processes it, e.g. a worker PHP stopped, its lock not stale yet: again after the others.
+					// Another request processes it, e.g. a worker PHP stopped, its lock not stale yet: again
+					// after the others, the page telling it waits.
+					self::save_progress($progress, [], ['waiting' => ['id' => $id, 'until' => time() + Lock::left($id)]]);
 					sleep(1);
 					return $id;
 				}
@@ -209,15 +221,31 @@ class Job extends Background
 				$counts['missing'] = (int)(Cleaner::restore($id) === false);
 			}
 		}
-		// Read again: cancelled meanwhile, it stays so, and another job keeps its counts.
-		$stored = self::stored();
-		if (is_array($stored) && self::identity($stored) === self::identity($progress)) {
-			foreach ($counts as $name => $count) {
-				$stored[$name] += $count;
-			}
-			update_option(self::PROGRESS, $stored, false);
-		}
+		self::save_progress($progress, $counts);
 		return false;
+	}
+
+	/**
+	 * Adds counts to the progress of a job, and sets
+	 * fields of it, read again first: cancelled
+	 * meanwhile, it stays so, and another job keeps its
+	 * own progress.
+	 *
+	 * @param array $progress The progress the worker read.
+	 * @param int[] $counts By name, e.g. done.
+	 * @param array $fields
+	 * @since 1.0.0
+	 */
+	private static function save_progress($progress, $counts, $fields = [])
+	{
+		$stored = self::stored();
+		if (!is_array($stored) || self::identity($stored) !== self::identity($progress)) {
+			return;
+		}
+		foreach ($counts as $name => $count) {
+			$stored[$name] += $count;
+		}
+		update_option(self::PROGRESS, array_merge($stored, $fields), false);
 	}
 
 	/**

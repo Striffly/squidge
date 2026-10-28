@@ -47,6 +47,28 @@ class LockTest extends TestCase
 		$this->assertFalse(self::locked($id));
 	}
 
+	public function test_the_stale_locks_of_the_images_are_swept()
+	{
+		// E.g. left by a worker PHP stopped.
+		self::lock(7, time() - Lock::TIMEOUT - 1);
+		self::lock(8, time());
+		self::lock('worker_job', time() - Lock::TIMEOUT - 1);
+
+		Lock::sweep();
+
+		$this->assertFalse(self::locked(7));
+		$this->assertTrue(self::locked(8), 'Still held.');
+		$this->assertTrue(self::locked('worker_job'), 'A worker has its own timeout.');
+	}
+
+	public function test_the_time_an_image_may_still_be_held_is_told()
+	{
+		self::lock(7, time() - 20);
+
+		$this->assertEqualsWithDelta(Lock::TIMEOUT - 20, Lock::left(7), 1);
+		$this->assertSame(0, Lock::left(8), 'Free.');
+	}
+
 	public function test_a_request_holding_the_lock_goes_on()
 	{
 		$result = Lock::run(42, function () {

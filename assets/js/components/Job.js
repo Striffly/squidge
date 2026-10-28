@@ -177,6 +177,11 @@
 				/* translators: 1: the progress, e.g. 3 / 12 images, 2: the number of images with errors. */
 				progress = sprintf(_n('%1$s, %2$s with errors', '%1$s, %2$s with errors', job.failed, 'octopus-image-optimizer'), progress, job.failed.toLocaleString());
 			}
+			if (job.waiting) {
+				// Held by another request, e.g. a worker PHP stopped: its lock goes stale within a minute.
+				/* translators: 1: the progress, e.g. 3 / 12 images, 2: a number of seconds. */
+				progress = sprintf(_n('%1$s · an image waits for another request, %2$s second at most', '%1$s · an image waits for another request, %2$s seconds at most', job.waiting, 'octopus-image-optimizer'), progress, job.waiting.toLocaleString());
+			}
 			const doing = job.state === 'paused'
 				? __('Paused:', 'octopus-image-optimizer')
 				: `${Job.TEXTS[job.action]?.label ?? __('Processing', 'octopus-image-optimizer')}…`;

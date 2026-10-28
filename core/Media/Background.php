@@ -107,6 +107,18 @@ abstract class Background extends Octopus_Vendor_WP_Background_Process
 	}
 
 	/**
+	 * Ends the queue, emptied: the locks of the images
+	 * gone stale go too (Lock::sweep()).
+	 *
+	 * @since 1.0.0
+	 */
+	protected function complete()
+	{
+		parent::complete();
+		Lock::sweep();
+	}
+
+	/**
 	 * Releases the lock of the worker, whoever holds it:
 	 * a worker at work stops after its image, once it
 	 * sees it lost its lock (see should_continue()), and
