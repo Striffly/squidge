@@ -25,7 +25,8 @@ unlimited, no API key, no quota: your images never leave your server.
   with the same tree (`2026/10/photo.jpg.webp`, `photo.jpg.avif`), kept only when lighter than the compressed image.
   WordPress never writes there: no file added to the media library can pass for a version of an image.
 - Keeps the original images: every optimisation starts again from them, and they can be restored at any time.
-- Strips the metadata (camera, date, GPS position) from every optimised file.
+- Strips the metadata (camera, date, GPS position) from every optimised file, but the colour profile the colours
+  need, e.g. the Display P3 of a phone: an sRGB one goes, the colours of an image without one.
 - Handles CMYK JPGs, which the WebP and AVIF encoders cannot read.
 
 **Media library**

@@ -17,6 +17,7 @@
 
 namespace Octopus\Encoders;
 
+use Octopus\Engines\ImageHeader;
 use Octopus\Log\Logger;
 use Octopus\Media\Files;
 
@@ -66,8 +67,14 @@ class JPG extends AbstractEncoder
 			self::error($args, $filepath, 'cannot write ' . basename($filepath));
 			return;
 		}
+		// The metadata go, as with --strip-all, but the colour profile the colours
+		// need (see ImageHeader::profile()): --keep-icc needs jpegoptim 1.4.7.
+		$strip = ['--strip-com', '--strip-iptc', '--strip-xmp', '--strip-exif'];
+		if (ImageHeader::profile($original) === null) {
+			$strip[] = '--strip-icc';
+		}
 		// Progressive: the browser shows the whole image blurred first, then sharpens it.
-		if (yield from self::run(['--strip-all', '--all-progressive', '--overwrite', '--max=' . self::quality($args), $filepath], $filepath, $args)) {
+		if (yield from self::run(array_merge($strip, ['--all-progressive', '--overwrite', '--max=' . self::quality($args), $filepath]), $filepath, $args)) {
 			Logger::info("Successfully compressed image JPG file: " . $filepath);
 		} else {
 			self::put_back($filepath, $args);

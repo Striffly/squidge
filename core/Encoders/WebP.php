@@ -19,6 +19,7 @@
 namespace Octopus\Encoders;
 
 use Octopus\Engines\ImageEditor;
+use Octopus\Engines\ImageHeader;
 use Octopus\Log\Logger;
 use Octopus\Media\Files;
 
@@ -84,6 +85,11 @@ class WebP extends AbstractEncoder
 		$output = Files::variant($filepath, self::extension());
 		// One thread: -mt makes cwebp no faster, in lossy or near-lossless mode.
 		$options = ['-q', $quality];
+		// cwebp copies no metadata: the colour profile the colours need is (see
+		// ImageHeader::profile()), an RGB one, as the pixels of a WebP file.
+		if (ImageHeader::profile($source) === 'RGB') {
+			$options = array_merge($options, ['-metadata', 'icc']);
+		}
 		if (yield from self::run(array_merge($options, [$source, '-o', $output]), $filepath, $args)) {
 			if ($mime == Files::PNG) {
 				yield from self::near_lossless($options, $source, $output, $filepath, $args);

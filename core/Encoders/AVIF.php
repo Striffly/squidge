@@ -19,6 +19,7 @@
 namespace Octopus\Encoders;
 
 use Octopus\Engines\ImageEditor;
+use Octopus\Engines\ImageHeader;
 use Octopus\Engines\Libraries;
 use Octopus\Log\Logger;
 use Octopus\Media\Files;
@@ -86,11 +87,11 @@ class AVIF extends AbstractEncoder
 		} else {
 			$options = ['--min', 0, '--max', 63, '-a', 'end-usage=q', '-a', 'cq-level=' . (int)(((100 - $quality) * 63 + 50) / 100), '-a', 'tune=ssim'];
 		}
-		$options = array_merge($options, self::metadata_options());
 
 		$original = self::original($filepath);
 		$source = ImageEditor::readable($original, $mime);
 		$output = Files::variant($filepath, self::extension());
+		$options = array_merge($options, self::metadata_options(ImageHeader::profile($source) === 'RGB'));
 		if (yield from self::run(array_merge($options, ['--speed', $speed, '--jobs', $jobs, $source, $output]), $filepath, $args, $jobs)) {
 			Logger::info("Successfully converted to AVIF file: " . $output);
 			Files::remember(self::id($args), $filepath);
@@ -159,26 +160,31 @@ class AVIF extends AbstractEncoder
 	}
 
 	/**
-	 * Returns the options leaving out the Exif and XMP
-	 * metadata of the source: avifenc copies them by
-	 * default, with the GPS position of a photo, while
-	 * the JPG, PNG and WebP files are stripped. The
-	 * colour profile is kept. Versions without these
-	 * options do not copy the metadata.
+	 * Returns the options leaving out the metadata of
+	 * the source: avifenc copies them by default. The
+	 * Exif and XMP, with the GPS position of a photo,
+	 * while the JPG, PNG and WebP files are stripped.
+	 * The colour profile, unless the colours need it
+	 * (see ImageHeader::profile()): an sRGB one weighs
+	 * 3 KB for nothing. Versions without these options
+	 * do not copy the Exif and XMP, and keep the
+	 * profile.
 	 *
+	 * @param bool $profile Whether the colour profile is kept.
 	 * @return string[]
 	 * @since 1.0.0
 	 */
-	private static function metadata_options()
+	private static function metadata_options($profile)
 	{
-		static $options = null;
-		if ($options === null) {
+		static $help = null;
+		if ($help === null) {
 			list(, $help) = Libraries::execute([Libraries::binary(self::cmd_name()), '--help']);
-			$options = [];
-			foreach (['--ignore-exif', '--ignore-xmp'] as $option) {
-				if (strpos($help, $option) !== false) {
-					$options[] = $option;
-				}
+			$help = (string)$help;
+		}
+		$options = [];
+		foreach (array_merge(['--ignore-exif', '--ignore-xmp'], $profile ? [] : ['--ignore-icc']) as $option) {
+			if (strpos($help, $option) !== false) {
+				$options[] = $option;
 			}
 		}
 		return $options;
