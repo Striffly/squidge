@@ -1,6 +1,6 @@
 === OIO – Octopus Image Optimizer ===
 Contributors: striffly
-Donate link: https://github.com/Striffly/octopus-image-optimizer#support
+Donate link: https://github.com/Striffly/octopus-image-optimizer#-support
 Tags: webp, avif, image optimization, compress images, performance
 Requires at least: 6.2
 Tested up to: 7.1
@@ -19,77 +19,88 @@ OIO optimises the images of your media library with the libraries of your own se
 
 = Optimisation =
 
-* Compresses JPG and PNG images in place, and creates their WebP and AVIF versions in `uploads/octopus/formats/` (`photo.jpg.webp`), kept only when lighter.
-* Keeps the original images: every optimisation starts again from them, and they can be restored at any time.
-* Strips the metadata (camera, date, GPS position) from every optimised file, but the colour profile the colours need, e.g. the Display P3 of a phone: an sRGB one goes, the colours of an image without one.
-* Handles CMYK JPGs, which the WebP and AVIF encoders cannot read, and the photos stored sideways, which they would leave sideways: the browsers turn the JPG from its Exif data.
+* Compresses JPG and PNG images in place, and creates their WebP and AVIF versions, kept only when lighter.
+* Keeps the original images, to restore them at any time.
+* Strips the metadata (camera, date, GPS position), but the colour profile the colours need.
+* Handles CMYK JPGs and the photos stored sideways.
 
 = Media library =
 
-* Optimises the images on upload (optional), scaled down to a maximum size (2560 pixels by default, as WordPress does).
-* Optimises, re-optimises or cleans up the whole library in the background, with a progress bar, pause and cancel, even once the page is closed.
-* Spots the images optimised with older settings, or before the theme changed its image sizes, and makes their thumbnails again from the originals.
-* Shows the status and the bytes saved of each image, with its errors in plain words, and the bytes saved on the whole library.
-* Optimises or restores an image right from the media library.
+* Optimises the images on upload, or the whole library in the background, with pause and cancel.
+* Re-optimises the images left behind by new settings or new image sizes of the theme.
+* Shows the status, the errors and the bytes saved of each image, and optimises or restores it in one click.
 
 = On the site =
 
-* Serves AVIF and WebP, with the JPG or PNG as fallback (optional): in a `<picture>` element, or from the server with rewrite rules (written for Apache, given for nginx), which leaves the HTML as it is.
-* Tests the delivery: types sent by the server, rewrite, originals kept private.
+* Serves AVIF and WebP with the JPG or PNG as fallback: in a `<picture>` element, or from the server with rewrite rules (Apache, nginx).
+* Tests the delivery.
 
 = For developers =
 
-* `octopus_image( $image_id, $class, $lazy )` returns the `<picture>` of an image in your own templates, `octopus_image_sources( $srcset )` only its AVIF and WebP srcsets.
+* `octopus_image()` and `octopus_image_sources()` give the `<picture>` of an image or its srcsets, in your own templates.
 * WP-CLI: `wp octopus run`, `clean`, `restore`, `stats` and `health`.
 * Filters for the folder of the originals, the priority and threads of the libraries, the pace of the background jobs and the path of a library.
 
-All of them are documented in the [README on GitHub](https://github.com/Striffly/octopus-image-optimizer#developers).
+All of them are documented in the [README on GitHub](https://github.com/Striffly/octopus-image-optimizer#-developers).
 
 == Installation ==
 
-OIO needs PHP allowed to run programs (`proc_open()` or `exec()`), and the libraries of the formats you want:
+OIO needs PHP allowed to run the libraries of the server (`proc_open()` or `exec()`):
 
-* JPG: `jpegoptim`.
-* PNG: `optipng`, or `oxipng`, faster. `pngquant` adds an optional lossy compression.
-* WebP and AVIF: `cwebp` and `avifenc`, or else GD or Imagick when they support them (AVIF since WordPress 6.5).
+* JPG: `jpegoptim`. Without it, not compressed.
+* PNG: `optipng` or `oxipng` (faster). Without them, not compressed.
+* PNG lossy (optional): `pngquant`. Without it, lossless only.
+* WebP: `cwebp`. Without it, GD or Imagick, with heavier PNG graphics.
+* AVIF: `avifenc`. Without it, GD or Imagick (WordPress 6.5+), with less sharp colours.
 
-E.g. on Debian or Ubuntu: `sudo apt install jpegoptim optipng webp libavif-bin`. Each format works on its own: a missing library only turns its format off. Windows has no official build of `jpegoptim` and `optipng`, the WebP and AVIF work there.
+On Debian or Ubuntu: `sudo apt install jpegoptim optipng webp libavif-bin`.
 
-1. Upload the plugin in `Plugins > Add New > Upload Plugin`, and activate it.
-2. Open `Settings > OIO`: the Overview tab checks the libraries and shows how to install the missing ones.
-3. Click `Optimise new images` to optimise the images already in the library.
+On Windows: no JPG and PNG compression. For WebP and AVIF, put the official builds of [`cwebp`](https://developers.google.com/speed/webp/download) and [`avifenc`](https://github.com/AOMediaCodec/libavif/releases) on the `PATH`, or set their path with the `octopus_binary_path` filter.
+
+1. Download the zip of the latest [release](https://github.com/Striffly/octopus-image-optimizer/releases).
+2. Upload it in `Plugins > Add New > Upload Plugin`, and activate it.
+
+After installing:
+
+* **The new uploads** are optimised right away: `Optimise new uploads`, ticked by default.
+* **The images already in the library** wait in the Optimise tab: `Optimise new images` optimises them in the background.
+* **The Overview tab** lists the missing libraries, and how to install them.
+* **WebP and AVIF are not served** until you turn them on in the Delivery tab.
 
 == Frequently Asked Questions ==
 
 = Does OIO replace my images? =
 
-By default, yes: the JPG and PNG files are replaced by their compressed version, and their originals are kept in `uploads/octopus/`. `Restore original images` on the settings page, or `Restore original` on an image of the media library, puts them back. To leave the files as they are, untick `Compress JPG images` or `Compress PNG images` on the Settings tab: OIO then only makes their WebP and AVIF versions.
+By default, yes: the JPG and PNG files are replaced by their compressed version, and the originals are kept in `uploads/octopus/originals-{key}/`. `Restore original images` on the settings page, or `Restore original` on an image of the media library, puts them back. To only make the WebP and AVIF versions, untick `Compress JPG images` and `Compress PNG images` on the Settings tab.
 
 = Does it serve WebP and AVIF automatically? =
 
-Once turned on, on the Delivery tab: in the HTML, where the images are wrapped in a `<picture>` element, or from the server, with rewrite rules answering `photo.jpg` with its AVIF or WebP version (OIO writes them on Apache and LiteSpeed, and gives them for nginx). The test on the same tab checks what the server sends.
+Once turned on in the Delivery tab, in one of two ways:
+
+* **In the HTML**: the images of the content and of `wp_get_attachment_image()` (featured images, galleries, most themes) are wrapped in a `<picture>` element, with the JPG or PNG as fallback. Works everywhere, but may break a layout styling `img` directly. In a custom theme, use [`octopus_image()`](https://github.com/Striffly/octopus-image-optimizer#theme-development).
+* **From the server**: the server answers `photo.jpg` with its AVIF or WebP version when the browser reads it. The HTML does not change, and CSS backgrounds are served too. OIO writes the rules in `uploads/.htaccess` on Apache and LiteSpeed; on nginx, add the ones given on the Delivery tab, or in the [README](https://github.com/Striffly/octopus-image-optimizer#-faq).
+
+A CDN must vary its cache on the `Accept` header, or serve the JPG to everyone. `Test the delivery` checks what the server sends.
 
 = What happens when the theme changes its image sizes? =
 
-The images optimised before are listed as "Older settings". `Re-optimise outdated images` makes their thumbnails again from the originals, and optimises them.
+Its images are listed as "Older settings": `Re-optimise outdated images` makes their thumbnails again from the originals, and optimises them.
 
 = Does it slow the site down? =
 
-The background jobs run the libraries with the lowest priority: the requests of the site go first. Filters slow them down further on a small server.
+The background jobs run the libraries at the lowest priority, behind the requests of the site. On a small server, the [filters](https://github.com/Striffly/octopus-image-optimizer#filters) slow them down further.
 
 = Does it work on shared hosting? =
 
-Yes for the WebP and AVIF formats: without their libraries, or where PHP cannot run programs, GD or Imagick make them. The JPG and PNG compression needs the libraries installed and PHP allowed to run them: most shared hosts do not let you install them, ask your host. The Overview tab tells what is missing.
-
-= Are the original images public? =
-
-They are kept in `uploads/octopus/originals-{key}/`, the key drawn at random for each site: their URL cannot be guessed from the one of an image. OIO also writes a `.htaccess` denying the web access to that folder, which works with Apache and LiteSpeed. With nginx, add a `location ^~ /wp-content/uploads/octopus/originals- { deny all; }` rule, or move the folder out of the web root with the `octopus_backup_dir` filter.
+Yes for WebP and AVIF, made by GD or Imagick when the libraries are missing. The JPG and PNG compression needs the libraries, which most shared hosts do not let you install: ask your host. The Overview tab tells what is missing.
 
 = What happens when I deactivate or delete OIO? =
 
-Deactivated, OIO stops its background job and removes its rewrite rules from `uploads/.htaccess`: the site serves the JPG and PNG images again. Its settings and files stay, and the rules come back when it is activated again.
+Deactivated, OIO stops its background job and removes its rewrite rules: the site serves the JPG and PNG images again. Its settings and files stay, and the rules come back on activation.
 
-Deleted, its settings and data are removed from the database, and the files stay: the compressed images, their WebP and AVIF versions and the originals. To get your original images back, run `Restore original images` before deleting OIO, which reminds it when it is deactivated.
+Deleted, OIO removes its settings and data from the database, but leaves the files: the compressed images, their WebP and AVIF versions and the originals. To get the originals back, run `Restore original images` before deleting it.
+
+Before deactivating, a dialog shows how many images OIO has optimised and the size of `uploads/octopus/`, with a button to restore the originals, and warns when the theme calls `octopus_image()`: its pages break while OIO is deactivated. With nothing to warn about, OIO deactivates at once.
 
 == Screenshots ==
 
@@ -101,7 +112,10 @@ Deleted, its settings and data are removed from the database, and the files stay
 
 == Privacy ==
 
-OIO sends nothing out of your server: no API, no tracking, no external request. The delivery test only requests the images of the site, from its CDN if they are served by one. The optimised images lose their metadata, the originals keep them and are protected from the web access.
+* **No external request**: no API, no tracking. The delivery test only requests the images of the site, from its CDN if they are served by one.
+* **No metadata**: the optimised images lose it, GPS position included. The originals keep it.
+* **Private originals**: they are kept in `uploads/octopus/originals-{key}/`, the key drawn at random for each site, so their URL cannot be guessed. A `.htaccess` denies the web access to that folder on Apache and LiteSpeed. On nginx, add a `location ^~ /wp-content/uploads/octopus/originals- { deny all; }` rule to the `server` block of the site (also given on the Delivery tab).
+* **Originals out of the web root**: set their folder with the `octopus_backup_dir` filter, before optimising any image. OIO does not move the originals already kept: move the folder yourself when you change it.
 
 == Changelog ==
 
