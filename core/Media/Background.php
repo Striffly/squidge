@@ -187,7 +187,8 @@ abstract class Background extends Octopus_Vendor_WP_Background_Process
 	 * and does not refresh it while an image takes
 	 * longer: its cron would start a second worker. The
 	 * lock of the worker is in the database (Lock),
-	 * refreshed while the libraries run.
+	 * refreshed while the libraries run. The request
+	 * that dispatched the worker is answered at once.
 	 *
 	 * @since 1.0.0
 	 */
@@ -200,6 +201,13 @@ abstract class Background extends Octopus_Vendor_WP_Background_Process
 		if ($this->is_queue_empty()) {
 			$this->unlock_process();
 			return $this->maybe_wp_die();
+		}
+		// As wp-cron.php does: the request that dispatched it no longer waits for the batch, a second at
+		// least as Requests rounds its timeout up, e.g. the click starting a job.
+		if (function_exists('fastcgi_finish_request')) {
+			fastcgi_finish_request();
+		} elseif (function_exists('litespeed_finish_request')) {
+			litespeed_finish_request();
 		}
 		add_action('octopus_working', [$this, 'beat']);
 		try {
