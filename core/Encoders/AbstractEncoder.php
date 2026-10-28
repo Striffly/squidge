@@ -370,10 +370,7 @@ abstract class AbstractEncoder
 	/**
 	 * Returns the version of the library (e.g. 1.5.0),
 	 * or an empty string if it is not installed or does
-	 * not tell it. The settings page shows it on every
-	 * load: it is cached for 12 hours, and read again
-	 * when the library moves or the settings are saved
-	 * (see forget_versions()).
+	 * not tell it, see Libraries::version().
 	 *
 	 * @return string
 	 * @since 1.0.0

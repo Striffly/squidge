@@ -186,11 +186,6 @@ class SettingsPage
 		if (!current_user_can('manage_options')) {
 			return;
 		}
-		// Saving the settings reads the versions of the libraries again, e.g. after an upgrade.
-		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Set by WordPress after the settings are saved, with their nonce.
-		if (isset($_GET['settings-updated'])) {
-			Libraries::forget_versions();
-		}
 		$sections = self::sections();
 		$formats = self::formats($sections);
 		$counts = Status::counts();

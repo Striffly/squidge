@@ -333,9 +333,9 @@ class Libraries
 	 * Returns the version of a library (e.g. 1.5.0),
 	 * or an empty string if it is not installed or does
 	 * not tell it. The settings page shows it on every
-	 * load: it is cached for 12 hours, and read again
-	 * when the library moves or the settings are saved
-	 * (see forget_versions()).
+	 * load, and the AVIF options follow it: it is
+	 * cached for 12 hours, and read again when the
+	 * library moves or its file changes, e.g. upgraded.
 	 *
 	 * @param string $name
 	 * @return string
@@ -351,13 +351,16 @@ class Libraries
 			$cached = get_transient(self::VERSIONS_TRANSIENT);
 			self::$versions = is_array($cached) ? $cached : [];
 		}
-		if (!isset(self::$versions[$name]['path']) || self::$versions[$name]['path'] !== $path) {
+		// A stat, where open_basedir allows it: 0 otherwise, the path alone tells.
+		$modified = (int)@filemtime($path);
+		$cached = isset(self::$versions[$name]) ? self::$versions[$name] : [];
+		if (!isset($cached['path'], $cached['modified']) || $cached['path'] !== $path || $cached['modified'] !== $modified) {
 			$option = array_key_exists($name, self::VERSION_OPTIONS) ? self::VERSION_OPTIONS[$name] : '--version';
 			list(, $output) = self::execute([$path, $option]);
 			// avifenc tells it on its Version: line, the others on their first line.
 			$line = preg_match('/^Version:.*$/mi', $output, $matches) ? $matches[0] : strtok(ltrim($output), "\n");
 			$version = preg_match('/\d+(\.\d+)+/', (string)$line, $matches) ? $matches[0] : '';
-			self::$versions[$name] = ['path' => $path, 'version' => $version];
+			self::$versions[$name] = ['path' => $path, 'modified' => $modified, 'version' => $version];
 			set_transient(self::VERSIONS_TRANSIENT, self::$versions, 12 * HOUR_IN_SECONDS);
 		}
 		return self::$versions[$name]['version'];

@@ -68,6 +68,20 @@ class LibrariesTest extends TestCase
 		$this->assertFileExists(Files::variant(get_attached_file($id), '.webp'));
 	}
 
+	public function test_the_version_of_an_upgraded_library_is_read_again()
+	{
+		self::fake_library('cwebp', 'echo 1.4.0');
+		$this->assertSame('1.4.0', Libraries::version('cwebp'));
+
+		// Upgraded in place: the same path, another file.
+		$fake = dirname($this->uploads) . '/bin/cwebp';
+		file_put_contents($fake, "#!/bin/sh\necho 1.5.0\n");
+		touch($fake, time() + 60);
+		clearstatcache();
+
+		$this->assertSame('1.5.0', Libraries::version('cwebp'));
+	}
+
 	public function test_a_library_set_by_hand_must_be_a_program()
 	{
 		$folder = dirname($this->uploads);
