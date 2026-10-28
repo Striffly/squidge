@@ -189,7 +189,7 @@ class Test
 		$ids = get_posts([
 			'post_type' => 'attachment',
 			'post_status' => 'inherit',
-			'post_mime_type' => ['image/jpeg', 'image/png'],
+			'post_mime_type' => Files::MIMES,
 			'posts_per_page' => 50,
 			'fields' => 'ids',
 			// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query -- On the meta keys of OIO, indexed; the media library is counted and listed once per page.

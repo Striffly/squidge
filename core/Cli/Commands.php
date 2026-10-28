@@ -28,7 +28,6 @@ use Octopus\Media\Stats;
 use Octopus\Media\Status;
 use WP_CLI;
 use WP_CLI_Command;
-use WP_Query;
 
 if (!defined('ABSPATH')) {
 	exit; // Exit if accessed directly
@@ -176,36 +175,22 @@ class Commands extends WP_CLI_Command
 
 		$counter = 0;
 		$failed = 0;
-		$page = 1;
-		do {
-			$query = new WP_Query([
-				'post_type' => 'attachment',
-				'post_mime_type' => ['image/jpeg', 'image/png'],
-				'post_status' => 'inherit',
-				'posts_per_page' => 500,
-				'paged' => $page,
-				'fields' => 'ids',
-				'orderby' => 'ID',
-				'order' => 'ASC',
-			]);
-			foreach ($query->posts as $id) {
-				WP_CLI::log(WP_CLI::colorize('%B' . __('Processing image:', 'octopus-image-optimizer') . ' %n') . get_the_title($id));
-				$done = Lock::run($id, function () use ($id, $regenerate, $settings, $force, $thumbnails_only) {
-					$metadata = $regenerate ? Optimiser::regenerate($id) : null;
-					return Optimiser::attachment($id, $metadata, $settings, $force || $regenerate, $thumbnails_only);
-				});
-				if ($done === null) {
-					/* translators: %s: the title of an image. */
-					WP_CLI::warning(sprintf(__('%s: skipped, another request is processing it.', 'octopus-image-optimizer'), get_the_title($id)));
-					continue;
-				}
-				$counter++;
-				if (Status::of($id) === Status::ERROR) {
-					$failed++;
-				}
+		foreach (Status::ids(null) as $id) {
+			WP_CLI::log(WP_CLI::colorize('%B' . __('Processing image:', 'octopus-image-optimizer') . ' %n') . get_the_title($id));
+			$done = Lock::run($id, function () use ($id, $regenerate, $settings, $force, $thumbnails_only) {
+				$metadata = $regenerate ? Optimiser::regenerate($id) : null;
+				return Optimiser::attachment($id, $metadata, $settings, $force || $regenerate, $thumbnails_only);
+			});
+			if ($done === null) {
+				/* translators: %s: the title of an image. */
+				WP_CLI::warning(sprintf(__('%s: skipped, another request is processing it.', 'octopus-image-optimizer'), get_the_title($id)));
+				continue;
 			}
-			$page++;
-		} while ($page <= $query->max_num_pages);
+			$counter++;
+			if (Status::of($id) === Status::ERROR) {
+				$failed++;
+			}
+		}
 
 		if ($failed) {
 			/* translators: 1: the number of images, 2: the number of images with errors. */

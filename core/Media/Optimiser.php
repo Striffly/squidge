@@ -431,7 +431,7 @@ class Optimiser
 				}
 			}
 			// The JPG or PNG changes: the WebP and AVIF deleted as heavier may be lighter now.
-			$compression = get_post_mime_type($id) === 'image/png' ? 'png' : 'jpg';
+			$compression = get_post_mime_type($id) === Files::PNG ? 'png' : 'jpg';
 			if (isset($outdated[$compression]) && self::heavier($id)) {
 				$outdated = array_merge($outdated, array_intersect_key($settings, ['webp' => true, 'avif' => true]));
 			}
