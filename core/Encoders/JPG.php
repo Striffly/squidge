@@ -17,7 +17,6 @@
 
 namespace Octopus\Encoders;
 
-use Octopus\Log\Errors;
 use Octopus\Log\Logger;
 use Octopus\Media\Files;
 
@@ -57,7 +56,7 @@ class JPG extends AbstractEncoder
 		}
 		$original = Files::backup_path($filepath);
 		if (!copy($original, $filepath)) {
-			Errors::add(isset($args['id']) ? $args['id'] : 0, self::FORMAT, $filepath, 'cannot write ' . basename($filepath));
+			self::error($args, $filepath, 'cannot write ' . basename($filepath));
 			return;
 		}
 		// Progressive: the browser shows the whole image blurred first, then sharpens it.

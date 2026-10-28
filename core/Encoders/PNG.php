@@ -21,7 +21,6 @@ namespace Octopus\Encoders;
 use Octopus\Engines\Libraries;
 use Octopus\Log\Logger;
 use Octopus\Media\Files;
-use Octopus\Media\Optimiser;
 use Octopus\Settings;
 
 if (!defined('ABSPATH')) {
@@ -129,7 +128,7 @@ class PNG extends AbstractEncoder
 		}
 		// The quality aimed at, the minimum 15 below.
 		$range = max(0, $quality - 15) . '-' . $quality;
-		list($code, $output) = yield ['command' => array_merge(Libraries::nice(Optimiser::$context), [Libraries::binary('pngquant'), '--quality=' . $range, '--strip', '--skip-if-larger', '--force', '--output', $temp, '--', $original]), 'threads' => 1];
+		list($code, $output) = yield ['command' => self::command('pngquant', ['--quality=' . $range, '--strip', '--skip-if-larger', '--force', '--output', $temp, '--', $original]), 'threads' => 1];
 		clearstatcache();
 		if ($code === 0 && filesize($temp) > 0) {
 			return $temp;

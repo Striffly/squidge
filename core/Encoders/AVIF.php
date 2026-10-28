@@ -86,7 +86,7 @@ class AVIF extends AbstractEncoder
 		$output = Files::variant($filepath, self::extension());
 		if (yield from self::run(array_merge($options, ['--speed', $speed, '--jobs', $jobs, $source, $output]), $filepath, $args, $jobs)) {
 			Logger::info("Successfully converted to AVIF file: " . $output);
-			Files::remember(isset($args['id']) ? (int)$args['id'] : 0, $filepath);
+			Files::remember(self::id($args), $filepath);
 		}
 	}
 

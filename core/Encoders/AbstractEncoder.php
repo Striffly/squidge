@@ -105,7 +105,7 @@ abstract class AbstractEncoder
 		if (empty($metadata['file'])) {
 			throw new Exception("File attachment is not set.");
 		}
-		$id = isset($args['id']) ? (int)$args['id'] : 0;
+		$id = self::id($args);
 		$files = Files::of($id, $metadata);
 		// The main file is there, and in the uploads folder: not a link out of it.
 		if (!file_exists($files[0]) || !Files::contained($files[0])) {
@@ -134,7 +134,7 @@ abstract class AbstractEncoder
 				continue;
 			}
 			if (!Files::make_dir($output)) {
-				Errors::add($id, static::FORMAT, $file, 'cannot make the folder of the ' . static::FORMAT . ' version');
+				self::error($args, $file, 'cannot make the folder of the ' . static::FORMAT . ' version');
 				continue;
 			}
 			$jobs[] = [$file, self::job($file, $args)];
@@ -159,7 +159,7 @@ abstract class AbstractEncoder
 		try {
 			yield from static::convert($file, (string)wp_get_image_mime($file), $args);
 		} catch (Exception $e) {
-			Errors::add($args['id'], static::FORMAT, $file, $e->getMessage());
+			self::error($args, $file, $e->getMessage());
 		}
 	}
 
@@ -175,7 +175,7 @@ abstract class AbstractEncoder
 	 */
 	public static function processed($args)
 	{
-		$id = isset($args['id']) ? (int)$args['id'] : 0;
+		$id = self::id($args);
 		if (!self::complete($id, $args) && !Errors::has($id, static::FORMAT)) {
 			self::update_meta($id, $args);
 		}
@@ -210,14 +210,54 @@ abstract class AbstractEncoder
 	 */
 	protected static function run($arguments, $filepath, $args, $threads = 1)
 	{
-		$command = array_merge(Libraries::nice(Optimiser::$context), [Libraries::binary(static::library())], $arguments);
-		list($code, $output) = yield ['command' => $command, 'threads' => $threads];
+		list($code, $output) = yield ['command' => self::command(static::library(), $arguments), 'threads' => $threads];
 		if ($code === 0) {
 			return true;
 		}
 		$lines = preg_split('/\r?\n/', $output);
-		Errors::add(isset($args['id']) ? $args['id'] : 0, static::FORMAT, $filepath, self::error_message($lines, $code));
+		self::error($args, $filepath, self::error_message($lines, $code));
 		return false;
+	}
+
+	/**
+	 * Returns the command running a library with its
+	 * arguments, at the priority of the context (see
+	 * Libraries::nice()).
+	 *
+	 * @param string $library
+	 * @param array $arguments
+	 * @return array
+	 * @since 1.0.0
+	 */
+	protected static function command($library, $arguments)
+	{
+		return array_merge(Libraries::nice(Optimiser::$context), [Libraries::binary($library)], $arguments);
+	}
+
+	/**
+	 * Returns the image of a run, 0 without one.
+	 *
+	 * @param array $args
+	 * @return int
+	 * @since 1.0.0
+	 */
+	protected static function id($args)
+	{
+		return isset($args['id']) ? (int)$args['id'] : 0;
+	}
+
+	/**
+	 * Records an error of the format on a file of the
+	 * image of a run, see Errors::add().
+	 *
+	 * @param array $args
+	 * @param string $filepath
+	 * @param string $message
+	 * @since 1.0.0
+	 */
+	protected static function error($args, $filepath, $message)
+	{
+		Errors::add(self::id($args), static::FORMAT, $filepath, $message);
 	}
 
 	/**
@@ -237,15 +277,14 @@ abstract class AbstractEncoder
 	 */
 	protected static function convert_with_editor($filepath, $mime, $quality, $args)
 	{
-		$id = isset($args['id']) ? (int)$args['id'] : 0;
 		$output = Files::variant($filepath, static::extension());
 		$saved = ImageEditor::save(self::original($filepath), $mime, $output, static::EDITOR_MIME, $quality, $filepath);
 		if (is_wp_error($saved)) {
-			Errors::add($id, static::FORMAT, $filepath, static::editor() . ': ' . $saved->get_error_message());
+			self::error($args, $filepath, static::editor() . ': ' . $saved->get_error_message());
 			return;
 		}
 		Logger::info(sprintf('Successfully converted with %s: %s', static::editor(), $output));
-		Files::remember($id, $filepath);
+		Files::remember(self::id($args), $filepath);
 	}
 
 	/**
@@ -364,10 +403,10 @@ abstract class AbstractEncoder
 			return true;
 		}
 		if (!wp_mkdir_p(dirname($backup)) || !copy($filepath, $backup)) {
-			Errors::add(isset($args['id']) ? $args['id'] : 0, static::FORMAT, $filepath, 'cannot write the backup of the original image');
+			self::error($args, $filepath, 'cannot write the backup of the original image');
 			return false;
 		}
-		Files::remember(isset($args['id']) ? (int)$args['id'] : 0, $filepath);
+		Files::remember(self::id($args), $filepath);
 		return true;
 	}
 
@@ -389,7 +428,7 @@ abstract class AbstractEncoder
 			wp_delete_file($original);
 			return;
 		}
-		Errors::add(isset($args['id']) ? $args['id'] : 0, static::FORMAT, $filepath, 'cannot put the original back, it stays in the folder of the originals');
+		self::error($args, $filepath, 'cannot put the original back, it stays in the folder of the originals');
 	}
 
 	/**

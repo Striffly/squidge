@@ -82,7 +82,7 @@ class WebP extends AbstractEncoder
 				yield from self::near_lossless($options, $source, $output, $filepath, $args);
 			}
 			Logger::info("Successfully converted to WebP file: " . $output);
-			Files::remember(isset($args['id']) ? (int)$args['id'] : 0, $filepath);
+			Files::remember(self::id($args), $filepath);
 		}
 	}
 
