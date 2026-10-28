@@ -97,6 +97,39 @@ class DeliveryTest extends TestCase
 		$this->assertSame($other, file_get_contents(Htaccess::htaccess()));
 	}
 
+	public function test_the_rules_removed_behind_oio_are_put_back()
+	{
+		self::set('serve_rewrite', true);
+		// E.g. another plugin writing the .htaccess, or a deployment.
+		Htaccess::remove_rules(Htaccess::htaccess());
+		$this->assertFalse(Htaccess::rules_written());
+
+		Htaccess::repair();
+
+		$this->assertTrue(Htaccess::rules_written());
+	}
+
+	public function test_the_protection_of_the_originals_is_put_back()
+	{
+		Files::protect_backup_dir();
+		wp_delete_file(Files::backup_dir() . '/.htaccess');
+
+		Htaccess::repair();
+
+		$this->assertFileExists(Files::backup_dir() . '/.htaccess');
+	}
+
+	public function test_removing_the_rules_keeps_the_others()
+	{
+		wp_mkdir_p(dirname(Htaccess::htaccess()));
+		file_put_contents(Htaccess::htaccess(), "# Other plugin\nOptions -Indexes\n");
+		self::set('serve_rewrite', true);
+
+		self::set('serve_rewrite', false);
+
+		$this->assertSame("# Other plugin\nOptions -Indexes\n", file_get_contents(Htaccess::htaccess()));
+	}
+
 	public function test_the_rules_are_not_written_for_nginx()
 	{
 		$_SERVER['SERVER_SOFTWARE'] = 'nginx/1.28.0';

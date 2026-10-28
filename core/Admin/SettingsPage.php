@@ -164,7 +164,9 @@ class SettingsPage
 	 */
 	public function add_page()
 	{
-		add_options_page('OIO – Octopus Image Optimizer', 'Octopus Image Optimizer', 'manage_options', self::PAGE, [$this, 'render_page']);
+		$hook = add_options_page('OIO – Octopus Image Optimizer', 'Octopus Image Optimizer', 'manage_options', self::PAGE, [$this, 'render_page']);
+		// Before the header, which shows the errors of the settings.
+		add_action('load-' . $hook, [Htaccess::class, 'repair']);
 		add_media_page('OIO – Octopus Image Optimizer', __('Optimise images', 'octopus-image-optimizer'), 'manage_options', 'options-general.php?page=' . self::PAGE . '#optimise');
 	}
 

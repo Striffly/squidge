@@ -198,8 +198,9 @@ class Htaccess
 	 * them empty. The rest of the file stays, without
 	 * the blank lines insert_with_markers() put before
 	 * them, and the file goes if it only held the
-	 * rules. uninstall.php does the same, without the
-	 * plugin loaded.
+	 * rules. Locked while it is read and written, as
+	 * insert_with_markers() does: two saves in a row
+	 * would otherwise write over each other.
 	 *
 	 * @param string $path
 	 * @since 1.0.0
@@ -209,16 +210,48 @@ class Htaccess
 		if (!is_file($path) || !wp_is_writable($path)) {
 			return;
 		}
-		$content = (string)file_get_contents($path);
+		// phpcs:disable WordPress.WP.AlternativeFunctions -- A lock, which WP_Filesystem does not offer, as insert_with_markers().
+		$handle = fopen($path, 'r+');
+		if ($handle === false || !flock($handle, LOCK_EX)) {
+			return;
+		}
+		$content = (string)stream_get_contents($handle);
 		$cleaned = preg_replace('/\n*# BEGIN ' . self::MARKER . '\n.*?# END ' . self::MARKER . '\n?/s', "\n", $content, -1, $count);
-		if (!$count) {
-			return;
+		if ($count) {
+			ftruncate($handle, 0);
+			rewind($handle);
+			fwrite($handle, trim($cleaned) === '' ? '' : ltrim($cleaned, "\n"));
+			fflush($handle);
+			// Still locked: nothing is written between the check and the deletion.
+			// Windows keeps an open file: it stays, empty.
+			if (trim($cleaned) === '') {
+				wp_delete_file($path);
+			}
 		}
-		if (trim($cleaned) === '') {
-			wp_delete_file($path);
-			return;
+		flock($handle, LOCK_UN);
+		fclose($handle);
+		// phpcs:enable WordPress.WP.AlternativeFunctions
+	}
+
+	/**
+	 * Puts back what went from the uploads folder
+	 * without OIO knowing (another plugin writing the
+	 * .htaccess, a deployment, a move of the site): the
+	 * rules while the option is on, and the .htaccess
+	 * and index.php of the folder of the originals. On
+	 * the options page, before it shows the errors of
+	 * the settings, as when saving.
+	 *
+	 * @since 1.0.0
+	 */
+	public static function repair()
+	{
+		if (Settings::get('serve_rewrite') && self::server() !== 'nginx' && !self::rules_written()) {
+			self::sync();
 		}
-		file_put_contents($path, ltrim($cleaned, "\n"));
+		if (is_dir(Files::backup_dir())) {
+			Files::protect_backup_dir();
+		}
 	}
 
 	/**
