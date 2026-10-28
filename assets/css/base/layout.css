@@ -99,11 +99,22 @@
 	height: 80px;
 	border-radius: var(--octopus-radius);
 	box-shadow: 0 0 0 1px rgb(255 60 172 / 55%), var(--octopus-glow);
+
+	@media (width <= 480px) {
+		width: 64px;
+		height: 64px;
+	}
 }
 
 .octopus-header__text {
 	flex: 1;
 	min-width: 0;
+
+	/* A phone: under the logo and the version, on the whole width, not a word a line. */
+	@media (width <= 480px) {
+		flex-basis: 100%;
+		order: 1;
+	}
 }
 
 .octopus-page .octopus-header__title {
@@ -146,6 +157,10 @@
 	border-radius: var(--octopus-radius-pill);
 	color: rgb(255 255 255 / 80%);
 	font-size: var(--octopus-size-small);
+
+	@media (width <= 480px) {
+		margin-left: auto;
+	}
 }
 
 /* Tabs: without JS, every panel shows one after another

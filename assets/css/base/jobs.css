@@ -208,6 +208,9 @@
 	border-radius: var(--octopus-radius);
 	background: var(--octopus-gradient-glow);
 	box-shadow: var(--octopus-shadow);
+
+	/* Its head lays out on its width. */
+	container-type: inline-size;
 }
 
 .octopus-job__head {
@@ -255,6 +258,11 @@
 	margin: 0;
 	font-size: var(--octopus-size-lead);
 	font-weight: 600;
+
+	/* Narrow, e.g. on a phone: on the line of the icon, the percent and the controls on the next one. */
+	@container (width < 30rem) {
+		flex-basis: calc(100% - 32px - var(--octopus-space-3));
+	}
 }
 
 .octopus-job__percent {
@@ -269,6 +277,10 @@
 	display: flex;
 	align-items: center;
 	gap: var(--octopus-space-3);
+
+	@container (width < 30rem) {
+		margin-left: auto;
+	}
 }
 
 .octopus-job__bar {
