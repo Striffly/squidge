@@ -417,7 +417,7 @@ class Optimiser
 			// WordPress scaled a big image down: it is scaled again from the image
 			// uploaded, which OIO does not optimise, and its thumbnails keep their names.
 			$source = wp_get_original_image_path($id);
-			if (!$source || $source === $file || !file_exists($source)) {
+			if (!$source || $source === $file || !file_exists($source) || !Files::contained($source)) {
 				$source = $file;
 				$backup = Files::backup_path($file);
 				if (file_exists($backup) && Files::contained($file) && Files::contained($backup)) {

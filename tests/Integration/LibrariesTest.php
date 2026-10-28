@@ -18,6 +18,7 @@ use Octopus\Encoders\AVIF;
 use Octopus\Encoders\JPG;
 use Octopus\Encoders\PNG;
 use Octopus\Encoders\WebP;
+use Octopus\Engines\Libraries;
 use Octopus\Log\Errors;
 use Octopus\Media\Files;
 use Octopus\Media\Status;
@@ -65,6 +66,28 @@ class LibrariesTest extends TestCase
 		$this->assertSame('cwebp', WebP::engine());
 		$id = $this->upload('photo.jpg');
 		$this->assertFileExists(Files::variant(get_attached_file($id), '.webp'));
+	}
+
+	public function test_a_library_set_by_hand_must_be_a_program()
+	{
+		$folder = dirname($this->uploads);
+		foreach (['relative/cwebp', $folder, ['/usr/bin/cwebp']] as $path) {
+			add_filter('octopus_binary_path', $filter = function () use ($path) {
+				return $path;
+			});
+			self::forget_libraries();
+
+			$this->assertNull(Libraries::binary('cwebp'), wp_json_encode($path));
+			remove_filter('octopus_binary_path', $filter);
+		}
+	}
+
+	public function test_a_library_turned_off_by_hand_is_off()
+	{
+		add_filter('octopus_binary_path', '__return_false');
+		self::forget_libraries();
+
+		$this->assertNull(Libraries::binary('cwebp'));
 	}
 
 	public function test_the_errors_shown_keep_the_folders_of_the_server_out()

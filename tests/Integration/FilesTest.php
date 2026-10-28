@@ -18,6 +18,7 @@ namespace Octopus\Tests\Integration;
 use Octopus\Engines\ImageEditor;
 use Octopus\Media\Cleaner;
 use Octopus\Media\Files;
+use Octopus\Media\Optimiser;
 use Octopus\Tests\TestCase;
 
 class FilesTest extends TestCase
@@ -111,6 +112,23 @@ class FilesTest extends TestCase
 		// Deleting the image does not delete the file linked.
 		wp_delete_attachment($id, true);
 		$this->assertFileEquals(self::fixture('photo.jpg'), $target);
+	}
+
+	public function test_a_thumbnail_linked_out_of_the_uploads_folder_is_not_published()
+	{
+		$this->require_libraries('cwebp');
+		$this->require_links();
+		$id = $this->upload_unoptimised('photo.jpg');
+		$thumbnail = Files::of($id)[1];
+		// E.g. linked to a private image of another site of the server.
+		copy($thumbnail, $this->outside . '/private.jpg');
+		unlink($thumbnail);
+		symlink($this->outside . '/private.jpg', $thumbnail);
+
+		Optimiser::optimise($id);
+
+		$this->assertFileExists(Files::variant(get_attached_file($id), '.webp'));
+		$this->assertFileDoesNotExist(Files::variant($thumbnail, '.webp'));
 	}
 
 	public function test_the_file_names_reach_the_libraries_as_given()

@@ -119,10 +119,11 @@ abstract class AbstractEncoder
 			if (!file_exists($file) || ($complete && static::is_done($file, $id))) {
 				continue;
 			}
-			// The library reads the original and writes the version of the file:
-			// never through a link out of the folders.
+			// The library reads the file or its original and writes its version:
+			// never through a link out of the folders, e.g. a thumbnail linked to
+			// an image elsewhere on the server, which would be published.
 			$output = static::extension() !== '' ? Files::variant($file, static::extension()) : $file;
-			if (!Files::contained($output) || !Files::contained(Files::backup_path($file))) {
+			if (!Files::contained($file) || !Files::contained($output) || !Files::contained(Files::backup_path($file))) {
 				continue;
 			}
 			if (!Files::make_dir($output)) {

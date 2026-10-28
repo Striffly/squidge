@@ -19,6 +19,8 @@
 
 namespace Octopus\Engines;
 
+use Octopus\Log\Logger;
+
 if (!defined('ABSPATH')) {
 	exit; // Exit if accessed directly
 }
@@ -154,7 +156,9 @@ class Libraries
 	 * if it is not installed, once per request. The
 	 * octopus_binary_path filter sets it by hand, e.g. for
 	 * a library out of the folders looked up (see
-	 * find_binary()).
+	 * find_binary()), as what it finds: an absolute
+	 * path, to a program if PHP sees it (open_basedir
+	 * may hide it), never a .bat or .cmd script.
 	 *
 	 * @param string $name
 	 * @return string|null
@@ -163,7 +167,13 @@ class Libraries
 	public static function binary($name)
 	{
 		if (!array_key_exists($name, self::$binaries)) {
-			$path = apply_filters('octopus_binary_path', self::find_binary($name), $name);
+			$found = self::find_binary($name);
+			$path = apply_filters('octopus_binary_path', $found, $name);
+			// false turns the library off.
+			if ($path !== $found && $path !== false && !self::acceptable($path)) {
+				Logger::error(sprintf('octopus_binary_path: %s is not a program OIO runs, %s is turned off.', is_string($path) ? $path : gettype($path), $name));
+				$path = false;
+			}
 			self::$binaries[$name] = is_string($path) && $path !== '' ? $path : null;
 		}
 		return self::$binaries[$name];
@@ -215,6 +225,27 @@ class Libraries
 			return $code === 0 && strpos($path, '/') === 0 ? $path : false;
 		}
 		return false;
+	}
+
+	/**
+	 * Determines if a path set by hand can be run, as
+	 * the ones found: absolute, a program unless PHP
+	 * cannot see it, and on Windows not a .bat or .cmd
+	 * script, whose arguments cmd.exe would read.
+	 *
+	 * @param mixed $path
+	 * @return bool
+	 * @since 1.0.0
+	 */
+	private static function acceptable($path)
+	{
+		if (!is_string($path) || !preg_match('#^([a-zA-Z]:)?[/\\\\]#', $path)) {
+			return false;
+		}
+		if (self::is_windows() && preg_match('/\.(bat|cmd)$/i', $path)) {
+			return false;
+		}
+		return !@file_exists($path) || self::is_program($path);
 	}
 
 	/**
