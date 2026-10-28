@@ -108,34 +108,34 @@ msgstr "Optimiser"
 msgid "Restore original"
 msgstr "Restaurer l’original"
 
-#: core/Admin/MediaColumn.php:443
+#: core/Admin/MediaColumn.php:447
 msgid "You cannot optimise this image."
 msgstr "Vous ne pouvez pas optimiser cette image."
 
-#: core/Admin/MediaColumn.php:468
+#: core/Admin/MediaColumn.php:472
 msgid "You cannot restore this image."
 msgstr "Vous ne pouvez pas restaurer cette image."
 
 #. translators: %s: the title of an image.
-#: core/Admin/MediaColumn.php:498
+#: core/Admin/MediaColumn.php:502
 #, php-format
 msgid "Octopus Image Optimizer is already processing %s, try again in a moment."
 msgstr "Octopus Image Optimizer traite déjà %s, réessayez dans un instant."
 
 #. translators: %s: the title of an image.
-#: core/Admin/MediaColumn.php:517
+#: core/Admin/MediaColumn.php:521
 #, php-format
 msgid "Octopus Image Optimizer restored the original of %s."
 msgstr "Octopus Image Optimizer a restauré l’original de %s."
 
 #. translators: %s: the title of an image.
-#: core/Admin/MediaColumn.php:520
+#: core/Admin/MediaColumn.php:524
 #, php-format
 msgid "Octopus Image Optimizer removed its files of %s, but its original is missing: it stays compressed."
 msgstr "Octopus Image Optimizer a supprimé ses fichiers de %s, mais son original est introuvable : l’image reste compressée."
 
 #. translators: %s: the title of an image.
-#: core/Admin/MediaColumn.php:532
+#: core/Admin/MediaColumn.php:536
 #, php-format
 msgid "Octopus Image Optimizer optimised %s."
 msgstr "Octopus Image Optimizer a optimisé %s."
@@ -1181,12 +1181,12 @@ msgid_plural "%s images restored"
 msgstr[0] "%s image restaurée"
 msgstr[1] "%s images restaurées"
 
-#: assets/js/components/Job.js:125
+#: assets/js/components/Job.js:129
 msgid "Cancel the job? The images already processed stay processed."
 msgstr "Annuler la tâche ? Les images déjà traitées le restent."
 
 #. translators: 1: the number of images processed, 2: the number of images.
-#: assets/js/components/Job.js:168
+#: assets/js/components/Job.js:175
 #, js-format
 msgid "%1$s / %2$s image"
 msgid_plural "%1$s / %2$s images"
@@ -1194,23 +1194,23 @@ msgstr[0] "%1$s / %2$s image"
 msgstr[1] "%1$s / %2$s images"
 
 #. translators: 1: the progress, e.g. 3 / 12 images, 2: the number of images with errors.
-#: assets/js/components/Job.js:171
+#: assets/js/components/Job.js:178
 #, js-format
 msgid "%1$s, %2$s with errors"
 msgid_plural "%1$s, %2$s with errors"
 msgstr[0] "%1$s, %2$s en erreur"
 msgstr[1] "%1$s, %2$s en erreur"
 
-#: assets/js/components/Job.js:174
+#: assets/js/components/Job.js:181
 msgid "Paused:"
 msgstr "En pause :"
 
-#: assets/js/components/Job.js:175
+#: assets/js/components/Job.js:182
 msgid "Processing"
 msgstr "Traitement"
 
 #. translators: %s: the number of images.
-#: assets/js/components/Job.js:192
+#: assets/js/components/Job.js:199
 #, js-format
 msgid "%s could not be optimised:"
 msgid_plural "%s could not be optimised:"
@@ -1218,7 +1218,7 @@ msgstr[0] "%s n’a pas pu être optimisée :"
 msgstr[1] "%s n’ont pas pu être optimisées :"
 
 #. translators: %s: the number of images.
-#: assets/js/components/Job.js:195
+#: assets/js/components/Job.js:202
 #, js-format
 msgid "%s had no original to restore, it stays compressed."
 msgid_plural "%s had no original to restore, they stay compressed."
@@ -1226,37 +1226,37 @@ msgstr[0] "%s n’avait pas d’original à restaurer, elle reste compressée."
 msgstr[1] "%s n’avaient pas d’original à restaurer, elles restent compressées."
 
 #. translators: 1: the number of images processed, 2: the number of images.
-#: assets/js/components/Job.js:218
+#: assets/js/components/Job.js:225
 #, js-format
 msgid "Stopped after %1$s of %2$s image"
 msgid_plural "Stopped after %1$s of %2$s images"
 msgstr[0] "Arrêtée après %1$s sur %2$s image"
 msgstr[1] "Arrêtée après %1$s sur %2$s images"
 
-#: assets/js/components/Job.js:219
+#: assets/js/components/Job.js:226
 msgid "The images already processed stay processed."
 msgstr "Les images déjà traitées le restent."
 
 #. translators: 1: what was done, e.g. 12 images optimised, 2: a duration, e.g. 2 min 5 s.
-#: assets/js/components/Job.js:234
+#: assets/js/components/Job.js:241
 #, js-format
 msgid "%1$s in %2$s"
 msgstr "%1$s en %2$s"
 
 #. translators: 1: hours, 2: minutes.
-#: assets/js/components/Job.js:245
+#: assets/js/components/Job.js:252
 #, js-format
 msgid "%1$d h %2$d min"
 msgstr "%1$d h %2$d min"
 
 #. translators: 1: minutes, 2: seconds.
-#: assets/js/components/Job.js:249
+#: assets/js/components/Job.js:256
 #, js-format
 msgid "%1$d min %2$d s"
 msgstr "%1$d min %2$d s"
 
 #. translators: %d: seconds.
-#: assets/js/components/Job.js:252
+#: assets/js/components/Job.js:259
 #, js-format
 msgid "%d s"
 msgstr "%d s"
@@ -1348,7 +1348,7 @@ msgid "Waiting"
 msgstr "En attente"
 
 #. translators: %s: the title of an image.
-#: core/Admin/MediaColumn.php:506
+#: core/Admin/MediaColumn.php:510
 #, php-format
 msgid "Octopus Image Optimizer will optimise %s in a moment."
 msgstr "Octopus Image Optimizer va optimiser %s dans un instant."
@@ -1384,3 +1384,7 @@ msgstr "Vitesse"
 #: core/Admin/SettingsPage.php:1491
 msgid "From 0 to 10 (fastest, heavier files), 6 by default."
 msgstr "De 0 à 10 (la plus rapide, fichiers plus lourds), 6 par défaut."
+
+#: assets/js/components/Job.js:138
+msgid "The site did not answer: try again."
+msgstr "Le site n’a pas répondu : réessayez."

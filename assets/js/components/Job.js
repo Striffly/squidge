@@ -92,7 +92,11 @@
 			const response = await this.view.api.post('octopus_job_status');
 			if (response.success) {
 				this.render(response.data);
+				return;
 			}
+			// Not answered, e.g. PHP restarting: asked again, the page goes on following the job.
+			clearTimeout(this.timer);
+			this.timer = setTimeout(() => this.refresh(), Job.DELAYS[this.state] ?? Job.DELAYS.running);
 		}
 
 		/**
@@ -128,7 +132,10 @@
 			const response = await this.view.api.post('octopus_job_control', {command});
 			if (response.success) {
 				this.render(response.data);
+				return;
 			}
+			// Never lost without a word: the job goes on until the click reaches the site.
+			window.alert(response.data?.message ?? __('The site did not answer: try again.', 'octopus-image-optimizer'));
 		}
 
 		/**
