@@ -22,6 +22,7 @@ use Octopus\Engines\ImageEditor;
 use Octopus\Engines\Libraries;
 use Octopus\Log\Logger;
 use Octopus\Media\Files;
+use Octopus\Settings;
 
 if (!defined('ABSPATH')) {
 	exit; // Exit if accessed directly
@@ -33,21 +34,6 @@ class AVIF extends AbstractEncoder
 	 * The format of the encoder, see AbstractEncoder::FORMAT.
 	 */
 	const FORMAT = 'avif';
-
-	/**
-	 * DEFAULT_QUALITY is the default image quality
-	 * when converting to an AVIF image (0 to 100).
-	 */
-	const DEFAULT_QUALITY = 70;
-
-	/**
-	 * DEFAULT_SPEED is the default encoder speed (0
-	 * slowest to 10 fastest). With aom, speeds 0 to 6
-	 * make files of about the same size (0 is ~40x
-	 * slower), 7 to 10 switch to fast modes making
-	 * larger files: 6 is the best trade-off.
-	 */
-	const DEFAULT_SPEED = 6;
 
 	/**
 	 * EDITOR_MIME is the format of the image editor,
@@ -74,14 +60,14 @@ class AVIF extends AbstractEncoder
 		if ($mime != Files::PNG && $mime != Files::JPG) {
 			return;
 		}
-		$quality = self::int_arg($args, 'quality', 0, 100, self::DEFAULT_QUALITY);
+		$quality = self::quality($args);
 		// Without avifenc, GD and Imagick encode at their own speed (6 for GD,
 		// the default of OIO): the speed arg is left out.
 		if (!self::installed()) {
 			self::convert_with_editor($filepath, $mime, self::editor_quality($quality), $args);
 			return;
 		}
-		$speed = self::int_arg($args, 'speed', 0, 10, self::DEFAULT_SPEED);
+		$speed = Settings::clean('avif_speed', $args['speed'] ?? null);
 		$jobs = Libraries::threads();
 
 		// libavif 1.0 replaced --min/--max with -q, older
@@ -176,27 +162,6 @@ class AVIF extends AbstractEncoder
 			}
 		}
 		return $options;
-	}
-
-	/**
-	 * Returns an integer arg clamped between min and
-	 * max, or the default if it is missing or not
-	 * numeric.
-	 *
-	 * @param $args
-	 * @param string $key
-	 * @param int $min
-	 * @param int $max
-	 * @param int $default
-	 * @return int
-	 * @since 1.0.0
-	 */
-	private static function int_arg($args, $key, $min, $max, $default)
-	{
-		if (!isset($args[$key]) || !is_numeric($args[$key])) {
-			return $default;
-		}
-		return max($min, min($max, (int)$args[$key]));
 	}
 
 	/**

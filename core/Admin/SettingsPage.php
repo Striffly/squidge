@@ -1363,6 +1363,37 @@ class SettingsPage
 	}
 
 	/**
+	 * Returns the help of a number setting with its
+	 * bounds and its default, from Settings::FIELDS.
+	 *
+	 * @param string $help With %1$d the minimum, %2$d the maximum, %3$d the default.
+	 * @param string $name
+	 * @return string
+	 * @since 1.0.0
+	 */
+	private static function bounds($help, $name)
+	{
+		$setting = Settings::FIELDS[$name];
+		return sprintf($help, $setting['min'], $setting['max'], $setting['default']);
+	}
+
+	/**
+	 * Returns the optimisation levels of the PNG images,
+	 * o0 to o7, by value.
+	 *
+	 * @return string[]
+	 * @since 1.0.0
+	 */
+	private static function levels()
+	{
+		$levels = [];
+		foreach (range(Settings::FIELDS['png_level']['min'], Settings::FIELDS['png_level']['max']) as $level) {
+			$levels[(string)$level] = 'o' . $level;
+		}
+		return $levels;
+	}
+
+	/**
 	 * Returns the option fields, grouped by section.
 	 *
 	 * @return array
@@ -1383,7 +1414,8 @@ class SettingsPage
 					'jpg_quality' => [
 						'type' => 'number',
 						'label' => __('Quality', 'octopus-image-optimizer'),
-						'help' => __('From 0 to 100, 80 by default.', 'octopus-image-optimizer'),
+						/* translators: 1: the minimum, 2: the maximum, 3: the default. */
+						'help' => self::bounds(__('From %1$d to %2$d, %3$d by default.', 'octopus-image-optimizer'), 'jpg_quality'),
 					],
 				],
 			],
@@ -1412,15 +1444,17 @@ class SettingsPage
 					'png_level' => [
 						'type' => 'select',
 						'label' => __('Optimisation level', 'octopus-image-optimizer'),
-						'options' => ['0' => 'o0', '1' => 'o1', '2' => 'o2', '3' => 'o3', '4' => 'o4', '5' => 'o5', '6' => 'o6', '7' => 'o7'],
-						'help' => __('From o0 (fastest) to o7 (smallest files), o2 by default.', 'octopus-image-optimizer'),
+						'options' => self::levels(),
+						/* translators: 1: the minimum, 2: the maximum, 3: the default. */
+						'help' => self::bounds(__('From o%1$d (fastest) to o%2$d (smallest files), o%3$d by default.', 'octopus-image-optimizer'), 'png_level'),
 					],
 					'png_lossy_quality' => [
 						'type' => 'number',
 						'label' => __('Lossy quality', 'octopus-image-optimizer'),
 						'when' => ['png_compression', 'lossy'],
 						'needs' => 'pngquant',
-						'help' => __('The quality pngquant aims at, 80 by default.', 'octopus-image-optimizer'),
+						/* translators: 1: the minimum, 2: the maximum, 3: the default. */
+						'help' => self::bounds(__('The quality pngquant aims at, %3$d by default.', 'octopus-image-optimizer'), 'png_lossy_quality'),
 					],
 				],
 			],
@@ -1438,7 +1472,8 @@ class SettingsPage
 					'webp_quality' => [
 						'type' => 'number',
 						'label' => __('Quality', 'octopus-image-optimizer'),
-						'help' => __('From 0 to 100, 80 by default.', 'octopus-image-optimizer'),
+						/* translators: 1: the minimum, 2: the maximum, 3: the default. */
+						'help' => self::bounds(__('From %1$d to %2$d, %3$d by default.', 'octopus-image-optimizer'), 'webp_quality'),
 					],
 				],
 			],
@@ -1456,13 +1491,15 @@ class SettingsPage
 					'avif_quality' => [
 						'type' => 'number',
 						'label' => __('Quality', 'octopus-image-optimizer'),
-						'help' => __('From 0 to 100 (lossless), 70 by default.', 'octopus-image-optimizer'),
+						/* translators: 1: the minimum, 2: the maximum, 3: the default. */
+						'help' => self::bounds(__('From %1$d to %2$d (lossless), %3$d by default.', 'octopus-image-optimizer'), 'avif_quality'),
 					],
 					'avif_speed' => [
 						'type' => 'number',
 						'label' => __('Speed', 'octopus-image-optimizer'),
 						'needs' => 'avifenc',
-						'help' => __('From 0 to 10 (fastest, heavier files), 6 by default.', 'octopus-image-optimizer'),
+						/* translators: 1: the minimum, 2: the maximum, 3: the default. */
+						'help' => self::bounds(__('From %1$d to %2$d (fastest, heavier files), %3$d by default.', 'octopus-image-optimizer'), 'avif_speed'),
 					],
 				],
 			],
@@ -1479,7 +1516,8 @@ class SettingsPage
 						'type' => 'number',
 						'label' => __('Maximum image size', 'octopus-image-optimizer'),
 						'unit' => 'px',
-						'help' => __('WordPress scales the bigger images down on upload, and keeps them as their original. Longest side, 2560 by default. <strong>0 means no limit: huge images can exhaust the server.</strong>', 'octopus-image-optimizer'),
+						/* translators: 1: the minimum, 2: the maximum, 3: the default. */
+						'help' => self::bounds(__('WordPress scales the bigger images down on upload, and keeps them as their original. Longest side, %3$d by default. <strong>0 means no limit: huge images can exhaust the server.</strong>', 'octopus-image-optimizer'), 'max_size'),
 					],
 				],
 			],

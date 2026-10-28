@@ -22,6 +22,7 @@ use Octopus\Engines\Libraries;
 use Octopus\Log\Logger;
 use Octopus\Media\Files;
 use Octopus\Media\Optimiser;
+use Octopus\Settings;
 
 if (!defined('ABSPATH')) {
 	exit; // Exit if accessed directly
@@ -33,20 +34,6 @@ class PNG extends AbstractEncoder
 	 * The format of the encoder, see AbstractEncoder::FORMAT.
 	 */
 	const FORMAT = 'png';
-
-	/**
-	 * DEFAULT_OPTIMIZATION is the default optipng
-	 * optimisation level (-o2) when processing a
-	 * PNG image.
-	 */
-	const DEFAULT_OPTIMIZATION = 2;
-
-	/**
-	 * DEFAULT_LOSSY_QUALITY is the default quality of
-	 * the lossy compression with pngquant (0 to 100):
-	 * the quality aimed at, the minimum is 15 below.
-	 */
-	const DEFAULT_LOSSY_QUALITY = 80;
 
 	/**
 	 * Compresses a PNG file in place with oxipng or
@@ -140,6 +127,7 @@ class PNG extends AbstractEncoder
 		if ($temp === null) {
 			return null;
 		}
+		// The quality aimed at, the minimum 15 below.
 		$range = max(0, $quality - 15) . '-' . $quality;
 		list($code, $output) = yield ['command' => array_merge(Libraries::nice(Optimiser::$context), [Libraries::binary('pngquant'), '--quality=' . $range, '--strip', '--skip-if-larger', '--force', '--output', $temp, '--', $original]), 'threads' => 1];
 		clearstatcache();
@@ -155,8 +143,9 @@ class PNG extends AbstractEncoder
 	}
 
 	/**
-	 * Returns the quality of the lossy compression, or
-	 * null if it is disabled: 80 by default.
+	 * Returns the quality pngquant aims at, or null if
+	 * the lossy compression is disabled, see
+	 * Settings::clean().
 	 *
 	 * @param array $args
 	 * @return int|null
@@ -164,13 +153,7 @@ class PNG extends AbstractEncoder
 	 */
 	private static function lossy_quality($args)
 	{
-		if (empty($args['lossy'])) {
-			return null;
-		}
-		if (!isset($args['lossy_quality']) || !is_numeric($args['lossy_quality'])) {
-			return self::DEFAULT_LOSSY_QUALITY;
-		}
-		return max(0, min(100, (int)$args['lossy_quality']));
+		return empty($args['lossy']) ? null : Settings::clean('png_lossy_quality', $args['lossy_quality'] ?? null);
 	}
 
 	/**
@@ -200,8 +183,8 @@ class PNG extends AbstractEncoder
 	}
 
 	/**
-	 * Returns the optipng level (0 to 7), "o3" (WP-CLI)
-	 * or "3" (settings), 2 by default. oxipng gets 6
+	 * Returns the optipng level, "o3" (WP-CLI) or "3"
+	 * (settings), see Settings::clean(). oxipng gets 6
 	 * for 7.
 	 *
 	 * @param $args
@@ -210,11 +193,7 @@ class PNG extends AbstractEncoder
 	 */
 	private static function optimization_level($args)
 	{
-		$level = isset($args['optimization']) ? ltrim((string)$args['optimization'], 'oO') : '';
-		if (!ctype_digit($level)) {
-			return self::DEFAULT_OPTIMIZATION;
-		}
-		return min(7, (int)$level);
+		return Settings::clean('png_level', ltrim((string)($args['optimization'] ?? ''), 'oO'));
 	}
 
 	/**

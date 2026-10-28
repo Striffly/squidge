@@ -34,12 +34,6 @@ class WebP extends AbstractEncoder
 	const FORMAT = 'webp';
 
 	/**
-	 * DEFAULT_QUALITY is the default image quality
-	 * when converting to a WebP image.
-	 */
-	const DEFAULT_QUALITY = 80;
-
-	/**
 	 * NEAR_LOSSLESS is the near-lossless level of the
 	 * PNG images (0 to 100, 100 is lossless): the
 	 * pixels change too little to be seen.
@@ -70,21 +64,19 @@ class WebP extends AbstractEncoder
 		if ($mime != Files::PNG && $mime != Files::JPG) {
 			return;
 		}
-		if (!isset($args['quality'])) {
-			$args['quality'] = self::DEFAULT_QUALITY;
-		}
+		$quality = self::quality($args);
 		// Without cwebp, GD and Imagick encode with libwebp too, at the same
 		// quality: the files are alike, but the PNGs are not tried in
 		// near-lossless mode.
 		if (!self::installed()) {
-			self::convert_with_editor($filepath, $mime, (int)$args['quality'], $args);
+			self::convert_with_editor($filepath, $mime, $quality, $args);
 			return;
 		}
 		$original = self::original($filepath);
 		$source = ImageEditor::readable($original, $mime);
 		$output = Files::variant($filepath, self::extension());
 		// One thread: -mt makes cwebp no faster, in lossy or near-lossless mode.
-		$options = ['-q', (int)$args['quality']];
+		$options = ['-q', $quality];
 		if (yield from self::run(array_merge($options, [$source, '-o', $output]), $filepath, $args)) {
 			if ($mime == Files::PNG) {
 				yield from self::near_lossless($options, $source, $output, $filepath, $args);

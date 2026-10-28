@@ -56,6 +56,8 @@ class Settings
 		'webp_quality' => ['type' => 'int', 'min' => 0, 'max' => 100, 'default' => 80],
 		'avif_enable' => ['type' => 'bool', 'default' => true],
 		'avif_quality' => ['type' => 'int', 'min' => 0, 'max' => 100, 'default' => 70],
+		// 0 slowest to 10 fastest. With aom, 0 to 6 make files of about the same size (0 is ~40x
+		// slower), 7 to 10 switch to fast modes making larger files: 6 is the best trade-off.
 		'avif_speed' => ['type' => 'int', 'min' => 0, 'max' => 10, 'default' => 6],
 		'optimise_uploads' => ['type' => 'bool', 'default' => true],
 		'max_size' => ['type' => 'int', 'min' => 0, 'max' => 20000, 'default' => 2560],
@@ -151,14 +153,15 @@ class Settings
 
 	/**
 	 * Returns a value of a setting, of its type and
-	 * within its bounds, or its default.
+	 * within its bounds, or its default: also the args
+	 * of the encoders, e.g. a quality given to WP-CLI.
 	 *
 	 * @param string $name
 	 * @param mixed $value
 	 * @return bool|int|string
 	 * @since 1.0.0
 	 */
-	private static function clean($name, $value)
+	public static function clean($name, $value)
 	{
 		$field = self::FIELDS[$name];
 		switch ($field['type']) {

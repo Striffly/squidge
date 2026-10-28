@@ -656,134 +656,117 @@ msgstr "Copier"
 msgid "More about: %s"
 msgstr "En savoir plus : %s"
 
-#: core/Admin/SettingsPage.php:1380
+#: core/Admin/SettingsPage.php:1411
 msgid "Compress JPG images"
 msgstr "Compresser les images JPG"
 
-#: core/Admin/SettingsPage.php:1381
+#: core/Admin/SettingsPage.php:1412
 msgid "Compresses the JPG images in place with jpegoptim, and makes them progressive. Their originals are kept."
 msgstr "Compresse les images JPG sur place avec jpegoptim, et les rend progressives. Leurs originaux sont conservés."
 
-#: core/Admin/SettingsPage.php:1385
-#: core/Admin/SettingsPage.php:1440
-#: core/Admin/SettingsPage.php:1458
+#: core/Admin/SettingsPage.php:1416
+#: core/Admin/SettingsPage.php:1474
+#: core/Admin/SettingsPage.php:1493
 msgid "Quality"
 msgstr "Qualité"
 
-#: core/Admin/SettingsPage.php:1386
-#: core/Admin/SettingsPage.php:1441
-msgid "From 0 to 100, 80 by default."
-msgstr "De 0 à 100, 80 par défaut."
-
-#: core/Admin/SettingsPage.php:1393
+#: core/Admin/SettingsPage.php:1425
 msgid "lossy compression"
 msgstr "compression avec perte"
 
-#: core/Admin/SettingsPage.php:1399
+#: core/Admin/SettingsPage.php:1431
 msgid "Compress PNG images"
 msgstr "Compresser les images PNG"
 
-#: core/Admin/SettingsPage.php:1400
+#: core/Admin/SettingsPage.php:1432
 msgid "Compresses the PNG images in place with oxipng or optipng, after pngquant when lossy. Their originals are kept."
 msgstr "Compresse les images PNG sur place avec oxipng ou optipng, après pngquant avec perte. Leurs originaux sont conservés."
 
-#: core/Admin/SettingsPage.php:1404
+#: core/Admin/SettingsPage.php:1436
 msgid "Compression"
 msgstr "Compression"
 
-#: core/Admin/SettingsPage.php:1406
+#: core/Admin/SettingsPage.php:1438
 msgid "Lossless"
 msgstr "Sans perte"
 
-#: core/Admin/SettingsPage.php:1407
+#: core/Admin/SettingsPage.php:1439
 msgid "Lossy (pngquant)"
 msgstr "Avec perte (pngquant)"
 
-#: core/Admin/SettingsPage.php:1410
+#: core/Admin/SettingsPage.php:1442
 msgid "Lossy: often 60 to 80 % lighter, for graphics and screenshots. Needs pngquant."
 msgstr "Avec perte : souvent 60 à 80 % plus léger, pour les graphiques et les captures d’écran. Nécessite pngquant."
 
-#: core/Admin/SettingsPage.php:1414
+#: core/Admin/SettingsPage.php:1446
 msgid "Optimisation level"
 msgstr "Niveau d’optimisation"
 
-#: core/Admin/SettingsPage.php:1416
-msgid "From o0 (fastest) to o7 (smallest files), o2 by default."
-msgstr "De o0 (le plus rapide) à o7 (les fichiers les plus légers), o2 par défaut."
-
-#: core/Admin/SettingsPage.php:1420
+#: core/Admin/SettingsPage.php:1453
 msgid "Lossy quality"
 msgstr "Qualité avec perte"
 
-#: core/Admin/SettingsPage.php:1423
-msgid "The quality pngquant aims at, 80 by default."
-msgstr "La qualité visée par pngquant, 80 par défaut."
-
 #. translators: %s: GD or Imagick.
-#: core/Admin/SettingsPage.php:1431
+#: core/Admin/SettingsPage.php:1465
 #, php-format
 msgid "%s makes the WebP files for now, in the PHP process. cwebp runs apart from PHP, and makes the PNG graphics and screenshots much lighter."
 msgstr "%s crée les fichiers WebP pour l’instant, dans le processus de PHP. cwebp tourne à part, et rend les graphiques et captures d’écran PNG bien plus légers."
 
-#: core/Admin/SettingsPage.php:1435
+#: core/Admin/SettingsPage.php:1469
 msgid "Make WebP versions"
 msgstr "Créer les versions WebP"
 
-#: core/Admin/SettingsPage.php:1436
+#: core/Admin/SettingsPage.php:1470
 msgid "Makes a WebP version of each image and thumbnail (<code>photo.jpg.webp</code>), lighter than the JPG or PNG."
 msgstr "Crée une version WebP de chaque image et miniature (<code>photo.jpg.webp</code>), plus légère que le JPG ou le PNG."
 
 #. translators: %s: GD or Imagick.
-#: core/Admin/SettingsPage.php:1449
+#: core/Admin/SettingsPage.php:1484
 #, php-format
 msgid "%s makes the AVIF files for now, in the PHP process. avifenc runs apart from PHP, on several threads, and keeps the colours of the PNG images sharper."
 msgstr "%s crée les fichiers AVIF pour l’instant, dans le processus de PHP. avifenc tourne à part, sur plusieurs threads, et garde les couleurs des images PNG plus nettes."
 
-#: core/Admin/SettingsPage.php:1453
+#: core/Admin/SettingsPage.php:1488
 msgid "Make AVIF versions"
 msgstr "Créer les versions AVIF"
 
-#: core/Admin/SettingsPage.php:1454
+#: core/Admin/SettingsPage.php:1489
 msgid "Makes an AVIF version of each image and thumbnail (<code>photo.jpg.avif</code>), often the lightest. Kept only when lighter than the WebP and the JPG or PNG."
 msgstr "Crée une version AVIF de chaque image et miniature (<code>photo.jpg.avif</code>), souvent la plus légère. Conservée seulement si elle est plus légère que le WebP et que le JPG ou le PNG."
 
-#: core/Admin/SettingsPage.php:1459
-msgid "From 0 to 100 (lossless), 70 by default."
-msgstr "De 0 à 100 (sans perte), 70 par défaut."
-
-#: core/Admin/SettingsPage.php:1480
+#: core/Admin/SettingsPage.php:1517
 msgid "Maximum image size"
 msgstr "Taille maximale des images"
 
-#: core/Admin/SettingsPage.php:1487
+#: core/Admin/SettingsPage.php:1525
 msgid "Serve"
 msgstr "Servir"
 
-#: core/Admin/SettingsPage.php:1488
+#: core/Admin/SettingsPage.php:1526
 msgid "Each browser gets the lightest version it reads: AVIF, then WebP, or the JPG or PNG for older ones. Choose one way, or both."
 msgstr "Chaque navigateur reçoit la version la plus légère qu’il sait lire : AVIF, puis WebP, ou le JPG ou PNG pour les plus anciens. Choisissez une méthode, ou les deux."
 
-#: core/Admin/SettingsPage.php:1492
+#: core/Admin/SettingsPage.php:1530
 msgid "In the HTML, with <picture>"
 msgstr "Dans le HTML, avec <picture>"
 
-#: core/Admin/SettingsPage.php:1493
+#: core/Admin/SettingsPage.php:1531
 msgid "Wraps the images of the content in a <code>&lt;picture&gt;</code>. Untick it if the layout breaks."
 msgstr "Enveloppe les images du contenu dans un <code>&lt;picture&gt;</code>. Décochez si la mise en page casse."
 
-#: core/Admin/SettingsPage.php:1494
+#: core/Admin/SettingsPage.php:1532
 msgid "Images of the post content, featured images and galleries are wrapped in a <code>&lt;picture&gt;</code> tag offering the AVIF and WebP versions. Works on every server. <strong>Untick this if your theme layout breaks around images.</strong>"
 msgstr "Les images du contenu, les images mises en avant et les galeries sont enveloppées dans une balise <code>&lt;picture&gt;</code> qui propose les versions AVIF et WebP. Fonctionne sur tous les serveurs. <strong>Décochez cette option si la mise en page de votre thème casse autour des images.</strong>"
 
-#: core/Admin/SettingsPage.php:1498
+#: core/Admin/SettingsPage.php:1536
 msgid "From the server, with rewrite rules"
 msgstr "Depuis le serveur, avec des règles de réécriture"
 
-#: core/Admin/SettingsPage.php:1499
+#: core/Admin/SettingsPage.php:1537
 msgid "Every image, CSS backgrounds included, the HTML unchanged."
 msgstr "Toutes les images, arrière-plans CSS compris, sans toucher au HTML."
 
-#: core/Admin/SettingsPage.php:1500
+#: core/Admin/SettingsPage.php:1538
 msgid "The server answers <code>photo.jpg</code> with <code>photo.jpg.avif</code> or <code>.webp</code> when the browser reads them. The HTML does not change, and every image is served, CSS backgrounds and custom themes included. A CDN must vary its cache on the <code>Accept</code> header."
 msgstr "Le serveur répond à <code>photo.jpg</code> avec <code>photo.jpg.avif</code> ou <code>.webp</code> quand le navigateur sait les lire. Le HTML ne change pas, et toutes les images sont servies, arrière-plans CSS et thèmes sur mesure compris. Un CDN doit faire varier son cache selon l’en-tête <code>Accept</code>."
 
@@ -1267,25 +1250,21 @@ msgstr "Les nouveaux téléversements attendent ici, parmi les nouvelles images.
 msgid "Optimise them on upload"
 msgstr "Les optimiser au téléversement"
 
-#: core/Admin/SettingsPage.php:1470
+#: core/Admin/SettingsPage.php:1507
 msgid "Uploads"
 msgstr "Téléversements"
 
-#: core/Admin/SettingsPage.php:1471
+#: core/Admin/SettingsPage.php:1508
 msgid "What happens to the images added to the media library."
 msgstr "Ce que deviennent les images ajoutées à la médiathèque."
 
-#: core/Admin/SettingsPage.php:1475
+#: core/Admin/SettingsPage.php:1512
 msgid "Optimise new uploads"
 msgstr "Optimiser les nouveaux téléversements"
 
-#: core/Admin/SettingsPage.php:1476
+#: core/Admin/SettingsPage.php:1513
 msgid "Each image added to the media library is optimised right away. Unticked, they wait in the Optimise tab, as new images."
 msgstr "Chaque image ajoutée à la médiathèque est optimisée aussitôt. Décoché, les images attendent dans l’onglet Optimiser, parmi les nouvelles images."
-
-#: core/Admin/SettingsPage.php:1482
-msgid "WordPress scales the bigger images down on upload, and keeps them as their original. Longest side, 2560 by default. <strong>0 means no limit: huge images can exhaust the server.</strong>"
-msgstr "WordPress réduit les grandes images au téléversement, et les garde comme original. Plus grand côté, 2560 par défaut. <strong>0 signifie sans limite : des images énormes peuvent épuiser le serveur.</strong>"
 
 #: assets/js/components/Form.js:247
 msgid "Saved"
@@ -1358,17 +1337,13 @@ msgstr "Restauration…"
 msgid "Restored!"
 msgstr "Restaurée !"
 
-#: core/Admin/SettingsPage.php:1395
+#: core/Admin/SettingsPage.php:1427
 msgid "optipng compresses the PNG images for now. Once installed, oxipng replaces it on its own: the files are lighter at the same level, and it is a little faster."
 msgstr "optipng compresse les images PNG pour l’instant. Une fois installé, oxipng le remplace de lui-même : les fichiers sont plus légers au même niveau, et il est un peu plus rapide."
 
-#: core/Admin/SettingsPage.php:1463
+#: core/Admin/SettingsPage.php:1499
 msgid "Speed"
 msgstr "Vitesse"
-
-#: core/Admin/SettingsPage.php:1465
-msgid "From 0 to 10 (fastest, heavier files), 6 by default."
-msgstr "De 0 à 10 (la plus rapide, fichiers plus lourds), 6 par défaut."
 
 #: assets/js/components/Job.js:136
 msgid "The site did not answer: try again."
@@ -1381,3 +1356,40 @@ msgid "%1$s · an image waits for another request, %2$s second at most"
 msgid_plural "%1$s · an image waits for another request, %2$s seconds at most"
 msgstr[0] "%1$s · une image attend une autre requête, %2$s seconde au plus"
 msgstr[1] "%1$s · une image attend une autre requête, %2$s secondes au plus"
+
+#. translators: 1: the minimum, 2: the maximum, 3: the default.
+#: core/Admin/SettingsPage.php:1418
+#: core/Admin/SettingsPage.php:1476
+#, php-format
+msgid "From %1$d to %2$d, %3$d by default."
+msgstr "De %1$d à %2$d, %3$d par défaut."
+
+#. translators: 1: the minimum, 2: the maximum, 3: the default.
+#: core/Admin/SettingsPage.php:1449
+#, php-format
+msgid "From o%1$d (fastest) to o%2$d (smallest files), o%3$d by default."
+msgstr "De o%1$d (le plus rapide) à o%2$d (les fichiers les plus légers), o%3$d par défaut."
+
+#. translators: 1: the minimum, 2: the maximum, 3: the default.
+#: core/Admin/SettingsPage.php:1457
+#, php-format
+msgid "The quality pngquant aims at, %3$d by default."
+msgstr "La qualité visée par pngquant, %3$d par défaut."
+
+#. translators: 1: the minimum, 2: the maximum, 3: the default.
+#: core/Admin/SettingsPage.php:1495
+#, php-format
+msgid "From %1$d to %2$d (lossless), %3$d by default."
+msgstr "De %1$d à %2$d (sans perte), %3$d par défaut."
+
+#. translators: 1: the minimum, 2: the maximum, 3: the default.
+#: core/Admin/SettingsPage.php:1502
+#, php-format
+msgid "From %1$d to %2$d (fastest, heavier files), %3$d by default."
+msgstr "De %1$d à %2$d (la plus rapide, fichiers plus lourds), %3$d par défaut."
+
+#. translators: 1: the minimum, 2: the maximum, 3: the default.
+#: core/Admin/SettingsPage.php:1520
+#, php-format
+msgid "WordPress scales the bigger images down on upload, and keeps them as their original. Longest side, %3$d by default. <strong>0 means no limit: huge images can exhaust the server.</strong>"
+msgstr "WordPress réduit les grandes images au téléversement, et les garde comme original. Plus grand côté, %3$d par défaut. <strong>0 signifie sans limite : des images énormes peuvent épuiser le serveur.</strong>"

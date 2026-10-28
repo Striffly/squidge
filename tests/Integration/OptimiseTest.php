@@ -251,6 +251,20 @@ class OptimiseTest extends TestCase
 		$this->assertSame($originals, self::hashes(array_map([Files::class, 'backup_path'], self::files($id))));
 	}
 
+	public function test_the_args_of_wp_cli_keep_within_the_bounds_of_the_settings()
+	{
+		$default = $this->upload_unoptimised('photo.jpg');
+		Optimiser::attachment($default, null, ['jpg' => []]);
+		$wrong = $this->upload_unoptimised('photo.jpg');
+		Optimiser::attachment($wrong, null, ['jpg' => ['quality' => 'abc']]);
+
+		// Compressed at the default quality, as its signature says, not at 0.
+		$this->assertSame('quality:80', get_post_meta($wrong, JPG::meta_key(), true));
+		$this->assertFileEquals(get_attached_file($default), get_attached_file($wrong));
+		$this->assertSame('quality:100', JPG::signature(['quality' => 150]));
+		$this->assertSame('level:7', PNG::signature(['optimization' => 'o9']));
+	}
+
 	public function test_a_new_thumbnail_size_is_made_and_optimised()
 	{
 		$id = $this->upload('photo.jpg');

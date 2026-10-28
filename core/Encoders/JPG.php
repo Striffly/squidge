@@ -33,12 +33,6 @@ class JPG extends AbstractEncoder
 	const FORMAT = 'jpg';
 
 	/**
-	 * DEFAULT_QUALITY is the default maximum quality
-	 * of the compressed JPG images.
-	 */
-	const DEFAULT_QUALITY = 80;
-
-	/**
 	 * Compresses a JPG file in place with jpegoptim,
 	 * from its original kept as a backup.
 	 *
@@ -56,9 +50,6 @@ class JPG extends AbstractEncoder
 		if ($mime != Files::JPG) {
 			return;
 		}
-		if (!isset($args['quality'])) {
-			$args['quality'] = self::DEFAULT_QUALITY;
-		}
 		// The file is optimised in place, its original is kept as a backup.
 		// Start again from the original, so a JPG is never compressed twice.
 		if (!self::backup($filepath, $args)) {
@@ -70,7 +61,7 @@ class JPG extends AbstractEncoder
 			return;
 		}
 		// Progressive: the browser shows the whole image blurred first, then sharpens it.
-		if (yield from self::run(['--strip-all', '--all-progressive', '--overwrite', '--max=' . (int)$args['quality'], $filepath], $filepath, $args)) {
+		if (yield from self::run(['--strip-all', '--all-progressive', '--overwrite', '--max=' . self::quality($args), $filepath], $filepath, $args)) {
 			Logger::info("Successfully compressed image JPG file: " . $filepath);
 		} else {
 			self::put_back($filepath, $args);
