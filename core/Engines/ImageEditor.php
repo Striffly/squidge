@@ -51,12 +51,22 @@ class ImageEditor
 	private static $classes = [];
 
 	/**
+	 * The RGB copies of the CMYK JPGs, by the file they
+	 * copy, kept until release_all(): cwebp and avifenc
+	 * read the same copy of a file.
+	 *
+	 * @var string[]
+	 */
+	private static $copies = [];
+
+	/**
 	 * Returns a file the converters can read: the file
 	 * itself or, for a CMYK JPG that cwebp and avifenc
 	 * cannot read, a temporary RGB copy made with the
-	 * WordPress image editor (as for the thumbnails).
-	 * The copy is a PNG: lossless, and always RGB.
-	 * Remove it with release().
+	 * WordPress image editor (as for the thumbnails),
+	 * once for both. The copy is a PNG: lossless, and
+	 * always RGB. Remove it with release(), or all of
+	 * them with release_all().
 	 *
 	 * @param string $filepath
 	 * @param string $mime
@@ -67,6 +77,9 @@ class ImageEditor
 	{
 		if ($mime != Files::JPG) {
 			return $filepath;
+		}
+		if (isset(self::$copies[$filepath]) && file_exists(self::$copies[$filepath])) {
+			return self::$copies[$filepath];
 		}
 		$info = @getimagesize($filepath);
 		if (!$info || !isset($info['channels']) || $info['channels'] != 4) {
@@ -87,6 +100,7 @@ class ImageEditor
 			return $filepath;
 		}
 		Logger::info("Converted CMYK image to RGB before conversion: " . $filepath);
+		self::$copies[$filepath] = $saved['path'];
 		return $saved['path'];
 	}
 
@@ -102,6 +116,20 @@ class ImageEditor
 	{
 		if ($source !== $filepath && file_exists($source)) {
 			wp_delete_file($source);
+		}
+		unset(self::$copies[$filepath]);
+	}
+
+	/**
+	 * Removes the copies made by readable(), once the
+	 * formats of an image are made.
+	 *
+	 * @since 1.0.0
+	 */
+	public static function release_all()
+	{
+		foreach (self::$copies as $filepath => $copy) {
+			self::release($copy, $filepath);
 		}
 	}
 

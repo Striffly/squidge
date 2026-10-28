@@ -21,6 +21,7 @@ use Octopus\Encoders\AVIF;
 use Octopus\Encoders\JPG;
 use Octopus\Encoders\PNG;
 use Octopus\Encoders\WebP;
+use Octopus\Engines\ImageEditor;
 use Octopus\Log\Errors;
 use Octopus\Log\Logger;
 use Octopus\Settings;
@@ -166,19 +167,24 @@ class Optimiser
 				return true;
 			}
 			$metadata = $metadata ?: wp_get_attachment_metadata($id);
-			foreach (self::SERVICES as $format => $service) {
-				if (!isset($settings[$format])) {
-					continue;
+			try {
+				foreach (self::SERVICES as $format => $service) {
+					if (!isset($settings[$format])) {
+						continue;
+					}
+					try {
+						$service::process($metadata, array_merge($settings[$format], [
+							'id' => (int)$id,
+							'force' => $force,
+							'thumbnailsOnly' => $thumbnails_only,
+						]));
+					} catch (Exception $e) {
+						Logger::error($e->getMessage());
+					}
 				}
-				try {
-					$service::process($metadata, array_merge($settings[$format], [
-						'id' => (int)$id,
-						'force' => $force,
-						'thumbnailsOnly' => $thumbnails_only,
-					]));
-				} catch (Exception $e) {
-					Logger::error($e->getMessage());
-				}
+			} finally {
+				// The RGB copies of the CMYK JPGs, read by the WebP and AVIF formats.
+				ImageEditor::release_all();
 			}
 			// Deleted meanwhile: what was made since goes with it, nothing is saved.
 			if (Cleaner::deleted($id)) {

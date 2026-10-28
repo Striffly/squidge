@@ -187,6 +187,28 @@ class FilesTest extends TestCase
 		$this->assertSame([], array_merge(glob(get_temp_dir() . 'octopus*.png'), glob(get_temp_dir() . 'octopus*.tmp')), 'Nothing in the shared temporary folder.');
 	}
 
+	public function test_the_webp_and_avif_versions_read_the_same_rgb_copy()
+	{
+		$this->require_libraries('cwebp', 'avifenc');
+
+		$copies = [];
+		add_filter('wp_delete_file', function ($path) use (&$copies) {
+			if (strpos($path, Files::temp_dir()) === 0) {
+				$copies[] = $path;
+			}
+			return $path;
+		});
+		$id = $this->upload('cmyk.jpg');
+
+		$cmyk = array_filter(Files::of($id), function ($file) {
+			$original = file_exists(Files::backup_path($file)) ? Files::backup_path($file) : $file;
+			return getimagesize($original)['channels'] == 4;
+		});
+		$this->assertNotEmpty($cmyk);
+		$this->assertCount(count($cmyk), $copies, 'One copy per CMYK file, for both formats.');
+		$this->assertSame([], glob(Files::temp_dir() . '/octopus-*'), 'The copies are removed.');
+	}
+
 	public function test_the_near_lossless_webp_leaves_no_temporary_file()
 	{
 		$this->require_libraries('cwebp');

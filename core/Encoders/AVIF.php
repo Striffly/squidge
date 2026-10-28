@@ -103,7 +103,6 @@ class AVIF extends AbstractEncoder
 			Logger::info("Successfully converted to AVIF file: " . $output);
 			Files::remember(isset($args['id']) ? (int)$args['id'] : 0, $filepath);
 		}
-		ImageEditor::release($source, $original);
 	}
 
 	/**

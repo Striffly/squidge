@@ -95,7 +95,6 @@ class WebP extends AbstractEncoder
 			Logger::info("Successfully converted to WebP file: " . $output);
 			Files::remember(isset($args['id']) ? (int)$args['id'] : 0, $filepath);
 		}
-		ImageEditor::release($source, $original);
 	}
 
 	/**
