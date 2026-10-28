@@ -531,15 +531,17 @@ abstract class AbstractEncoder
 	}
 
 	/**
-	 * Returns the args of the encoder from the settings
-	 * (see Settings::FIELDS): its quality.
+	 * Returns the args of the encoder from the values
+	 * of the settings (see Settings::FIELDS): its
+	 * quality.
 	 *
+	 * @param array $values By name, see Settings::all().
 	 * @return array
 	 * @since 1.0.0
 	 */
-	public static function args()
+	public static function args($values)
 	{
-		return ['quality' => Settings::get(static::FORMAT . '_quality')];
+		return ['quality' => $values[static::FORMAT . '_quality']];
 	}
 
 	/**

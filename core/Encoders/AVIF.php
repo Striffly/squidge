@@ -98,15 +98,16 @@ class AVIF extends AbstractEncoder
 	}
 
 	/**
-	 * Returns the args of the encoder from the settings:
-	 * its quality and speed.
+	 * Returns the args of the encoder from the values
+	 * of the settings: its quality and speed.
 	 *
+	 * @param array $values By name, see Settings::all().
 	 * @return array
 	 * @since 1.0.0
 	 */
-	public static function args()
+	public static function args($values)
 	{
-		return array_merge(parent::args(), ['speed' => Settings::get('avif_speed')]);
+		return array_merge(parent::args($values), ['speed' => $values['avif_speed']]);
 	}
 
 	/**

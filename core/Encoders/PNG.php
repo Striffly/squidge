@@ -102,19 +102,20 @@ class PNG extends AbstractEncoder
 	}
 
 	/**
-	 * Returns the args of the encoder from the settings:
-	 * its level, and the quality of the lossy
-	 * compression when it is chosen.
+	 * Returns the args of the encoder from the values
+	 * of the settings: its level, and the quality of
+	 * the lossy compression when it is chosen.
 	 *
+	 * @param array $values By name, see Settings::all().
 	 * @return array
 	 * @since 1.0.0
 	 */
-	public static function args()
+	public static function args($values)
 	{
 		return [
-			'lossy' => Settings::get('png_compression') === 'lossy',
-			'optimization' => Settings::get('png_level'),
-			'lossy_quality' => Settings::get('png_lossy_quality'),
+			'lossy' => $values['png_compression'] === 'lossy',
+			'optimization' => $values['png_level'],
+			'lossy_quality' => $values['png_lossy_quality'],
 		];
 	}
 
@@ -216,9 +217,8 @@ class PNG extends AbstractEncoder
 	}
 
 	/**
-	 * Returns the optipng level, "o3" (WP-CLI) or "3"
-	 * (settings), see Settings::clean(). oxipng gets 6
-	 * for 7.
+	 * Returns the optipng level, see Settings::clean().
+	 * oxipng gets 6 for 7.
 	 *
 	 * @param $args
 	 * @return int
@@ -226,7 +226,7 @@ class PNG extends AbstractEncoder
 	 */
 	private static function optimization_level($args)
 	{
-		return Settings::clean('png_level', ltrim((string)($args['optimization'] ?? ''), 'oO'));
+		return Settings::clean('png_level', $args['optimization'] ?? null);
 	}
 
 	/**

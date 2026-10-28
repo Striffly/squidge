@@ -276,8 +276,8 @@ Keep the `function_exists()` check: without it, the pages break while OIO is dea
 - `--force` optimises the images again, `--regenerate` first makes their thumbnails again from the originals,
   `--thumbnails-only` leaves the full size images out.
 - `--no-jpg`, `--no-png`, `--no-webp`, `--no-avif` turn a format off, `--jpg`, `--png`, `--webp`, `--avif` on.
-- `--quality=<0-100>` (JPG and WebP), `--avif-quality=<0-100>`, `--avif-speed=<0-10>` and `--optimization=o<0-7>`
-  (PNG) override the settings.
+- Each setting of a format overrides the settings page under the same name: `--jpg-quality`, `--png-compression`,
+  `--png-level`, `--png-lossy-quality`, `--webp-quality`, `--avif-quality` and `--avif-speed`.
 
 `wp octopus run` exits with an error when images fail, e.g. in a deployment script.
 

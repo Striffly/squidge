@@ -753,45 +753,45 @@ msgstr "Toutes les images, arrière-plans CSS compris, sans toucher au HTML."
 msgid "The server answers <code>photo.jpg</code> with <code>photo.jpg.avif</code> or <code>.webp</code> when the browser reads them. The HTML does not change, and every image is served, CSS backgrounds and custom themes included. A CDN must vary its cache on the <code>Accept</code> header."
 msgstr "Le serveur répond à <code>photo.jpg</code> avec <code>photo.jpg.avif</code> ou <code>.webp</code> quand le navigateur sait les lire. Le HTML ne change pas, et toutes les images sont servies, arrière-plans CSS et thèmes sur mesure compris. Un CDN doit faire varier son cache selon l’en-tête <code>Accept</code>."
 
-#: core/Cli/Commands.php:66
+#: core/Cli/Commands.php:67
 msgid "PHP cannot run programs: proc_open() and exec() are disabled, the libraries cannot run."
 msgstr "PHP ne peut pas lancer de programmes : proc_open() et exec() sont désactivées, les bibliothèques ne peuvent pas tourner."
 
 #. translators: %s: an optional library, e.g. pngquant.
-#: core/Cli/Commands.php:72
+#: core/Cli/Commands.php:73
 #, php-format
 msgid "%s (optional)"
 msgstr "%s (facultatif)"
 
 #. translators: %s: a format, e.g. webp.
-#: core/Cli/Commands.php:147
+#: core/Cli/Commands.php:339
 #, php-format
 msgid "--%1$s is on or off: use --%1$s or --no-%1$s."
 msgstr "--%1$s s’active ou se désactive : utilisez --%1$s ou --no-%1$s."
 
 #. translators: %s: the formats, e.g. jpg, webp.
-#: core/Cli/Commands.php:174
+#: core/Cli/Commands.php:158
 #, php-format
 msgid "Formats: %s"
 msgstr "Formats : %s"
 
 #. translators: %s: the formats, e.g. jpg, webp.
-#: core/Cli/Commands.php:174
+#: core/Cli/Commands.php:158
 msgid "none"
 msgstr "aucun"
 
-#: core/Cli/Commands.php:179
+#: core/Cli/Commands.php:163
 msgid "Processing image:"
 msgstr "Traitement de l’image :"
 
 #. translators: %s: the title of an image.
-#: core/Cli/Commands.php:352
+#: core/Cli/Commands.php:372
 #, php-format
 msgid "%s: skipped, another request is processing it."
 msgstr "%s : ignorée, une autre requête la traite."
 
 #. translators: 1: the number of images, 2: the number of images with errors.
-#: core/Cli/Commands.php:196
+#: core/Cli/Commands.php:180
 #, php-format
 msgid "Processed %1$d image, %2$d with errors: see them in the Media library."
 msgid_plural "Processed %1$d images, %2$d with errors: see them in the Media library."
@@ -799,7 +799,7 @@ msgstr[0] "%1$d image traitée, %2$d en erreur : voyez-les dans la médiathèqu
 msgstr[1] "%1$d images traitées, %2$d en erreur : voyez-les dans la médiathèque."
 
 #. translators: %d: the number of images.
-#: core/Cli/Commands.php:199
+#: core/Cli/Commands.php:183
 #, php-format
 msgid "Successfully processed %d image."
 msgid_plural "Successfully processed %d images."
@@ -807,7 +807,7 @@ msgstr[0] "%d image traitée avec succès."
 msgstr[1] "%d images traitées avec succès."
 
 #. translators: %d: the number of images.
-#: core/Cli/Commands.php:217
+#: core/Cli/Commands.php:201
 #, php-format
 msgid "Removed the WebP and AVIF files of %d image."
 msgid_plural "Removed the WebP and AVIF files of %d images."
@@ -815,13 +815,13 @@ msgstr[0] "Fichiers WebP et AVIF supprimés pour %d image."
 msgstr[1] "Fichiers WebP et AVIF supprimés pour %d images."
 
 #. translators: %s: the title of an image.
-#: core/Cli/Commands.php:242
+#: core/Cli/Commands.php:226
 #, php-format
 msgid "%s: no original to restore, it stays compressed."
 msgstr "%s : pas d’original à restaurer, elle reste compressée."
 
 #. translators: %d: the number of images.
-#: core/Cli/Commands.php:247
+#: core/Cli/Commands.php:231
 #, php-format
 msgid "Restored %d image."
 msgid_plural "Restored %d images."
@@ -829,7 +829,7 @@ msgstr[0] "%d image restaurée."
 msgstr[1] "%d images restaurées."
 
 #. translators: %d: the number of images.
-#: core/Cli/Commands.php:250
+#: core/Cli/Commands.php:234
 #, php-format
 msgid "%d had no original."
 msgid_plural "%d had no original."
@@ -837,7 +837,7 @@ msgstr[0] "%d n’avait pas d’original."
 msgstr[1] "%d n’avaient pas d’original."
 
 #. translators: %d: the number of images.
-#: core/Cli/Commands.php:254
+#: core/Cli/Commands.php:238
 #, php-format
 msgid "%d skipped."
 msgid_plural "%d skipped."
@@ -845,31 +845,31 @@ msgstr[0] "%d ignorée."
 msgstr[1] "%d ignorées."
 
 #. translators: %d: the number of images.
-#: core/Cli/Commands.php:298
+#: core/Cli/Commands.php:282
 #, php-format
 msgid "Measured %d image."
 msgid_plural "Measured %d images."
 msgstr[0] "%d image mesurée."
 msgstr[1] "%d images mesurées."
 
-#: core/Cli/Commands.php:302
+#: core/Cli/Commands.php:286
 msgid "Originals"
 msgstr "Originaux"
 
-#: core/Cli/Commands.php:303
+#: core/Cli/Commands.php:287
 msgid "Compressed JPG and PNG"
 msgstr "JPG et PNG compressés"
 
-#: core/Cli/Commands.php:304
+#: core/Cli/Commands.php:288
 msgid "With WebP and AVIF served"
 msgstr "En servant les WebP et AVIF"
 
-#: core/Cli/Commands.php:305
+#: core/Cli/Commands.php:289
 msgid "WebP and AVIF files"
 msgstr "Fichiers WebP et AVIF"
 
 #. translators: 1: a size, e.g. 12.5 MB, 2: the number of images, 3: a reduction, e.g. −48 %.
-#: core/Cli/Commands.php:323
+#: core/Cli/Commands.php:307
 #, php-format
 msgid "%1$s saved on %2$d image, %3$s: the site serves the WebP and AVIF."
 msgid_plural "%1$s saved on %2$d images, %3$s: the site serves the WebP and AVIF."
@@ -877,36 +877,36 @@ msgstr[0] "%1$s économisés sur %2$d image, %3$s : le site sert les WebP et AV
 msgstr[1] "%1$s économisés sur %2$d images, %3$s : le site sert les WebP et AVIF."
 
 #. translators: 1: a size, e.g. 12.5 MB, 2: the number of images, 3: a reduction, e.g. −48 %.
-#: core/Cli/Commands.php:325
+#: core/Cli/Commands.php:309
 #, php-format
 msgid "%1$s saved on %2$d image, %3$s: the site serves the JPG and PNG, not the WebP and AVIF."
 msgid_plural "%1$s saved on %2$d images, %3$s: the site serves the JPG and PNG, not the WebP and AVIF."
 msgstr[0] "%1$s économisés sur %2$d image, %3$s : le site sert les JPG et PNG, pas les WebP et AVIF."
 msgstr[1] "%1$s économisés sur %2$d images, %3$s : le site sert les JPG et PNG, pas les WebP et AVIF."
 
-#: core/Cli/Commands.php:362
+#: core/Cli/Commands.php:382
 msgid "Welcome to the OIO CLI..."
 msgstr "Bienvenue dans le CLI d’OIO..."
 
 #. translators: %s: a library, e.g. cwebp.
-#: core/Cli/Commands.php:376
+#: core/Cli/Commands.php:396
 #, php-format
 msgid "%s active."
 msgstr "%s actif."
 
 #. translators: %s: a library, e.g. cwebp.
-#: core/Cli/Commands.php:380
+#: core/Cli/Commands.php:400
 msgid "Error:"
 msgstr "Erreur :"
 
 #. translators: %s: a library, e.g. cwebp.
-#: core/Cli/Commands.php:380
+#: core/Cli/Commands.php:400
 #, php-format
 msgid "%s not installed, see the settings page of OIO."
 msgstr "%s non installé, voir la page de réglages d’OIO."
 
 #. translators: 1: GD or Imagick, 2: a format, e.g. WebP, 3: a library, e.g. cwebp.
-#: core/Cli/Commands.php:398
+#: core/Cli/Commands.php:418
 #, php-format
 msgid "%1$s active for %2$s: %3$s not installed, recommended."
 msgstr "%1$s actif pour %2$s : %3$s non installé, recommandé."
@@ -1382,3 +1382,9 @@ msgstr "Compression %s"
 #, php-format
 msgid "%s conversion"
 msgstr "Conversion %s"
+
+#. translators: 1: an option, e.g. jpg-quality, 2: its value.
+#: core/Cli/Commands.php:341
+#, php-format
+msgid "--%1$s=%2$s: not a value of this option, see wp help octopus run."
+msgstr "--%1$s=%2$s : pas une valeur de cette option, voir wp help octopus run."

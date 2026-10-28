@@ -141,15 +141,18 @@ class Formats
 	 * enabled formats only, or all of them.
 	 *
 	 * @param bool $enabled_only
+	 * @param array|null $values The settings by name, the saved ones by default (see
+	 *                           Settings::all()), e.g. with the options of WP-CLI.
 	 * @return array
 	 * @since 1.0.0
 	 */
-	public static function settings($enabled_only = true)
+	public static function settings($enabled_only = true, $values = null)
 	{
+		$values = $values ?? Settings::all();
 		$settings = [];
 		foreach (self::ENCODERS as $format => $encoder) {
-			if (!$enabled_only || Settings::get($format . '_enable')) {
-				$settings[$format] = $encoder::args();
+			if (!$enabled_only || $values[$format . '_enable']) {
+				$settings[$format] = $encoder::args($values);
 			}
 		}
 		return $settings;

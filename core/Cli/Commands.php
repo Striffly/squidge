@@ -23,6 +23,7 @@ use Octopus\Media\Lock;
 use Octopus\Media\Optimiser;
 use Octopus\Media\Stats;
 use Octopus\Media\Status;
+use Octopus\Settings;
 use WP_CLI;
 use WP_CLI_Command;
 
@@ -81,9 +82,10 @@ class Commands extends WP_CLI_Command
 	 * Optimises the JPG and PNG images of the media library.
 	 *
 	 * Compresses them and makes their WebP and AVIF
-	 * versions, with the formats and qualities of the
-	 * settings page, unless the options below override
-	 * them. The images already optimised are only
+	 * versions, with the settings of the settings page,
+	 * unless the options below override them: each
+	 * setting of a format is an option of the same
+	 * name. The images already optimised are only
 	 * completed (e.g. a new thumbnail size), unless
 	 * --force. Exits with an error if images fail.
 	 *
@@ -101,11 +103,20 @@ class Commands extends WP_CLI_Command
 	 * [--[no-]avif]
 	 * : Make the AVIF versions (--avif) or not (--no-avif). As on the settings page by default.
 	 *
-	 * [--quality=<quality>]
-	 * : The quality of the JPG and WebP files, from 0 to 100.
+	 * [--jpg-quality=<quality>]
+	 * : The quality of the JPG files, from 0 to 100.
 	 *
-	 * [--optimization=<level>]
-	 * : The optimisation level of the PNG files, from o0 (fastest) to o7 (smallest).
+	 * [--png-compression=<compression>]
+	 * : The compression of the PNG files: lossless, or lossy (with pngquant).
+	 *
+	 * [--png-level=<level>]
+	 * : The optimisation level of the PNG files, from 0 (fastest) to 7 (smallest).
+	 *
+	 * [--png-lossy-quality=<quality>]
+	 * : The quality pngquant aims at, from 0 to 100.
+	 *
+	 * [--webp-quality=<quality>]
+	 * : The quality of the WebP files, from 0 to 100.
 	 *
 	 * [--avif-quality=<quality>]
 	 * : The quality of the AVIF files, from 0 to 100.
@@ -128,7 +139,7 @@ class Commands extends WP_CLI_Command
 	 *     $ wp octopus run
 	 *
 	 *     # Make the WebP files again at quality 75, and nothing else.
-	 *     $ wp octopus run --webp --no-avif --no-jpg --no-png --quality=75 --force
+	 *     $ wp octopus run --webp --no-avif --no-jpg --no-png --webp-quality=75 --force
 	 *
 	 * @param $args
 	 * @param $assoc_args
@@ -138,34 +149,7 @@ class Commands extends WP_CLI_Command
 	{
 		$this->print_welcome();
 
-		$settings = Formats::settings(false);
-		$enabled = Formats::settings();
-		foreach (array_keys($settings) as $format) {
-			$on = isset($assoc_args[$format]) ? filter_var($assoc_args[$format], FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) : isset($enabled[$format]);
-			if ($on === null) {
-				/* translators: %s: a format, e.g. webp. */
-				WP_CLI::error(sprintf(__('--%1$s is on or off: use --%1$s or --no-%1$s.', 'octopus-image-optimizer'), $format));
-			}
-			if (!$on) {
-				unset($settings[$format]);
-			}
-		}
-		if (isset($assoc_args['quality'])) {
-			foreach (['jpg', 'webp'] as $format) {
-				if (isset($settings[$format])) {
-					$settings[$format]['quality'] = $assoc_args['quality'];
-				}
-			}
-		}
-		if (isset($settings['png'], $assoc_args['optimization'])) {
-			$settings['png']['optimization'] = $assoc_args['optimization'];
-		}
-		if (isset($settings['avif'], $assoc_args['avif-quality'])) {
-			$settings['avif']['quality'] = $assoc_args['avif-quality'];
-		}
-		if (isset($settings['avif'], $assoc_args['avif-speed'])) {
-			$settings['avif']['speed'] = $assoc_args['avif-speed'];
-		}
+		$settings = Formats::settings(true, self::settings($assoc_args));
 		$force = self::flag($assoc_args, 'force');
 		$thumbnails_only = self::flag($assoc_args, 'thumbnails-only');
 		$regenerate = self::flag($assoc_args, 'regenerate');
@@ -323,6 +307,42 @@ class Commands extends WP_CLI_Command
 			? sprintf(_n('%1$s saved on %2$d image, %3$s: the site serves the WebP and AVIF.', '%1$s saved on %2$d images, %3$s: the site serves the WebP and AVIF.', $totals['images'], 'octopus-image-optimizer'), $saved, $totals['images'], $reduction)
 			/* translators: 1: a size, e.g. 12.5 MB, 2: the number of images, 3: a reduction, e.g. −48 %. */
 			: sprintf(_n('%1$s saved on %2$d image, %3$s: the site serves the JPG and PNG, not the WebP and AVIF.', '%1$s saved on %2$d images, %3$s: the site serves the JPG and PNG, not the WebP and AVIF.', $totals['images'], 'octopus-image-optimizer'), $saved, $totals['images'], $reduction));
+	}
+
+	/**
+	 * Returns the settings, with the ones of the formats
+	 * the options override: --jpg-quality sets
+	 * jpg_quality, --jpg or --no-jpg sets jpg_enable.
+	 * Ends with an error on a value a setting cannot
+	 * take; a number out of its bounds is brought within
+	 * them, as on the settings page.
+	 *
+	 * @param array $assoc_args
+	 * @return array By name, see Settings::all().
+	 * @since 1.0.0
+	 */
+	private static function settings($assoc_args)
+	{
+		$values = Settings::all();
+		foreach (array_keys(Settings::FIELDS) as $name) {
+			$format = (string)strstr($name, '_', true);
+			if (!isset(Formats::ENCODERS[$format])) {
+				continue;
+			}
+			$option = $name === $format . '_enable' ? $format : str_replace('_', '-', $name);
+			if (!isset($assoc_args[$option])) {
+				continue;
+			}
+			if (!Settings::valid($name, $assoc_args[$option])) {
+				WP_CLI::error($option === $format
+					/* translators: %s: a format, e.g. webp. */
+					? sprintf(__('--%1$s is on or off: use --%1$s or --no-%1$s.', 'octopus-image-optimizer'), $format)
+					/* translators: 1: an option, e.g. jpg-quality, 2: its value. */
+					: sprintf(__('--%1$s=%2$s: not a value of this option, see wp help octopus run.', 'octopus-image-optimizer'), $option, $assoc_args[$option]));
+			}
+			$values[$name] = Settings::clean($name, $assoc_args[$option]);
+		}
+		return $values;
 	}
 
 	/**

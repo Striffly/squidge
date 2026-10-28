@@ -264,7 +264,7 @@ class OptimiseTest extends TestCase
 		$this->assertSame('quality:80', get_post_meta($wrong, JPG::meta_key(), true));
 		$this->assertFileEquals(get_attached_file($default), get_attached_file($wrong));
 		$this->assertSame('quality:100', JPG::signature(['quality' => 150]));
-		$this->assertSame('level:7', PNG::signature(['optimization' => 'o9']));
+		$this->assertSame('level:7', PNG::signature(['optimization' => 9]));
 	}
 
 	public function test_a_failed_regeneration_leaves_the_uploads_optimised()

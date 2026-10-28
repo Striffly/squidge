@@ -76,6 +76,5 @@ class SettingsTest extends TestCase
 		if (PNG::installed('pngquant')) {
 			$this->assertSame('level:4,lossy:65', PNG::signature($args));
 		}
-		$this->assertSame('level:3', PNG::signature(['optimization' => 'o3']), 'WP-CLI sets it.');
 	}
 }

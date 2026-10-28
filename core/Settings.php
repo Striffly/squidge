@@ -155,6 +155,33 @@ class Settings
 	}
 
 	/**
+	 * Determines if a value can be the one of a setting,
+	 * e.g. given to WP-CLI: a boolean, a number, or one
+	 * of its values. A number out of its bounds is
+	 * brought within them, see clean().
+	 *
+	 * @param string $name
+	 * @param mixed $value
+	 * @return bool
+	 * @since 1.0.0
+	 */
+	public static function valid($name, $value)
+	{
+		if (!isset(self::FIELDS[$name])) {
+			return false;
+		}
+		$field = self::FIELDS[$name];
+		switch ($field['type']) {
+			case 'bool':
+				return filter_var($value, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) !== null;
+			case 'int':
+				return is_numeric($value);
+			default:
+				return in_array($value, $field['values'], true);
+		}
+	}
+
+	/**
 	 * Returns a value of a setting, of its type and
 	 * within its bounds, or its default: also the args
 	 * of the encoders, e.g. a quality given to WP-CLI.
