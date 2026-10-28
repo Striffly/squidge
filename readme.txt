@@ -100,7 +100,7 @@ Deleted, its settings and data are removed from the database, and the files stay
 
 == Privacy ==
 
-OIO sends nothing out of your server: no API, no tracking, no external request. The delivery test only requests the site itself. The optimised images lose their metadata, the originals keep them and are protected from the web access.
+OIO sends nothing out of your server: no API, no tracking, no external request. The delivery test only requests the images of the site, from its CDN if they are served by one. The optimised images lose their metadata, the originals keep them and are protected from the web access.
 
 == Changelog ==
 
