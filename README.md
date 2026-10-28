@@ -36,6 +36,7 @@ unlimited, no API key, no quota: your images never leave your server.
 - Spots the images optimised with older settings, or before the theme changed its image sizes, and makes their
   thumbnails again from the originals, scaled to the current maximum size.
 - Shows the status of each image in the media library, and its errors in plain words.
+- Optimises or restores an image right from the media library.
 - Shows the bytes saved, on each image of the media library and on the whole library, with what serving WebP and
   AVIF would save, and the disk used by the originals and the WebP and AVIF files.
 
