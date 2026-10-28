@@ -122,7 +122,7 @@ class FilesTest extends TestCase
 		$thumbnail = Files::of($id)[1];
 		// E.g. linked to a private image of another site of the server.
 		copy($thumbnail, $this->outside . '/private.jpg');
-		unlink($thumbnail);
+		wp_delete_file($thumbnail);
 		symlink($this->outside . '/private.jpg', $thumbnail);
 
 		Optimiser::optimise($id);
@@ -175,13 +175,13 @@ class FilesTest extends TestCase
 	{
 		$this->require_libraries('cwebp');
 
-		// cwebp cannot read CMYK: it reads an RGB copy, made in the folder of the originals.
+		// cwebp cannot read CMYK: it reads an RGB copy, made in the folder of the temporary files.
 		$id = $this->upload('cmyk.jpg');
 
 		$this->assertFileExists(Files::variant(get_attached_file($id), '.webp'));
-		$this->assertSame([], glob(Files::backup_dir() . '/octopus-*'), 'The copy is removed.');
+		$this->assertSame([], glob(Files::temp_dir() . '/octopus-*'), 'The copy is removed.');
 		$copy = ImageEditor::readable(self::fixture('cmyk.jpg'), 'image/jpeg');
-		$this->assertStringStartsWith(Files::backup_dir() . '/octopus-', $copy);
+		$this->assertStringStartsWith(Files::temp_dir() . '/octopus-', $copy);
 		ImageEditor::release($copy, self::fixture('cmyk.jpg'));
 		$this->assertFileDoesNotExist($copy);
 		$this->assertSame([], array_merge(glob(get_temp_dir() . 'octopus*.png'), glob(get_temp_dir() . 'octopus*.tmp')), 'Nothing in the shared temporary folder.');
@@ -196,6 +196,19 @@ class FilesTest extends TestCase
 
 		$this->assertFileExists(Files::variant(get_attached_file($id), '.webp'));
 		$this->assertSame([], glob(dirname(Files::variant(get_attached_file($id), '.webp')) . '/octopus-*'));
+		$this->assertSame([], glob(Files::temp_dir() . '/octopus-*'));
+	}
+
+	public function test_the_temporary_files_are_private_and_do_not_pile_up()
+	{
+		$left = Files::temp_file('.webp');
+		// Left by a request stopped two hours ago.
+		touch($left, time() - 2 * HOUR_IN_SECONDS);
+		$recent = Files::temp_file('.webp');
+
+		$this->assertFileExists(Files::temp_dir() . '/.htaccess');
+		$this->assertFileDoesNotExist($left);
+		$this->assertFileExists($recent);
 	}
 
 	public function test_the_originals_can_be_moved_out_of_the_uploads_folder()

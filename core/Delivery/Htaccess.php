@@ -238,7 +238,8 @@ class Htaccess
 	 * without OIO knowing (another plugin writing the
 	 * .htaccess, a deployment, a move of the site): the
 	 * rules while the option is on, and the .htaccess
-	 * and index.php of the folder of the originals. On
+	 * and index.php of the folders of the originals and
+	 * of the temporary files. On
 	 * the options page, before it shows the errors of
 	 * the settings, as when saving.
 	 *
@@ -251,6 +252,9 @@ class Htaccess
 		}
 		if (is_dir(Files::backup_dir())) {
 			Files::protect_backup_dir();
+		}
+		if (is_dir(Files::temp_dir())) {
+			Files::protect_temp_dir();
 		}
 	}
 

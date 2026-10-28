@@ -120,8 +120,7 @@ class WebP extends AbstractEncoder
 		if ($lossy < filesize($source) / 4) {
 			return;
 		}
-		// A random name, created by this request only.
-		$temp = Files::temp_file(dirname($output), '.webp');
+		$temp = Files::temp_file('.webp');
 		if ($temp === null) {
 			return;
 		}

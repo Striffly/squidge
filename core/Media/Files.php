@@ -44,6 +44,13 @@ class Files
 	const FORMATS_DIR = 'formats';
 
 	/**
+	 * The folder, in the folder of OIO, of the files a
+	 * library or the image editor writes before they
+	 * are moved in place, or removed (see temp_file()).
+	 */
+	const TEMP_DIR = 'temp';
+
+	/**
 	 * The folder, in the folder of OIO, where the
 	 * original images are kept before being optimised
 	 * in place, with the same tree as the uploads
@@ -203,20 +210,41 @@ class Files
 	}
 
 	/**
-	 * Creates an empty file with a random name in a
-	 * folder, for a library or the image editor to
-	 * write: created by this request only, so that no
-	 * link set there before is written through.
+	 * Returns the folder of the temporary files.
 	 *
-	 * @param string $dir
+	 * @return string
+	 * @since 1.0.0
+	 */
+	public static function temp_dir()
+	{
+		return self::dir() . DIRECTORY_SEPARATOR . self::TEMP_DIR;
+	}
+
+	/**
+	 * Creates an empty temporary file with a random
+	 * name, for a library or the image editor to write:
+	 * created by this request only, so that no link set
+	 * there before is written through. In the folder of
+	 * OIO, not the temporary folder the users of a
+	 * shared server share, and in the uploads folder as
+	 * the versions, so that one moves in place at once.
+	 * Denied to the web as the originals. The files a
+	 * stopped request left go after an hour.
+	 *
 	 * @param string $suffix E.g. .png.
 	 * @return string|null Its path, null if it could not be created.
 	 * @since 1.0.0
 	 */
-	public static function temp_file($dir, $suffix)
+	public static function temp_file($suffix)
 	{
-		if (!wp_mkdir_p($dir)) {
+		$dir = self::temp_dir();
+		if (!self::protect_temp_dir()) {
 			return null;
+		}
+		foreach (glob($dir . DIRECTORY_SEPARATOR . 'octopus-*') ?: [] as $left) {
+			if (@filemtime($left) < time() - HOUR_IN_SECONDS) {
+				wp_delete_file($left);
+			}
 		}
 		$path = $dir . DIRECTORY_SEPARATOR . 'octopus-' . strtolower(wp_generate_password(12, false)) . $suffix;
 		// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fopen -- Exclusive creation (x), which WP_Filesystem does not offer.
@@ -287,19 +315,45 @@ class Files
 	 * and nothing serves them. The .htaccess works with
 	 * Apache and LiteSpeed, nginx needs a rule (see the
 	 * README), the name of the folder cannot be guessed
-	 * meanwhile. The index.php hides the files where
-	 * the folders are listed.
+	 * meanwhile.
 	 *
 	 * @since 1.0.0
 	 */
 	public static function protect_backup_dir()
 	{
-		$dir = self::backup_dir();
+		self::protect(self::backup_dir(), 'original images');
+	}
+
+	/**
+	 * Denies the web access to the folder of the
+	 * temporary files, e.g. the RGB copy of a CMYK
+	 * image.
+	 *
+	 * @return bool Whether the folder is there.
+	 * @since 1.0.0
+	 */
+	public static function protect_temp_dir()
+	{
+		return self::protect(self::temp_dir(), 'temporary files');
+	}
+
+	/**
+	 * Makes a folder of OIO the web must not reach,
+	 * with a .htaccess denying it, and an index.php
+	 * hiding its files where the folders are listed.
+	 *
+	 * @param string $dir
+	 * @param string $what What it holds, e.g. original images.
+	 * @return bool Whether the folder is there.
+	 * @since 1.0.0
+	 */
+	private static function protect($dir, $what)
+	{
 		if (!self::make_dir($dir . DIRECTORY_SEPARATOR . 'index.php')) {
-			return;
+			return false;
 		}
 		$files = [
-			'.htaccess' => "# Written by OIO: the original images are not served.\n<IfModule mod_authz_core.c>\n\tRequire all denied\n</IfModule>\n<IfModule !mod_authz_core.c>\n\tOrder deny,allow\n\tDeny from all\n</IfModule>\n",
+			'.htaccess' => "# Written by OIO: the " . $what . " are not served.\n<IfModule mod_authz_core.c>\n\tRequire all denied\n</IfModule>\n<IfModule !mod_authz_core.c>\n\tOrder deny,allow\n\tDeny from all\n</IfModule>\n",
 			'index.php' => "<?php\n// Silence is golden.\n",
 		];
 		foreach ($files as $name => $content) {
@@ -308,6 +362,7 @@ class Files
 				file_put_contents($path, $content);
 			}
 		}
+		return true;
 	}
 
 	/**

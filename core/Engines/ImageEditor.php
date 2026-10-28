@@ -76,16 +76,8 @@ class ImageEditor
 		if (is_wp_error($editor)) {
 			return $filepath;
 		}
-		// In the folder of the originals: private, unlike the temporary folder
-		// shared by the users of the server, where a link set at its name would
-		// be written through. A copy a stopped request left goes after an hour.
-		Files::protect_backup_dir();
-		foreach (glob(Files::backup_dir() . DIRECTORY_SEPARATOR . 'octopus-*.png') ?: [] as $left) {
-			if (filemtime($left) < time() - HOUR_IN_SECONDS) {
-				wp_delete_file($left);
-			}
-		}
-		$temp = Files::temp_file(Files::backup_dir(), '.png');
+		// Private, unlike the temporary folder of the server (see Files::temp_file()).
+		$temp = Files::temp_file('.png');
 		if ($temp === null) {
 			return $filepath;
 		}
