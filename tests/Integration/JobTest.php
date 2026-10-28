@@ -240,21 +240,39 @@ class JobTest extends TestCase
 		$this->job->start(Job::OPTIMISE, $ids);
 		// Cancelled by another request while the worker encodes the first image.
 		$cancelled = false;
-		add_action('octopus_working', function () use (&$cancelled) {
+		$told = null;
+		add_action('octopus_working', function () use (&$cancelled, &$told) {
 			if (!$cancelled) {
 				$cancelled = true;
 				(new Job())->cancel();
+				$told = (new Job())->progress()['state'];
 			}
 		});
 
 		$this->handle();
 
+		$this->assertSame('cancelling', $told, 'Its image in progress, the page waits for its count.');
 		$progress = $this->job->progress();
 		$this->assertSame('cancelled', $progress['state'], 'Not finished: the worker kept its own copy of the progress.');
 		$this->assertSame(1, $progress['done'], 'Its image is ended, and counted.');
 		$this->assertSame([], $this->job->get_batches(), 'Its batch is not saved back.');
 		$this->assertSame(Status::OPTIMISED, Status::of($ids[0]));
 		$this->assertSame([Status::TO_OPTIMISE, Status::TO_OPTIMISE], [Status::of($ids[1]), Status::of($ids[2])]);
+	}
+
+	public function test_a_cancel_waits_for_no_image_of_a_worker_php_stopped()
+	{
+		$id = $this->upload_unoptimised('photo.jpg');
+		$this->job->start(Job::OPTIMISE, [$id, $this->upload_unoptimised('photo.jpg')]);
+		// Its worker stopped on the first image: the lock of the image, no longer refreshed, is old.
+		update_option(Job::PROGRESS, array_merge(get_option(Job::PROGRESS), ['current' => $id]), false);
+		$lock = Lock::take(Lock::PREFIX . $id, Lock::TIMEOUT);
+		global $wpdb;
+		$wpdb->update($wpdb->options, ['option_value' => microtime(true) - 3 * Lock::BEAT], ['option_name' => Lock::PREFIX . $id, 'option_value' => $lock]);
+
+		$this->job->cancel();
+
+		$this->assertSame('cancelled', $this->job->progress()['state']);
 	}
 
 	public function test_a_job_started_right_after_a_cancel_never_gets_the_images_cancelled()

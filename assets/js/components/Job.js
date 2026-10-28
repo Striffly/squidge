@@ -21,7 +21,16 @@
 
 	class Job extends Component {
 		/** The refresh, by state of the job: none once it ended. */
-		static DELAYS = {running: 500, paused: 5000};
+		static DELAYS = {running: 500, paused: 5000, cancelling: 500};
+
+		/** The states of a job that is not over: its progress shown. */
+		static BUSY = ['running', 'paused', 'cancelling'];
+
+		/**
+		 * The final count stays on the bar this long before
+		 * the result: the one it tells is the one seen last.
+		 */
+		static END_DELAY = 1000;
 
 		/**
 		 * While the job runs, its progress alone is asked
@@ -67,6 +76,8 @@
 			this.seen = false;
 			this.following = false;
 			this.timer = null;
+			// The result of a job that ended, shown after its final count, see end().
+			this.ending = null;
 			// When the counts were last asked, see COUNTS_DELAY.
 			this.counted = 0;
 			// When the request of the answer shown was sent, see latest(); and the one starting the job.
@@ -107,7 +118,7 @@
 		}
 
 		async refresh() {
-			const light = this.state === 'running' && Date.now() - this.counted < Job.COUNTS_DELAY;
+			const light = ['running', 'cancelling'].includes(this.state) && Date.now() - this.counted < Job.COUNTS_DELAY;
 			const sent = performance.now();
 			const response = await this.view.api.post('octopus_job_status', light ? {light: '1'} : {});
 			if (!response.success) {
@@ -179,6 +190,7 @@
 			// Sent right after: followed from the click, its end told even if it comes first, e.g. cancelled at once.
 			this.starting = performance.now();
 			this.following = true;
+			clearTimeout(this.ending);
 			this.started = new Promise((resolve) => {
 				this.settleStart = resolve;
 			});
@@ -236,19 +248,22 @@
 		 */
 		render({job, counts, savings}) {
 			this.counted = Date.now();
-			this.state = ['running', 'paused'].includes(job?.state) ? job.state : 'idle';
+			this.state = Job.BUSY.includes(job?.state) ? job.state : 'idle';
 			const busy = this.state !== 'idle';
 			this.seen ||= busy;
 			this.counts = {...counts, new: counts['to-optimise'] + counts.error};
 
 			this.el.hidden = false;
-			this.el.dataset.state = this.state;
 			if (busy) {
+				clearTimeout(this.ending);
+				this.el.dataset.state = this.state;
 				this.following = true;
 				this.showProgress(job);
 			} else if (this.following && ['finished', 'cancelled'].includes(job?.state)) {
 				this.following = false;
-				this.showResult(job);
+				this.end(job);
+			} else {
+				this.el.dataset.state = this.state;
 			}
 
 			this.view.emit('job:status', {counts: this.counts, savings, busy, seen: this.seen, allOptimised: this.allOptimised()});
@@ -274,11 +289,28 @@
 				/* translators: 1: the progress, e.g. 3 / 12 images, 2: a number of seconds. */
 				progress = sprintf(_n('%1$s · an image waits for another request, %2$s second at most', '%1$s · an image waits for another request, %2$s seconds at most', job.waiting, 'octopus-image-optimizer'), progress, job.waiting.toLocaleString());
 			}
-			const doing = job.state === 'paused'
-				? __('Paused:', 'octopus-image-optimizer')
-				: `${Job.TEXTS[job.action]?.label ?? __('Processing', 'octopus-image-optimizer')}…`;
+			const cancelling = __('Cancelling…', 'octopus-image-optimizer');
+			const doing = {paused: __('Paused:', 'octopus-image-optimizer'), cancelling, cancelled: cancelling}[job.state]
+				?? `${Job.TEXTS[job.action]?.label ?? __('Processing', 'octopus-image-optimizer')}…`;
 			this.label.textContent = `${doing} ${progress}`;
 			this.dismiss();
+		}
+
+		/**
+		 * Shows the final count of a job that ended on its
+		 * bar, without its controls, then its result: a job
+		 * cancelled stays greyed, as while cancelling.
+		 *
+		 * @param {Object} job
+		 */
+		end(job) {
+			this.el.dataset.state = job.state === 'cancelled' ? 'cancelling' : 'ending';
+			this.showProgress(job);
+			clearTimeout(this.ending);
+			this.ending = setTimeout(() => {
+				this.el.dataset.state = 'idle';
+				this.showResult(job);
+			}, Job.END_DELAY);
 		}
 
 		/**
@@ -359,6 +391,7 @@
 		destroy() {
 			super.destroy();
 			clearTimeout(this.timer);
+			clearTimeout(this.ending);
 		}
 	}
 

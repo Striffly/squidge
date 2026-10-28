@@ -145,10 +145,11 @@ class Job extends Background
 
 	/**
 	 * Returns the progress of the last job, with its
-	 * state: running, paused, finished or cancelled,
-	 * and the seconds an image may still wait for
-	 * another request holding it (waiting, 0 if none).
-	 * Null if no job ever ran.
+	 * state: running, paused, cancelling (its worker
+	 * ending the image it was processing), finished or
+	 * cancelled, and the seconds an image may still wait
+	 * for another request holding it (waiting, 0 if
+	 * none). Null if no job ever ran.
 	 *
 	 * @return array|null
 	 * @since 1.0.0
@@ -160,7 +161,9 @@ class Job extends Background
 			return null;
 		}
 		if ($progress['cancelled']) {
-			$progress['state'] = 'cancelled';
+			// The worker ends the image it was processing first, while it refreshes its lock: not one PHP stopped.
+			$age = empty($progress['current']) ? null : Lock::age($progress['current']);
+			$progress['state'] = $age !== null && $age < 2 * Lock::BEAT ? 'cancelling' : 'cancelled';
 		} elseif ($progress['finished']) {
 			$progress['state'] = 'finished';
 		} elseif ($this->is_paused()) {
@@ -189,14 +192,16 @@ class Job extends Background
 		}
 		$counts = ['done' => 1, 'failed' => 0, 'missing' => 0];
 		if (get_post($id)) {
+			// The image in progress, see progress(). Tried again, told as waiting only if still held.
+			$fields = ['current' => $id];
+			if (isset($progress['waiting']['id']) && $progress['waiting']['id'] === $id) {
+				$fields['waiting'] = null;
+			}
+			self::save_progress($progress, [], $fields);
 			if ($progress['action'] === self::OPTIMISE) {
-				// Tried again: told as waiting only if still held.
-				if (isset($progress['waiting']['id']) && $progress['waiting']['id'] === $id) {
-					self::save_progress($progress, [], ['waiting' => null]);
-				}
 				if (Optimiser::optimise($id, $progress['mode'], Optimiser::BACKGROUND) === null) {
 					// Another request processes it: the page tells it waits.
-					self::save_progress($progress, [], ['waiting' => ['id' => $id, 'until' => time() + Lock::left($id)]]);
+					self::save_progress($progress, [], ['current' => null, 'waiting' => ['id' => $id, 'until' => time() + Lock::left($id)]]);
 					return $this->retry($id);
 				}
 				$counts['failed'] = (int)(Status::of($id) === Status::ERROR);
@@ -206,7 +211,7 @@ class Job extends Background
 				$counts['missing'] = (int)(Cleaner::restore($id) === false);
 			}
 		}
-		self::save_progress($progress, $counts);
+		self::save_progress($progress, $counts, ['current' => null]);
 		return false;
 	}
 

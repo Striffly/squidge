@@ -121,10 +121,25 @@ class Lock
 	 */
 	public static function left($id)
 	{
+		$age = self::age($id);
+		return $age === null ? 0 : max(0, (int)ceil(self::TIMEOUT - $age));
+	}
+
+	/**
+	 * Returns the seconds since the lock of an image was
+	 * taken or last refreshed (see beat()), null if it
+	 * is free.
+	 *
+	 * @param int $id
+	 * @return float|null
+	 * @since 1.0.0
+	 */
+	public static function age($id)
+	{
 		global $wpdb;
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery -- See take().
 		$value = $wpdb->get_var($wpdb->prepare("SELECT option_value FROM {$wpdb->options} WHERE option_name = %s", self::PREFIX . (int)$id));
-		return $value === null ? 0 : max(0, (int)ceil((float)$value + self::TIMEOUT - microtime(true)));
+		return $value === null ? null : microtime(true) - (float)$value;
 	}
 
 	/**
