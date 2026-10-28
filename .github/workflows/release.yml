@@ -1,6 +1,6 @@
 # Builds the zip of the plugin and publishes the GitHub release when
 # `bun run release` pushes a version tag, once the tests and Plugin
-# Check pass.
+# Check pass, then deploys it to the SVN of WordPress.org.
 name: Release
 
 on:
@@ -21,6 +21,11 @@ jobs:
   release:
     needs: [tests, plugin-check]
     runs-on: ubuntu-latest
+    # Read by the deploy step: without them, before the plugin is
+    # approved on WordPress.org, it is skipped.
+    env:
+      SVN_USERNAME: ${{ secrets.SVN_USERNAME }}
+      SVN_PASSWORD: ${{ secrets.SVN_PASSWORD }}
     steps:
       - name: Check out
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -69,3 +74,17 @@ jobs:
             --title "Release $TAG" \
             --generate-notes \
             "${prerelease[@]}"
+
+      # trunk and the tag of the version on WordPress.org, from the files
+      # of the zip, and the banners, icons and screenshots of
+      # .wordpress-org/. The pre-releases stay on GitHub.
+      - name: Unzip the plugin
+        if: ${{ env.SVN_USERNAME != '' && !contains(github.ref_name, '-') }}
+        run: unzip -q octopus-image-optimizer.zip -d build
+
+      - name: Deploy to WordPress.org
+        if: ${{ env.SVN_USERNAME != '' && !contains(github.ref_name, '-') }}
+        uses: 10up/action-wordpress-plugin-deploy@54bd289b8525fd23a5c365ec369185f2966529c2 # 2.3.0
+        env:
+          SLUG: octopus-image-optimizer
+          BUILD_DIR: build/octopus-image-optimizer
