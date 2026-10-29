@@ -31,6 +31,7 @@
     "before:init": [
       "bash tools/release/check-ci.sh",
       "bash tools/release/check-notes.sh",
+      "bash tools/release/check-wordpress.sh",
       "bash tools/check-translations.sh"
     ],
     "after:release": [

@@ -76,8 +76,9 @@ Needed: [Composer](https://getcomposer.org/), [Bun](https://bun.sh/), [Node.js](
 `zip`.
 
 Write the notes under `Unreleased` in `CHANGELOG.md` as the changes come: the release writes them in `readme.txt`.
-When a new major WordPress is out, test OIO on it and update `Tested up to:` in `readme.txt`. Then, on `dev` or a
-hotfix branch, once CI passed on it:
+When a new major WordPress is out, have CI test it with
+`composer update roots/wordpress-no-content wp-phpunit/wp-phpunit`, then update `Tested up to:` in `readme.txt`. Then,
+on `dev` or a hotfix branch, once CI passed on it:
 
 ```bash
 bun run release:dry    # What it would do.
