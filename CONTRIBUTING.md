@@ -5,8 +5,17 @@ changes to a pull request.
 
 ## Conventions
 
-Follow the conventions of [CLAUDE.md](CLAUDE.md), e.g. for the commits: in English, the subject starting with a
-[gitmoji](https://gitmoji.dev/) shortcode, then a verb in the imperative.
+### Commits
+
+- In English, the subject starting with a [gitmoji](https://gitmoji.dev/) shortcode, then a verb in the imperative:
+  `:sparkles: Roll the counts during a job`.
+- A description under the subject, after a blank line: what changes and why, in a few sentences.
+
+### Changes
+
+- With each change a user would notice, a note under `## Unreleased` in `CHANGELOG.md`: the release copies the notes
+  to `readme.txt`.
+- `README.md`, and `readme.txt` where it says the same, follow what they describe.
 
 ## Branches
 
