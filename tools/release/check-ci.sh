@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# tools/check-ci.sh
+# tools/release/check-ci.sh
 #
 # Stops a release whose commit is not checked. Run by release-it
 # before anything else, it asks GitHub whether the CI workflow (the
@@ -9,7 +9,7 @@
 
 set -euo pipefail
 
-cd "$(dirname "$0")/.."
+cd "$(dirname "$0")/../.."
 
 # gh picks the parent repository of a fork: name the one of origin.
 repo=$(git remote get-url origin | sed -E 's#^(git@github\.com:|https://github\.com/)##; s#\.git$##')

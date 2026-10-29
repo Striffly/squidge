@@ -1,7 +1,7 @@
 # Runs every check of OIO in parallel: the tests, Plugin Check and the
 # Windows run, each in its own workflow. On each push to main and each
 # pull request, and by the release workflow before it publishes the
-# release: release-it only starts once it passed (tools/check-ci.sh).
+# release: release-it only starts once it passed (tools/release/check-ci.sh).
 name: CI
 
 on:

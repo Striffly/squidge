@@ -27,8 +27,15 @@
     }
   },
   "hooks": {
-    "before:init": ["bash tools/check-ci.sh", "bash tools/check-translations.sh"],
-    "after:release": "git push origin ${version}",
+    "before:init": [
+      "bash tools/release/check-ci.sh",
+      "bash tools/release/check-notes.sh",
+      "bash tools/check-translations.sh"
+    ],
+    "after:release": [
+      "git push origin ${version}",
+      "bash tools/release/open-notes.sh"
+    ],
     "after:bump": [
       "perl -pi -e 's/^Stable tag:.*/Stable tag: ${version}/; s/^= Unreleased =$/= ${version} =/' readme.txt",
       "perl -pi -e \"s/^## Unreleased\\$/## ${version} – $(date +%F)/\" CHANGELOG.md",

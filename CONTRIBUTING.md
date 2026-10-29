@@ -77,7 +77,8 @@ bun run release        # Patch, minor or major.
 bun run release 1.2.0  # A given version, or 1.2.0-beta.1 for a pre-release.
 ```
 
-release-it checks CI and the translations, sets the version everywhere (never by hand), dates the notes, commits,
-tags and pushes. The tag runs CI again, then publishes the zip on GitHub and WordPress.org.
+release-it checks CI, the notes, `Tested up to:` and the translations, sets the version everywhere (never by hand),
+dates the notes, commits, tags and pushes, then opens empty `Unreleased` notes for the next release. The tag runs CI
+again, then publishes the zip on GitHub and WordPress.org.
 
 To build the zip only: `bun install && bun run release:zip`.
