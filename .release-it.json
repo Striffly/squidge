@@ -27,7 +27,7 @@
     }
   },
   "hooks": {
-    "before:init": "bash tools/check-translations.sh",
+    "before:init": ["bash tools/check-ci.sh", "bash tools/check-translations.sh"],
     "after:release": "git push origin ${version}",
     "after:bump": [
       "perl -pi -e 's/^Stable tag:.*/Stable tag: ${version}/; s/^= Unreleased =$/= ${version} =/' readme.txt",

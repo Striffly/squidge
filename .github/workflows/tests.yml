@@ -1,14 +1,10 @@
 # Checks the code with the WordPress Coding Standards, and runs the
 # integration tests on the oldest and the newest PHP version OIO
 # supports, on a single site and on a network, with the libraries
-# installed. Also run by the release workflow before it builds the zip.
+# installed. Run by the CI workflow, or by hand from the Actions tab.
 name: Tests
 
 on:
-  push:
-    branches:
-      - main
-  pull_request:
   workflow_dispatch:
   workflow_call:
 

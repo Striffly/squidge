@@ -15,7 +15,8 @@ Needed: [Composer](https://getcomposer.org/), [Bun](https://bun.sh/), [Node.js](
 
 1. Write the notes of the version in `CHANGELOG.md` and in the Changelog of `readme.txt`, under `Unreleased`, as
    the changes come. When a new WordPress is out, update `Tested up to:` in `readme.txt`. Commit them.
-2. Run release-it:
+2. Push, and wait for the CI workflow to pass on GitHub: the tests, Plugin Check and the Windows run.
+3. Run release-it:
 
    ```bash
    bun run release:dry    # What it would do.
@@ -23,12 +24,12 @@ Needed: [Composer](https://getcomposer.org/), [Bun](https://bun.sh/), [Node.js](
    bun run release 1.2.0  # A given version, or 1.2.0-beta.1 for a pre-release.
    ```
 
-   It checks the translations, writes the version in `package.json`, the header of the plugin, `OCTOPUS_VERSION`,
-   the `Stable tag:` of `readme.txt` and the header of the translations, turns the `Unreleased` titles into the
-   version (dated in `CHANGELOG.md`), commits `:bookmark: Release x.y.z`, tags it and pushes. Never change these
-   numbers by hand.
-3. The tag runs the Release workflow: the tests and Plugin Check, then the zip, the GitHub release, and the deploy
-   to WordPress.org, except for the pre-releases.
+   It stops unless CI passed on the commit pushed, checks the translations, writes the version in
+   `package.json`, the header of the plugin, `OCTOPUS_VERSION`, the `Stable tag:` of `readme.txt` and the header
+   of the translations, turns the `Unreleased` titles into the version (dated in `CHANGELOG.md`), commits
+   `:bookmark: Release x.y.z`, tags it and pushes. Never change these numbers by hand.
+4. The tag runs the Release workflow: CI again, then the zip, the GitHub release, and the deploy to
+   WordPress.org, except for the pre-releases.
 
 To build the zip without releasing:
 

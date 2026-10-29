@@ -9,12 +9,10 @@
 # restore as they were imported.
 name: Windows
 
-# On each release tag, and by hand from the Actions tab.
+# Run by the CI workflow, or by hand from the Actions tab.
 on:
   workflow_dispatch:
-  push:
-    tags:
-      - '[0-9]+.[0-9]+.[0-9]+*'
+  workflow_call:
 
 permissions:
   contents: read

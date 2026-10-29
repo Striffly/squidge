@@ -1,6 +1,6 @@
 # Builds the zip of the plugin and publishes the GitHub release when
-# `bun run release` pushes a version tag, once the tests and Plugin
-# Check pass, then deploys it to the SVN of WordPress.org.
+# `bun run release` pushes a version tag, once the CI workflow passes
+# again on it, then deploys it to the SVN of WordPress.org.
 name: Release
 
 on:
@@ -12,14 +12,11 @@ permissions:
   contents: write
 
 jobs:
-  tests:
-    uses: ./.github/workflows/tests.yml
-
-  plugin-check:
-    uses: ./.github/workflows/plugin-check.yml
+  ci:
+    uses: ./.github/workflows/ci.yml
 
   release:
-    needs: [tests, plugin-check]
+    needs: ci
     runs-on: ubuntu-latest
     # Read by the deploy step: without them, before the plugin is
     # approved on WordPress.org, it is skipped.

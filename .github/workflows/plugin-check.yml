@@ -1,7 +1,6 @@
 # Runs Plugin Check, the checks of the WordPress.org plugin review, on
-# the zip of the release: the files a site gets. Run by the release
-# workflow before it publishes the release, or by hand from the Actions
-# tab, not at each push: it starts a whole WordPress.
+# the zip of the release: the files a site gets. Run by the CI
+# workflow, or by hand from the Actions tab.
 name: Plugin Check
 
 on:
