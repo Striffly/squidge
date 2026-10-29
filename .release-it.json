@@ -8,6 +8,7 @@
     "tagName": null,
     "tagMatch": null,
     "tagAnnotation": "Release ${version}",
+    "pushArgs": [],
     "releaseNotes": null
   },
   "github": {
@@ -27,6 +28,7 @@
   },
   "hooks": {
     "before:init": "bash tools/check-translations.sh",
+    "after:release": "git push origin ${version}",
     "after:bump": [
       "perl -pi -e 's/^Stable tag:.*/Stable tag: ${version}/; s/^= Unreleased =$/= ${version} =/' readme.txt",
       "perl -pi -e \"s/^## Unreleased\\$/## ${version} – $(date +%F)/\" CHANGELOG.md",
