@@ -3,7 +3,7 @@
 # tools/release/sync-changelog.sh
 #
 # Writes the changelog of readme.txt from CHANGELOG.md, the only one
-# written by hand. Run by release-it once the version is set: each
+# written by hand. Run by bump.sh once the version is set: each
 # version of OIO (1.0.0 and later, not the Unreleased notes) becomes a
 # = x.y.z = title, its notes one * line each, as WordPress.org reads
 # them. The versions of Squidge stay in CHANGELOG.md only.
