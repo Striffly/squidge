@@ -8,7 +8,7 @@
  * Author URI:      https://github.com/Striffly
  * Text Domain:     octopus-image-optimizer
  * Domain Path:     /languages
- * Version:         0.1.4
+ * Version:         1.0.0
  * Requires at least: 6.2
  * Requires PHP:    8.2
  * License:         GPLv3 or later
@@ -23,7 +23,7 @@ if (!defined('ABSPATH')) {
 }
 
 // The version of OIO, set by bun run release with the header above.
-define('OCTOPUS_VERSION', '0.1.4');
+define('OCTOPUS_VERSION', '1.0.0');
 define('OCTOPUS_FILE', __FILE__);
 
 require_once __DIR__ . '/autoload.php';

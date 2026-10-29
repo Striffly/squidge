@@ -5,7 +5,7 @@ Tags: webp, avif, image optimization, compress images, performance
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 8.2
-Stable tag: 0.1.4
+Stable tag: 1.0.0
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -118,6 +118,18 @@ Before deactivating, a dialog shows how many images OIO has optimised and the si
 * **Originals out of the web root**: set their folder with the `octopus_backup_dir` filter, before optimising any image. OIO does not move the originals already kept: move the folder yourself when you change it.
 
 == Changelog ==
+
+= 1.0.0 =
+* Renamed to OIO – Octopus Image Optimizer, starting again from Squidge 0.1.4: no migration of its data.
+* The original images are kept in `uploads/octopus/originals-{key}/`, a folder whose URL cannot be guessed, and every optimisation starts again from them.
+* WebP and AVIF files keep the extension of their source (`image.jpg.webp`), in `uploads/octopus/formats/`, and can be served on the site with `<picture>` or rewrite rules.
+* Background optimisation of the media library, with pause and cancel, and re-optimisation when the settings or the thumbnail sizes change.
+* Clean up: remove the WebP and AVIF files, or restore the original images.
+* Status column in the media library and readable error notices.
+* CMYK JPG images, AVIF quality settings, CPU limits adjustable by filters.
+* Colour profiles kept in every format when the colours need them (Display P3, Adobe RGB).
+* WebP and AVIF versions of the photos stored sideways turned the right way up, even where WordPress did not turn them.
+* Requires WordPress 6.2 and PHP 8.2.
 
 The versions of Squidge, before OIO, are in the [full changelog](https://github.com/Striffly/octopus-image-optimizer/blob/main/CHANGELOG.md).
 
