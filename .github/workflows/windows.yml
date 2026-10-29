@@ -181,7 +181,8 @@ jobs:
           $heavier = @(wp eval-file $list)
           $missing = foreach ($image in $images) {
             foreach ($extension in '.webp', '.avif') {
-              $version = $image.FullName + $extension
+              # The same path, in uploads\octopus\formats.
+              $version = (Join-Path $uploads 'octopus\formats') + $image.FullName.Substring($uploads.Length) + $extension
               $relative = $version.Substring($uploads.Length + 1).Replace('\', '/')
               if (-not (Test-Path $version) -and $heavier -notcontains $relative) { $version }
             }
