@@ -30,10 +30,11 @@ fi
 
 composer translations --quiet
 
-# The references (#: file:line) and the dates move without
-# any string changing: a diff of only these is no change,
-# and goes back to what git holds.
-if git diff --quiet -I'^#: ' -I'^"(POT-Creation-Date|PO-Revision-Date): ' -- languages/ \
+# The references (#: file:line), the dates and the version of
+# OIO (set by release-it) move without any string changing: a
+# diff of only these is no change, and goes back to what git
+# holds.
+if git diff --quiet -I'^#: ' -I'^"(POT-Creation-Date|PO-Revision-Date|Project-Id-Version): ' -- languages/ \
 	&& [ -z "$(git ls-files --others --exclude-standard -- languages/)" ]; then
 	git checkout --quiet -- languages/
 elif [ "$stage" -eq 1 ]; then

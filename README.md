@@ -338,8 +338,7 @@ add_filter('octopus_binary_path', function ($path, $name) {
 
 ### Contributing
 
-To build a release zip, run the tests of OIO, update its translations or draw its logo, see
-[CONTRIBUTING.md](CONTRIBUTING.md).
+To release OIO, run its tests, update its translations or draw its logo, see [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## ☕ Support
 

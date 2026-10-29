@@ -119,7 +119,7 @@ Before deactivating, a dialog shows how many images OIO has optimised and the si
 
 == Changelog ==
 
-= 1.0.0 =
+= Unreleased =
 * Renamed to OIO – Octopus Image Optimizer, starting again from Squidge 0.1.4: no migration of its data.
 * The original images are kept in `uploads/octopus/originals-{key}/`, a folder whose URL cannot be guessed, and every optimisation starts again from them.
 * WebP and AVIF files keep the extension of their source (`image.jpg.webp`), in `uploads/octopus/formats/`, and can be served on the site with `<picture>` or rewrite rules.
