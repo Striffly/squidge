@@ -7,15 +7,10 @@
     "tag": true,
     "tagName": null,
     "tagMatch": null,
-    "tagAnnotation": "Release ${version}",
+    "tagAnnotation": "${version}",
     "requireBranch": ["dev", "hotfix/*"],
     "pushArgs": [],
     "releaseNotes": null
-  },
-  "github": {
-    "release": false,
-    "releaseName": "Release ${version}",
-    "preRelease": true
   },
   "npm": {
     "publish": false
