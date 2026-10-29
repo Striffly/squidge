@@ -3,8 +3,9 @@
 # tools/release/check-notes.sh
 #
 # Stops a release that is not ready to read. Run by release-it before
-# anything else, it checks that CHANGELOG.md and readme.txt have notes
-# under Unreleased, and that the Tested up to of readme.txt is the
+# anything else, it checks that CHANGELOG.md has notes under
+# Unreleased (readme.txt gets them at the release, see
+# sync-changelog.sh), and that the Tested up to of readme.txt is the
 # latest major WordPress, which CI tests (WordPress.org warns about a
 # plugin not tested with the latest versions). Needs curl and jq.
 
@@ -25,10 +26,6 @@ notes() {
 
 if [ -z "$(notes CHANGELOG.md '## Unreleased' '^## ')" ]; then
 	echo "CHANGELOG.md: no notes under ## Unreleased." >&2
-	failed=1
-fi
-if [ -z "$(notes readme.txt '= Unreleased =' '^=+ ')" ]; then
-	echo "readme.txt: no notes under = Unreleased =." >&2
 	failed=1
 fi
 

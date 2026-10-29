@@ -8,6 +8,7 @@
     "tagName": null,
     "tagMatch": null,
     "tagAnnotation": "Release ${version}",
+    "requireBranch": ["dev", "hotfix/*"],
     "pushArgs": [],
     "releaseNotes": null
   },
@@ -34,11 +35,13 @@
     ],
     "after:release": [
       "git push origin ${version}",
+      "git push origin HEAD:main",
       "bash tools/release/open-notes.sh"
     ],
     "after:bump": [
-      "perl -pi -e 's/^Stable tag:.*/Stable tag: ${version}/; s/^= Unreleased =$/= ${version} =/' readme.txt",
+      "perl -pi -e 's/^Stable tag:.*/Stable tag: ${version}/' readme.txt",
       "perl -pi -e \"s/^## Unreleased\\$/## ${version} – $(date +%F)/\" CHANGELOG.md",
+      "bash tools/release/sync-changelog.sh",
       "perl -pi -e '/project-id-version/i and s/(?<=Octopus Image Optimizer )\\d[\\w.+-]*/${version}/' languages/*.pot languages/*.po",
       "wp i18n make-mo languages --quiet && wp i18n make-php languages --quiet"
     ]

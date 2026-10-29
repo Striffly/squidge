@@ -8,6 +8,13 @@ changes to a pull request.
 Follow the conventions of [CLAUDE.md](CLAUDE.md), e.g. for the commits: in English, the subject starting with a
 [gitmoji](https://gitmoji.dev/) shortcode, then a verb in the imperative.
 
+## Branches
+
+- `dev`: the work in progress. Every change lands there.
+- `main`: the last release, always on its `:bookmark: Release x.y.z` commit. Only release-it moves it, by
+  fast-forward.
+- `hotfix/x.y.z`: an urgent fix, from `main`, released the same way. Merge it into `dev` afterwards.
+
 ## Tests
 
 The integration tests run on the test suite of WordPress: they upload images and check the files on the disk.
@@ -68,8 +75,9 @@ bun tools/brand/screenshots.js overview.png optimise.png delivery.png settings.p
 Needed: [Composer](https://getcomposer.org/), [Bun](https://bun.sh/), [Node.js](https://nodejs.org/) 22 or later and
 `zip`.
 
-Write the notes under `Unreleased` in `CHANGELOG.md` and `readme.txt` as the changes come. When a new major WordPress
-is out, test OIO on it and update `Tested up to:` in `readme.txt`. Then, once CI passed on `main`:
+Write the notes under `Unreleased` in `CHANGELOG.md` as the changes come: the release writes them in `readme.txt`.
+When a new major WordPress is out, test OIO on it and update `Tested up to:` in `readme.txt`. Then, on `dev` or a
+hotfix branch, once CI passed on it:
 
 ```bash
 bun run release:dry    # What it would do.
@@ -78,7 +86,8 @@ bun run release 1.2.0  # A given version, or 1.2.0-beta.1 for a pre-release.
 ```
 
 release-it checks CI, the notes, `Tested up to:` and the translations, sets the version everywhere (never by hand),
-dates the notes, commits, tags and pushes, then opens empty `Unreleased` notes for the next release. The tag runs CI
-again, then publishes the zip on GitHub and WordPress.org.
+dates the notes and copies them to `readme.txt`, commits, tags and pushes, fast-forwards `main` to the release, then,
+on `dev`, opens an empty `Unreleased` for the next one. The tag runs CI again, then publishes the zip on GitHub and
+WordPress.org.
 
 To build the zip only: `bun install && bun run release:zip`.
